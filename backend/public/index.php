@@ -1,6 +1,7 @@
 <?php
 ini_set('display_errors', '0');
 error_reporting(E_ALL);
+date_default_timezone_set('America/Bogota');
 
 header('Content-Type: application/json; charset=UTF-8');
 header('Access-Control-Allow-Origin: http://localhost:3000');
@@ -26,10 +27,13 @@ require_once __DIR__ . '/../app/Models/UsuarioModel.php';
 require_once __DIR__ . '/../app/Models/ProductoModel.php';
 require_once __DIR__ . '/../app/Models/OfertaModel.php';
 require_once __DIR__ . '/../app/Models/PedidoModel.php';
+require_once __DIR__ . '/../app/Models/ReporteModel.php';
 require_once __DIR__ . '/../app/Controllers/AuthController.php';
 require_once __DIR__ . '/../app/Controllers/ProductoController.php';
 require_once __DIR__ . '/../app/Controllers/OfertaController.php';
 require_once __DIR__ . '/../app/Controllers/PedidoController.php';
+require_once __DIR__ . '/../app/Controllers/UsuarioController.php';
+require_once __DIR__ . '/../app/Controllers/ReporteController.php';
 
 $ruta   = $_GET['ruta'] ?? '';
 $metodo = $_SERVER['REQUEST_METHOD'];
@@ -43,7 +47,9 @@ switch ($modulo) {
         match(true) {
             $metodo === 'POST' && $accion === 'login'    => $ctrl->login(),
             $metodo === 'POST' && $accion === 'registro' => $ctrl->registro(),
+            $metodo === 'POST' && $accion === 'cambiar-password' => $ctrl->cambiarPassword(),
             $metodo === 'GET'  && $accion === 'me'       => $ctrl->me(),
+            $metodo === 'PUT'  && $accion === 'perfil'   => $ctrl->actualizarPerfil(),
             default => ruta404()
         };
         break;
@@ -85,6 +91,32 @@ switch ($modulo) {
         $ctrl = new PedidoController();
         match(true) {
             $metodo === 'GET' && $accion === 'mis-pedidos' => $ctrl->misPedidos(),
+            default => ruta404()
+        };
+        break;
+
+    case 'reportes':
+        $ctrl = new ReporteController();
+        match(true) {
+            $metodo === 'GET' && $accion === ''                     => $ctrl->registros(),
+            $metodo === 'GET' && $accion === 'ventas'               => $ctrl->ventas(),
+            $metodo === 'GET' && $accion === 'productos-mas-vendidos' => $ctrl->productosMasVendidos(),
+            $metodo === 'GET' && $accion === 'pedidos-estado'       => $ctrl->pedidosPorEstado(),
+            $metodo === 'GET' && $accion === 'ingresos'             => $ctrl->ingresos(),
+            default => ruta404()
+        };
+        break;
+
+    case 'usuarios':
+        $ctrl = new UsuarioController();
+        match(true) {
+            $metodo === 'GET'    && $accion === ''                      => $ctrl->listar(),
+            $metodo === 'GET'    && $accion === 'roles'                 => $ctrl->roles(),
+            $metodo === 'POST'   && $accion === ''                      => $ctrl->crear(),
+            $metodo === 'PUT'    && isset($partes[2]) && $partes[2] === 'rol' && is_numeric($accion)
+                                                                     => $ctrl->cambiarRol((int)$accion),
+            $metodo === 'PUT'    && is_numeric($accion)                 => $ctrl->actualizar((int)$accion),
+            $metodo === 'DELETE' && is_numeric($accion)                 => $ctrl->eliminar((int)$accion),
             default => ruta404()
         };
         break;

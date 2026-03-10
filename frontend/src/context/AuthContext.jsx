@@ -31,6 +31,11 @@ export function AuthProvider({ children }) {
     localStorage.setItem("md_usuario", JSON.stringify(nuevoUsuario));
   };
 
+  const actualizarUsuario = (nuevoUsuario) => {
+    setUsuario(nuevoUsuario);
+    localStorage.setItem("md_usuario", JSON.stringify(nuevoUsuario));
+  };
+
   // Cerrar sesión
   const cerrarSesion = () => {
     setToken(null);
@@ -52,6 +57,7 @@ export function AuthProvider({ children }) {
       token,
       cargando,
       iniciarSesion,
+      actualizarUsuario,
       cerrarSesion,
       esAdmin,
       esCliente,

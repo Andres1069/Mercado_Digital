@@ -85,7 +85,7 @@ class OfertaModel {
     }
 
     public function eliminar(int $id): bool {
-        $stmt = $this->db->prepare("UPDATE oferta SET activo = 0 WHERE Cod_Oferta = :id");
+        $stmt = $this->db->prepare("DELETE FROM oferta WHERE Cod_Oferta = :id");
         return $stmt->execute([':id' => $id]);
     }
 }

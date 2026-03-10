@@ -57,7 +57,9 @@ const del  = (ruta)       => request(ruta, { method: "DELETE" });
 export const authService = {
   login:    (correo, contrasena) => post("auth/login",    { correo, contrasena }),
   registro: (datos)              => post("auth/registro", datos),
+  cambiarPassword: (datos)       => post("auth/cambiar-password", datos),
   me:       ()                   => get("auth/me"),
+  actualizarPerfil: (datos)      => put("auth/perfil", datos),
 };
 
 // ── Productos ─────────────────────────────────────────────
@@ -104,6 +106,7 @@ export const pedidoService = {
 
 // ── Reportes ──────────────────────────────────────────────
 export const reporteService = {
+  registros:            ()       => get("reportes"),
   ventas:              ()       => get("reportes/ventas"),
   productosMasVendidos:()       => get("reportes/productos-mas-vendidos"),
   pedidosPorEstado:    ()       => get("reportes/pedidos-estado"),
@@ -123,4 +126,13 @@ export const ofertaService = {
   crear:      (datos)     => post("ofertas", datos),
   actualizar: (id, datos) => put(`ofertas/${id}`, datos),
   eliminar:   (id)        => del(`ofertas/${id}`),
+};
+
+export const usuarioService = {
+  listar:     ()          => get("usuarios"),
+  roles:      ()          => get("usuarios/roles"),
+  crear:      (datos)     => post("usuarios", datos),
+  actualizar: (doc, datos)=> put(`usuarios/${doc}`, datos),
+  cambiarRol: (doc, rolId)=> put(`usuarios/${doc}/rol`, { rol_id: rolId }),
+  eliminar:   (doc)       => del(`usuarios/${doc}`),
 };

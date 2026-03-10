@@ -88,6 +88,70 @@ class AuthController {
         $this->ok(['usuario' => $usuario]);
     }
 
+    // PUT /auth/perfil
+    public function actualizarPerfil(): void {
+        $payload = AuthMiddleware::verify();
+        $doc = (int)$payload['num_documento'];
+        $body = $this->body();
+
+        $usuario = $this->model->findByDocumento($doc);
+        if (!$usuario) {
+            $this->error('Usuario no encontrado.', 404);
+        }
+
+        $requeridos = ['nombre', 'apellido', 'correo'];
+        foreach ($requeridos as $campo) {
+            if (!isset($body[$campo]) || trim((string)$body[$campo]) === '') {
+                $this->error("El campo '$campo' es requerido.", 400);
+            }
+        }
+
+        if (!filter_var($body['correo'], FILTER_VALIDATE_EMAIL)) {
+            $this->error('El correo no tiene un formato valido.', 400);
+        }
+
+        if ($this->model->correoExisteEnOtroUsuario($body['correo'], $doc)) {
+            $this->error('Ya existe otro usuario con ese correo.', 409);
+        }
+
+        $this->model->actualizarPerfil($doc, [
+            'nombre' => trim((string)$body['nombre']),
+            'apellido' => trim((string)$body['apellido']),
+            'correo' => trim((string)$body['correo']),
+            'telefono' => trim((string)($body['telefono'] ?? '')),
+            'barrio' => trim((string)($body['barrio'] ?? '')),
+            'direccion' => trim((string)($body['direccion'] ?? '')),
+        ]);
+
+        $usuarioActualizado = $this->model->findByDocumento($doc);
+        $this->ok(['usuario' => $usuarioActualizado], 'Perfil actualizado correctamente.');
+    }
+
+    // POST /auth/cambiar-password
+    public function cambiarPassword(): void {
+        $body = $this->body();
+
+        if (empty($body['correo']) || empty($body['num_documento']) || empty($body['nueva_contrasena'])) {
+            $this->error('Correo, numero de documento y nueva contrasena son requeridos.', 400);
+        }
+
+        if (!filter_var($body['correo'], FILTER_VALIDATE_EMAIL)) {
+            $this->error('El correo no tiene un formato valido.', 400);
+        }
+
+        if (strlen($body['nueva_contrasena']) < 6) {
+            $this->error('La contrasena debe tener al menos 6 caracteres.', 400);
+        }
+
+        $usuario = $this->model->findByCorreoYDocumento($body['correo'], (int)$body['num_documento']);
+        if (!$usuario) {
+            $this->error('No existe un usuario con ese correo y documento.', 404);
+        }
+
+        $this->model->cambiarPassword((int)$body['num_documento'], $body['nueva_contrasena']);
+        $this->ok([], 'Contrasena actualizada correctamente.');
+    }
+
     private function body(): array {
         return json_decode(file_get_contents('php://input'), true) ?? [];
     }

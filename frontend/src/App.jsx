@@ -12,11 +12,14 @@ import Registro from "./pages/Registro";
 import Tienda from "./pages/Tienda";
 import Carrito from "./pages/Carrito";
 import MisPedidos from "./pages/MisPedidos";
+import Perfil from "./pages/Perfil";
 
 // Paginas admin
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminOfertas from "./pages/admin/AdminOfertas";
 import AdminProductos from "./pages/admin/AdminProductos";
+import AdminUsuarios from "./pages/admin/AdminUsuarios";
+import AdminReportes from "./pages/admin/AdminReportes";
 
 function RutaPrivada({ children }) {
   const { estaLogueado, cargando } = useAuth();
@@ -29,6 +32,14 @@ function RutaAdmin({ children }) {
   if (cargando) return null;
   if (!estaLogueado()) return <Navigate to="/login" />;
   if (!esAdmin() && !esEmpleado()) return <Navigate to="/tienda" />;
+  return children;
+}
+
+function RutaSoloAdmin({ children }) {
+  const { estaLogueado, esAdmin, cargando } = useAuth();
+  if (cargando) return null;
+  if (!estaLogueado()) return <Navigate to="/login" />;
+  if (!esAdmin()) return <Navigate to="/admin/dashboard" />;
   return children;
 }
 
@@ -65,7 +76,7 @@ function AppRoutes() {
       <Route path="/tienda" element={<RutaPrivada><Tienda /></RutaPrivada>} />
       <Route path="/carrito" element={<RutaPrivada><Carrito /></RutaPrivada>} />
       <Route path="/mis-pedidos" element={<RutaPrivada><MisPedidos /></RutaPrivada>} />
-      <Route path="/perfil" element={<RutaPrivada><Proximamente nombre="Mi perfil" /></RutaPrivada>} />
+      <Route path="/perfil" element={<RutaPrivada><Perfil /></RutaPrivada>} />
 
       {/* Admin */}
       <Route path="/admin/dashboard" element={<RutaAdmin><AdminDashboard /></RutaAdmin>} />
@@ -73,8 +84,8 @@ function AppRoutes() {
       <Route path="/admin/ofertas" element={<RutaAdmin><AdminOfertas /></RutaAdmin>} />
       <Route path="/admin/pedidos" element={<RutaAdmin><Proximamente nombre="Gestion de Pedidos" /></RutaAdmin>} />
       <Route path="/admin/inventario" element={<RutaAdmin><Proximamente nombre="Inventario" /></RutaAdmin>} />
-      <Route path="/admin/reportes" element={<RutaAdmin><Proximamente nombre="Reportes" /></RutaAdmin>} />
-      <Route path="/admin/usuarios" element={<RutaAdmin><Proximamente nombre="Gestion de Usuarios" /></RutaAdmin>} />
+      <Route path="/admin/reportes" element={<RutaSoloAdmin><AdminReportes /></RutaSoloAdmin>} />
+      <Route path="/admin/usuarios" element={<RutaSoloAdmin><AdminUsuarios /></RutaSoloAdmin>} />
 
       {/* 404 */}
       <Route

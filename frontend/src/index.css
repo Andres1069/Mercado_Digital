@@ -2,7 +2,96 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Fuente suave global */
+:root {
+  --md-bg: #f7f5ef;
+  --md-surface: #fffdf9;
+  --md-surface-soft: #f2f7f1;
+  --md-border: #dfe7df;
+  --md-text: #1c2430;
+  --md-text-soft: #667085;
+  --md-sage: #A8C898;
+  --md-aqua: #74B495;
+  --md-lavender: #877FD7;
+  --md-accent: linear-gradient(135deg, #74B495 0%, #877FD7 100%);
+  --md-shadow: 0 18px 40px rgba(116, 180, 149, 0.12);
+}
+
+html {
+  background: var(--md-bg);
+}
+
 body {
-  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: var(--md-bg);
+  color: var(--md-text);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+@layer components {
+  .md-app-bg {
+    background:
+      linear-gradient(180deg, rgba(168, 200, 152, 0.12) 0%, rgba(255, 255, 255, 0) 14rem),
+      var(--md-bg);
+  }
+
+  .md-surface {
+    background: var(--md-surface);
+    border: 1px solid var(--md-border);
+    box-shadow: var(--md-shadow);
+  }
+
+  .md-soft-card {
+    background: var(--md-surface-soft);
+    border: 1px solid rgba(116, 180, 149, 0.14);
+  }
+
+  .md-hero-gradient {
+    background: linear-gradient(135deg, #A8C898 0%, #74B495 48%, #877FD7 100%);
+  }
+
+  .md-accent-text {
+    background: var(--md-accent);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .md-btn-primary {
+    background: var(--md-accent);
+    color: white;
+    border: 0;
+  }
+
+  .md-btn-primary:hover {
+    filter: brightness(1.03);
+  }
+
+  .md-btn-secondary {
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(135, 127, 215, 0.22);
+    color: var(--md-text);
+  }
+
+  .md-input {
+    width: 100%;
+    border: 1px solid var(--md-border);
+    background: rgba(255, 255, 255, 0.92);
+    border-radius: 1rem;
+    padding: 0.85rem 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  }
+
+  .md-input:focus {
+    outline: none;
+    border-color: rgba(135, 127, 215, 0.55);
+    box-shadow: 0 0 0 4px rgba(135, 127, 215, 0.14);
+    background: white;
+  }
+
+  .md-title-serif {
+    font-family: Georgia, "Times New Roman", serif;
+  }
 }

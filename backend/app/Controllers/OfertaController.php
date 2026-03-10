@@ -11,7 +11,7 @@ class OfertaController {
         $this->model = new OfertaModel();
     }
 
-    // GET /api/ofertas  (público - solo activas)
+    // GET /api/ofertas  (publico - solo activas)
     public function listar(): void {
         $this->ok(['ofertas' => $this->model->getActivas()]);
     }
@@ -26,9 +26,13 @@ class OfertaController {
     public function crear(): void {
         AuthMiddleware::requireRole(['Administrador']);
         $body = $this->body();
+
         if (empty($body['titulo']) || empty($body['porcentaje_descuento'])) {
-            $this->err('Título y porcentaje son requeridos.', 400);
+            $this->err('Titulo y porcentaje son requeridos.', 400);
         }
+
+        $this->validarFechas($body, false);
+
         $id = $this->model->crear($body);
         $this->ok(['id' => $id], 'Oferta creada.', 201);
     }
@@ -36,7 +40,10 @@ class OfertaController {
     // PUT /api/ofertas/:id  (admin)
     public function actualizar(int $id): void {
         AuthMiddleware::requireRole(['Administrador']);
-        $this->model->actualizar($id, $this->body());
+        $body = $this->body();
+
+        $this->validarFechas($body, true);
+        $this->model->actualizar($id, $body);
         $this->ok([], 'Oferta actualizada.');
     }
 
@@ -44,7 +51,33 @@ class OfertaController {
     public function eliminar(int $id): void {
         AuthMiddleware::requireRole(['Administrador']);
         $this->model->eliminar($id);
-        $this->ok([], 'Oferta desactivada.');
+        $this->ok([], 'Oferta eliminada.');
+    }
+
+    private function validarFechas(array $body, bool $esEdicion): void {
+        if (empty($body['fecha_inicio']) || empty($body['fecha_fin'])) {
+            $this->err('Las fechas de inicio y fin son requeridas.', 400);
+        }
+
+        try {
+            $ahora = new DateTimeImmutable(date('Y-m-d H:i:00'));
+            $inicio = new DateTimeImmutable(str_replace('T', ' ', (string)$body['fecha_inicio']));
+            $fin = new DateTimeImmutable(str_replace('T', ' ', (string)$body['fecha_fin']));
+        } catch (Exception) {
+            $this->err('Las fechas de la oferta no tienen un formato valido.', 400);
+        }
+
+        if ($fin <= $inicio) {
+            $this->err('La fecha fin debe ser mayor que la fecha inicio.', 400);
+        }
+
+        if (!$esEdicion && $inicio < $ahora) {
+            $this->err('No puedes crear ofertas con fecha de inicio en el pasado.', 400);
+        }
+
+        if ($fin < $ahora) {
+            $this->err('No puedes guardar ofertas con fecha fin vencida.', 400);
+        }
     }
 
     private function body(): array {
