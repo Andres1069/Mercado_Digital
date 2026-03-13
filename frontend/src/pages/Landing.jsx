@@ -14,7 +14,7 @@ const categorias = [
 
 const beneficios = [
   { icono: "🚚", titulo: "Entrega agil", desc: "Tu pedido llega rapido, sin vueltas ni procesos confusos." },
-  { icono: "💳", titulo: "Pago simple", desc: "Efectivo, tarjeta y billeteras digitales en un mismo flujo." },
+  { icono: "💳", titulo: "Pago simple", desc: "Efectivo, billeteras digitales en un mismo flujo. (Nequi - Daviplata)" },
   { icono: "🏷️", titulo: "Ofertas reales", desc: "Promociones claras, visibles y faciles de aprovechar." },
   { icono: "🔒", titulo: "Compra segura", desc: "Tu informacion y tus pedidos se mantienen protegidos." },
 ];

@@ -76,14 +76,14 @@ export default function AdminDashboard() {
         productoService.listar(),
         categoriaService.listar(),
         ofertaService.listar(),
-        usuarioService.listar(),
+        usuarioService.stats(),
         reporteService.registros(),
       ]);
 
       const productos = prodsRes.status === "fulfilled" ? (prodsRes.value.productos || []) : [];
       const categorias = catsRes.status === "fulfilled" ? (catsRes.value.categorias || []) : [];
       const ofertas = ofertasRes.status === "fulfilled" ? (ofertasRes.value.ofertas || []) : [];
-      const usuarios = usuariosRes.status === "fulfilled" ? (usuariosRes.value.usuarios || []) : [];
+      const usuariosStats = usuariosRes.status === "fulfilled" ? (usuariosRes.value.stats || {}) : {};
       const reportes = reportesRes.status === "fulfilled" ? (reportesRes.value.reportes || []) : [];
       const bajoStock = productos.filter((p) => Number(p.Cantidad || 0) <= 5).length;
 
@@ -92,7 +92,7 @@ export default function AdminDashboard() {
         categorias: categorias.length,
         ofertasActivas: ofertas.length,
         bajoStock,
-        usuarios: usuarios.length,
+        usuarios: Number(usuariosStats.total || 0),
         reportes: reportes.length,
       });
 

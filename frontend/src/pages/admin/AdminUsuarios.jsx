@@ -3,6 +3,7 @@ import Navbar from "../../components/Navbar";
 import { usuarioService } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 
+// Valores iniciales del formulario (crear/editar).
 const VACIO = {
   num_documento: "",
   nombre: "",
@@ -29,8 +30,11 @@ export default function AdminUsuarios() {
   const [editando, setEditando] = useState(null);
   const [form, setForm] = useState(VACIO);
   const [confirmar, setConfirmar] = useState(null);
+  // Mantiene cambios por fila (rol/estado) sin mutar el array `usuarios`.
   const [rolesPendientes, setRolesPendientes] = useState({});
+  const [estadosPendientes, setEstadosPendientes] = useState({});
 
+  // Carga usuarios y roles en paralelo y prepara mapas por documento para selects.
   const cargarDatos = async () => {
     setCargando(true);
     setError("");
@@ -48,6 +52,9 @@ export default function AdminUsuarios() {
       setRoles(listaRoles);
       setRolesPendientes(
         Object.fromEntries(listaUsuarios.map((item) => [item.Num_Documento, String(item.Id_rol)]))
+      );
+      setEstadosPendientes(
+        Object.fromEntries(listaUsuarios.map((item) => [item.Num_Documento, String(item.estado || "Activo")]))
       );
     } catch (err) {
       setError(err.message || "No se pudieron cargar los usuarios.");
@@ -97,6 +104,7 @@ export default function AdminUsuarios() {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  // Valida campos obligatorios; si está creando, valida contraseña y confirmación.
   const validar = () => {
     if (!form.nombre.trim() || !form.apellido.trim() || !form.correo.trim() || !form.rol_id) {
       return "Nombre, apellido, correo y rol son obligatorios.";
@@ -117,6 +125,7 @@ export default function AdminUsuarios() {
     return "";
   };
 
+  // Crea o actualiza un usuario desde el modal.
   const handleGuardar = async (e) => {
     e.preventDefault();
     setError("");
@@ -161,6 +170,7 @@ export default function AdminUsuarios() {
     }
   };
 
+  // Actualiza el rol desde la tabla (botón Guardar por fila).
   const handleCambioRol = async (doc) => {
     const nuevoRol = Number(rolesPendientes[doc]);
     const actual = usuarios.find((item) => Number(item.Num_Documento) === Number(doc));
@@ -175,6 +185,25 @@ export default function AdminUsuarios() {
       await cargarDatos();
     } catch (err) {
       setError(err.message || "No se pudo cambiar el rol.");
+    }
+  };
+
+  // Actualiza el estado (Activo/Inactivo) sin abrir el modal de edición.
+  const handleCambioEstado = async (doc) => {
+    const nuevoEstado = String(estadosPendientes[doc] || "").trim();
+    const actual = usuarios.find((item) => Number(item.Num_Documento) === Number(doc));
+    const estadoActual = String(actual?.estado || "Activo");
+
+    if (!nuevoEstado || !actual || estadoActual === nuevoEstado) {
+      return;
+    }
+
+    try {
+      await usuarioService.cambiarEstado(doc, nuevoEstado);
+      mostrarNotif("Estado actualizado");
+      await cargarDatos();
+    } catch (err) {
+      setError(err.message || "No se pudo cambiar el estado.");
     }
   };
 
@@ -193,11 +222,13 @@ export default function AdminUsuarios() {
     const q = buscar.trim().toLowerCase();
     if (!q) return usuarios;
 
+    // Filtro simple por coincidencia en los campos más usados.
     return usuarios.filter((item) =>
       String(item.Num_Documento).includes(q) ||
       `${item.Nombre || ""} ${item.Apellido || ""}`.toLowerCase().includes(q) ||
       (item.Correo || "").toLowerCase().includes(q) ||
-      (item.rol || "").toLowerCase().includes(q)
+      (item.rol || "").toLowerCase().includes(q) ||
+      String(item.estado || "").toLowerCase().includes(q)
     );
   }, [buscar, usuarios]);
 
@@ -239,13 +270,13 @@ export default function AdminUsuarios() {
         )}
 
         <div className="relative mb-6">
-          <input
-            type="text"
-            placeholder="Buscar por documento, nombre, correo o rol..."
-            value={buscar}
-            onChange={(e) => setBuscar(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-green-400 bg-white shadow-sm text-sm"
-          />
+            <input
+              type="text"
+              placeholder="Buscar por documento, nombre, correo, rol o estado..."
+              value={buscar}
+              onChange={(e) => setBuscar(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-green-400 bg-white shadow-sm text-sm"
+            />
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -256,6 +287,7 @@ export default function AdminUsuarios() {
                 <th className="px-4 py-3 text-left font-semibold">Usuario</th>
                 <th className="px-4 py-3 text-left font-semibold hidden lg:table-cell">Contacto</th>
                 <th className="px-4 py-3 text-left font-semibold">Rol</th>
+                <th className="px-4 py-3 text-center font-semibold">Estado</th>
                 <th className="px-4 py-3 text-center font-semibold">Acciones</th>
               </tr>
             </thead>
@@ -263,14 +295,14 @@ export default function AdminUsuarios() {
               {cargando ? (
                 [...Array(5)].map((_, i) => (
                   <tr key={i} className="border-t border-gray-50">
-                    <td colSpan={5} className="px-4 py-3">
+                    <td colSpan={6} className="px-4 py-3">
                       <div className="h-4 bg-gray-100 rounded animate-pulse" />
                     </td>
                   </tr>
                 ))
               ) : usuariosFiltrados.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-12 text-center text-gray-400">
+                  <td colSpan={6} className="px-4 py-12 text-center text-gray-400">
                     No se encontraron usuarios
                   </td>
                 </tr>
@@ -317,6 +349,33 @@ export default function AdminUsuarios() {
                           </button>
                         </div>
                         {esPropioUsuario && <p className="text-xs text-gray-400 mt-1">Tu rol no se puede cambiar aqui.</p>}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-center gap-2">
+                          <select
+                            value={estadosPendientes[item.Num_Documento] || "Activo"}
+                            disabled={esPropioUsuario}
+                            onChange={(e) =>
+                              setEstadosPendientes((prev) => ({
+                                ...prev,
+                                [item.Num_Documento]: e.target.value,
+                              }))
+                            }
+                            className="border border-gray-200 rounded-lg px-3 py-2 bg-white text-sm"
+                          >
+                            <option value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
+                          </select>
+                          <button
+                            onClick={() => handleCambioEstado(item.Num_Documento)}
+                            disabled={esPropioUsuario || String(item.estado || "Activo") === String(estadosPendientes[item.Num_Documento] || "Activo")}
+                            className="px-3 py-2 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
+                            style={{ backgroundColor: "#74B495" }}
+                          >
+                            Guardar
+                          </button>
+                        </div>
+                        {esPropioUsuario && <p className="text-xs text-gray-400 mt-1 text-center">Tu estado no se puede cambiar aqui.</p>}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-center gap-2">

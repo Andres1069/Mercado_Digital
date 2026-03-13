@@ -5,6 +5,8 @@ require_once __DIR__ . '/../Middleware/AuthMiddleware.php';
 
 class UsuarioController {
     private UsuarioModel $model;
+    // Estados soportados para el usuario (cuenta).
+    private const ESTADOS_VALIDOS = ['Activo', 'Inactivo'];
 
     public function __construct() {
         $this->model = new UsuarioModel();
@@ -18,6 +20,24 @@ class UsuarioController {
     public function roles(): void {
         AuthMiddleware::requireRole(['Administrador']);
         $this->ok(['roles' => $this->model->getRoles()]);
+    }
+
+    // GET /usuarios/stats
+    // Usado por el dashboard para mostrar conteos sin traer toda la lista.
+    public function stats(): void {
+        AuthMiddleware::requireRole(['Administrador', 'Empleado']);
+
+        $total = $this->model->contarUsuarios();
+        $activos = $this->model->contarUsuariosPorEstado('Activo');
+        $inactivos = $this->model->contarUsuariosPorEstado('Inactivo');
+
+        $this->ok([
+            'stats' => [
+                'total' => $total,
+                'activos' => $activos,
+                'inactivos' => $inactivos,
+            ],
+        ]);
     }
 
     public function crear(): void {
@@ -118,6 +138,36 @@ class UsuarioController {
 
         $this->model->actualizarRol($doc, (int)$body['rol_id']);
         $this->ok(['usuario' => $this->model->findByDocumento($doc)], 'Rol actualizado correctamente.');
+    }
+
+    public function cambiarEstado(int $doc): void {
+        $payload = AuthMiddleware::requireRole(['Administrador']);
+        $body = $this->body();
+
+        if (!$this->model->soportaEstado()) {
+            $this->error("La base de datos no tiene la columna Estado en la tabla usuario. Ejecuta: ALTER TABLE usuario ADD COLUMN Estado varchar(20) NOT NULL DEFAULT 'Activo';", 409);
+        }
+
+        $estado = trim((string)($body['estado'] ?? ''));
+        if ($estado === '') {
+            $this->error('El estado es requerido.', 400);
+        }
+
+        if (!in_array($estado, self::ESTADOS_VALIDOS, true)) {
+            $this->error('Estado no valido. Usa: Activo o Inactivo.', 400);
+        }
+
+        if ((int)$payload['num_documento'] === $doc) {
+            $this->error('No puedes cambiar tu propio estado mientras tienes la sesion activa.', 409);
+        }
+
+        $usuario = $this->model->findByDocumento($doc);
+        if (!$usuario) {
+            $this->error('Usuario no encontrado.', 404);
+        }
+
+        $this->model->actualizarEstado($doc, $estado);
+        $this->ok(['usuario' => $this->model->findByDocumento($doc)], 'Estado actualizado correctamente.');
     }
 
     public function eliminar(int $doc): void {

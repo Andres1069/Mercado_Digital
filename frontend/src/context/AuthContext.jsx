@@ -3,6 +3,7 @@
 // Guarda el usuario y token en memoria + localStorage
 
 import { createContext, useContext, useState, useEffect } from "react";
+import { authService } from "../services/api";
 
 const AuthContext = createContext(null);
 
@@ -11,17 +12,68 @@ export function AuthProvider({ children }) {
   const [token, setToken]     = useState(null);
   const [cargando, setCargando] = useState(true); // Mientras verifica sesión guardada
 
-  // Al arrancar la app, revisar si hay sesión guardada
+  // Al arrancar la app:
+  // 1) Carga sesion local (localStorage)
+  // 2) Valida el token contra la API (/auth/me) para evitar "sesiones fantasma"
+  //    (por ejemplo, si el backend invalida la sesion por inicio en otro dispositivo).
   useEffect(() => {
-    const tokenGuardado   = localStorage.getItem("md_token");
-    const usuarioGuardado = localStorage.getItem("md_usuario");
+    let cancelado = false;
 
-    if (tokenGuardado && usuarioGuardado) {
+    const inicializar = async () => {
+      const tokenGuardado   = localStorage.getItem("md_token");
+      const usuarioGuardado = localStorage.getItem("md_usuario");
+
+      if (!tokenGuardado || !usuarioGuardado) {
+        if (!cancelado) setCargando(false);
+        return;
+      }
+
       setToken(tokenGuardado);
       setUsuario(JSON.parse(usuarioGuardado));
-    }
-    setCargando(false);
+
+      try {
+        const res = await authService.me();
+        const u = res.usuario || null;
+        if (!cancelado) {
+          setUsuario(u);
+          localStorage.setItem("md_usuario", JSON.stringify(u));
+        }
+      } catch {
+        if (!cancelado) {
+          setToken(null);
+          setUsuario(null);
+          localStorage.removeItem("md_token");
+          localStorage.removeItem("md_usuario");
+        }
+      } finally {
+        if (!cancelado) setCargando(false);
+      }
+    };
+
+    inicializar();
+    return () => { cancelado = true; };
   }, []);
+
+  // Heartbeat: valida periodicamente la sesion para expulsar al usuario si inicia sesion en otro dispositivo.
+  useEffect(() => {
+    if (!token) return;
+
+    const id = setInterval(async () => {
+      try {
+        const res = await authService.me();
+        const u = res.usuario || null;
+        setUsuario(u);
+        localStorage.setItem("md_usuario", JSON.stringify(u));
+      } catch {
+        setToken(null);
+        setUsuario(null);
+        localStorage.removeItem("md_token");
+        localStorage.removeItem("md_usuario");
+      }
+    }, 45000);
+
+    return () => clearInterval(id);
+  }, [token]);
 
   // Guardar sesión tras login exitoso
   const iniciarSesion = (nuevoToken, nuevoUsuario) => {

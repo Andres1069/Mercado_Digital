@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Servidor: 127.0.0.1
--- Tiempo de generación: 03-03-2026 a las 02:30:11
--- Versión del servidor: 10.4.32-MariaDB
--- Versión de PHP: 8.2.12
+-- Host: 127.0.0.1
+-- Generation Time: Mar 14, 2026 at 12:48 AM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,13 +18,13 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de datos: `mercado_digital`
+-- Database: `mercado_digital`
 --
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `carrito`
+-- Table structure for table `carrito`
 --
 
 CREATE TABLE `carrito` (
@@ -37,7 +37,7 @@ CREATE TABLE `carrito` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Volcado de datos para la tabla `carrito`
+-- Dumping data for table `carrito`
 --
 
 INSERT INTO `carrito` (`Cod_Carrito`, `Fecha_creacion`, `Fecha_modificacion`, `Cantidad_articulos`, `Total`, `Num_Documento`) VALUES
@@ -50,10 +50,12 @@ INSERT INTO `carrito` (`Cod_Carrito`, `Fecha_creacion`, `Fecha_modificacion`, `C
 (7, '2025-11-23 14:02:15', '2025-11-23 14:41:27', 1, 11500, 1087456398),
 (8, '2025-11-23 14:02:15', '2025-11-23 14:41:27', 3, 14900, 1047852361),
 (9, '2025-11-23 14:02:15', '2025-11-23 14:41:27', 2, 8100, 1058965213),
-(10, '2025-11-23 14:02:15', '2025-11-23 14:41:27', 1, 5200, 1023654781);
+(10, '2025-11-23 14:02:15', '2025-11-23 14:41:27', 1, 5200, 1023654781),
+(11, '2026-03-03 12:42:52', '2026-03-03 12:42:52', 0, 0, 1069582666),
+(12, '2026-03-11 18:51:37', '2026-03-11 18:51:37', 0, 0, 1000349255);
 
 --
--- Disparadores `carrito`
+-- Triggers `carrito`
 --
 DELIMITER $$
 CREATE TRIGGER `tr_un_carrito_por_usuario` BEFORE INSERT ON `carrito` FOR EACH ROW BEGIN
@@ -74,7 +76,7 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `carrito_item`
+-- Table structure for table `carrito_item`
 --
 
 CREATE TABLE `carrito_item` (
@@ -86,7 +88,7 @@ CREATE TABLE `carrito_item` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Volcado de datos para la tabla `carrito_item`
+-- Dumping data for table `carrito_item`
 --
 
 INSERT INTO `carrito_item` (`Cod_carrito_item`, `Cantidad`, `Precio`, `Cod_producto`, `Cod_carrito`) VALUES
@@ -112,7 +114,7 @@ INSERT INTO `carrito_item` (`Cod_carrito_item`, `Cantidad`, `Precio`, `Cod_produ
 (20, 1, 5200, 10, 10);
 
 --
--- Disparadores `carrito_item`
+-- Triggers `carrito_item`
 --
 DELIMITER $$
 CREATE TRIGGER `tr_actualizar_carrito` AFTER INSERT ON `carrito_item` FOR EACH ROW UPDATE carrito c
@@ -135,7 +137,7 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `categoria`
+-- Table structure for table `categoria`
 --
 
 CREATE TABLE `categoria` (
@@ -144,7 +146,7 @@ CREATE TABLE `categoria` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Volcado de datos para la tabla `categoria`
+-- Dumping data for table `categoria`
 --
 
 INSERT INTO `categoria` (`Cod_Categoria`, `Nombre`) VALUES
@@ -162,7 +164,7 @@ INSERT INTO `categoria` (`Cod_Categoria`, `Nombre`) VALUES
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `detalle_pedido`
+-- Table structure for table `detalle_pedido`
 --
 
 CREATE TABLE `detalle_pedido` (
@@ -175,7 +177,7 @@ CREATE TABLE `detalle_pedido` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Volcado de datos para la tabla `detalle_pedido`
+-- Dumping data for table `detalle_pedido`
 --
 
 INSERT INTO `detalle_pedido` (`Id_Detalle_Pedido`, `Cantidad`, `Precio_unitario`, `Subtotal`, `Cod_Pedido`, `Cod_Producto`) VALUES
@@ -221,7 +223,7 @@ INSERT INTO `detalle_pedido` (`Id_Detalle_Pedido`, `Cantidad`, `Precio_unitario`
 (40, 1, 5200, 5200, 35, 10);
 
 --
--- Disparadores `detalle_pedido`
+-- Triggers `detalle_pedido`
 --
 DELIMITER $$
 CREATE TRIGGER `tr_bajar_inventario` AFTER INSERT ON `detalle_pedido` FOR EACH ROW UPDATE inventario 
@@ -233,7 +235,7 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `detalle_reporte`
+-- Table structure for table `detalle_reporte`
 --
 
 CREATE TABLE `detalle_reporte` (
@@ -243,7 +245,7 @@ CREATE TABLE `detalle_reporte` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Volcado de datos para la tabla `detalle_reporte`
+-- Dumping data for table `detalle_reporte`
 --
 
 INSERT INTO `detalle_reporte` (`Id_Detalle`, `Tipo_Entidad`, `Cod_Reporte`) VALUES
@@ -321,7 +323,7 @@ INSERT INTO `detalle_reporte` (`Id_Detalle`, `Tipo_Entidad`, `Cod_Reporte`) VALU
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `domicilio`
+-- Table structure for table `domicilio`
 --
 
 CREATE TABLE `domicilio` (
@@ -332,7 +334,7 @@ CREATE TABLE `domicilio` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Volcado de datos para la tabla `domicilio`
+-- Dumping data for table `domicilio`
 --
 
 INSERT INTO `domicilio` (`Cod_Domicilio`, `Fecha`, `Estado`, `Cod_Usuario_Pedido`) VALUES
@@ -360,7 +362,7 @@ INSERT INTO `domicilio` (`Cod_Domicilio`, `Fecha`, `Estado`, `Cod_Usuario_Pedido
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `inventario`
+-- Table structure for table `inventario`
 --
 
 CREATE TABLE `inventario` (
@@ -374,7 +376,7 @@ CREATE TABLE `inventario` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Volcado de datos para la tabla `inventario`
+-- Dumping data for table `inventario`
 --
 
 INSERT INTO `inventario` (`Cod_Inventario`, `Stock`, `Registrar_Entradas`, `Registrar_Salidas`, `Fecha_Actualizacion`, `Novedades`, `Cod_Producto`) VALUES
@@ -392,7 +394,25 @@ INSERT INTO `inventario` (`Cod_Inventario`, `Stock`, `Registrar_Entradas`, `Regi
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `pago`
+-- Table structure for table `oferta`
+--
+
+CREATE TABLE `oferta` (
+  `Cod_Oferta` int(11) NOT NULL,
+  `Titulo` varchar(120) NOT NULL,
+  `Descripcion` varchar(255) DEFAULT NULL,
+  `Porcentaje_Descuento` int(11) NOT NULL,
+  `Fecha_Inicio` datetime NOT NULL,
+  `Fecha_Fin` datetime NOT NULL,
+  `activo` tinyint(1) NOT NULL DEFAULT 1,
+  `Cod_Producto` int(11) DEFAULT NULL,
+  `imagen_banner` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `pago`
 --
 
 CREATE TABLE `pago` (
@@ -405,7 +425,7 @@ CREATE TABLE `pago` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Volcado de datos para la tabla `pago`
+-- Dumping data for table `pago`
 --
 
 INSERT INTO `pago` (`Cod_Pago`, `Metodo_Pago`, `Fecha_Pago`, `Monto_Pago`, `Cod_pedido`, `Estado_Pago`) VALUES
@@ -433,7 +453,7 @@ INSERT INTO `pago` (`Cod_Pago`, `Metodo_Pago`, `Fecha_Pago`, `Monto_Pago`, `Cod_
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `pedido`
+-- Table structure for table `pedido`
 --
 
 CREATE TABLE `pedido` (
@@ -444,7 +464,7 @@ CREATE TABLE `pedido` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Volcado de datos para la tabla `pedido`
+-- Dumping data for table `pedido`
 --
 
 INSERT INTO `pedido` (`Cod_Pedido`, `Fecha_Pedido`, `Estado_Pedido`, `Cod_Carrito`) VALUES
@@ -472,7 +492,7 @@ INSERT INTO `pedido` (`Cod_Pedido`, `Fecha_Pedido`, `Estado_Pedido`, `Cod_Carrit
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `persona`
+-- Table structure for table `persona`
 --
 
 CREATE TABLE `persona` (
@@ -489,25 +509,27 @@ CREATE TABLE `persona` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Volcado de datos para la tabla `persona`
+-- Dumping data for table `persona`
 --
 
 INSERT INTO `persona` (`Num_Documento`, `Nombre`, `Apellido`, `ContrasenaHash`, `Telefono`, `Correo`, `Barrio`, `Direccion`, `Id_Rol`, `Id_Usuario`) VALUES
-(1002569841, 'Sofía', 'Herrera', 'hash2', '3114589632', 'sofia@correo.com', 'San José', 'Cll 22 #14-10', 2, 2),
-(1012457896, 'Carlos', 'Gómez', 'hash3', '3124589632', 'carlos@correo.com', 'El Prado', 'Cra 45 #22-60', 2, 3),
-(1023654781, 'Ana', 'Rodríguez', 'hash10', '3194502368', 'ana@correo.com', 'Los Almendros', 'Cll 42 #65-12', 4, 10),
-(1023654789, 'Andrés', 'López', 'hash5', '3147852369', 'andres@correo.com', 'Chicó', 'Cra 82 #20-11', 2, 5),
-(1024587963, 'Juan', 'Mejía', 'hash1', '3102567894', 'juan@correo.com', 'Centro', 'Cra 10 #15-22', 1, 1),
-(1036587421, 'Laura', 'Torres', 'hash4', '3138745210', 'laura@correo.com', 'La Esperanza', 'Cll 50 #8-20', 2, 4),
-(1047852361, 'Marta', 'Salinas', 'hash8', '3174502369', 'marta@correo.com', 'San José', 'Cll 25 #20-15', 3, 8),
-(1058965213, 'Pedro', 'Suárez', 'hash9', '3185201478', 'pedro@correo.com', 'La Playa', 'Cra 58 #32-14', 4, 9),
-(1087456398, 'Ricardo', 'Díaz', 'hash7', '3164781259', 'ricardo@correo.com', 'Centro', 'Cra 6 #18-25', 3, 7),
-(1096587421, 'Camila', 'Pérez', 'hash6', '3158741256', 'camila@correo.com', 'Cedritos', 'Cll 150 #12-05', 2, 6);
+(1000349255, 'Monica Liceth', 'Toloza Corredor', '$2y$10$647xGmrVwiOlDs0GfgYhF.g1g4/m/z5syTITaK4xaVS1YsB127XV.', '3124185287', 'eroteko2@gmail.com', '', '', 2, 12),
+(1002569841, 'Sofía', 'Herrera', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '3114589632', 'sofia@correo.com', 'San José', 'Cll 22 #14-10', 2, 2),
+(1012457896, 'Carlos', 'Gómez', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '3124589632', 'carlos@correo.com', 'El Prado', 'Cra 45 #22-60', 2, 3),
+(1023654781, 'Ana', 'Rodríguez', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '3194502368', 'ana@correo.com', 'Los Almendros', 'Cll 42 #65-12', 4, 10),
+(1023654789, 'Andrés', 'López', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '3147852369', 'andres@correo.com', 'Chicó', 'Cra 82 #20-11', 2, 5),
+(1024587963, 'Juan', 'Mejía', '$2y$10$RbgTeiMMJkOlGMfnKJsHfOldrfF7mayjr5G2oYhBGMTvId39q2Bji', '3102567894', 'juan@correo.com', 'Centro', 'Cra 10 #15-22', 1, 1),
+(1036587421, 'Laura', 'Torres', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '3138745210', 'laura@correo.com', 'La Esperanza', 'Cll 50 #8-20', 2, 4),
+(1047852361, 'Marta', 'Salinas', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '3174502369', 'marta@correo.com', 'San José', 'Cll 25 #20-15', 3, 8),
+(1058965213, 'Pedro', 'Suárez', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '3185201478', 'pedro@correo.com', 'La Playa', 'Cra 58 #32-14', 4, 9),
+(1069582666, 'Raul Andres', 'Gonzalez', '$2y$10$bppJhrkrQRnWQoDMTQNB4uv.rGz9iyPzu5adP8anB5caAu0jpUI7W', '3244314271', 'raul.gonzalez@mercado.digital.com', 'Madrid', 'Cra 20B #4-82', 4, 11),
+(1087456398, 'Ricardo', 'Díaz', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '3164781259', 'ricardo@correo.com', 'Centro', 'Cra 6 #18-25', 3, 7),
+(1096587421, 'Camila', 'Pérez', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '3158741256', 'camila@correo.com', 'Cedritos', 'Cll 150 #12-05', 2, 6);
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `producto`
+-- Table structure for table `producto`
 --
 
 CREATE TABLE `producto` (
@@ -519,29 +541,33 @@ CREATE TABLE `producto` (
   `Descripcion` varchar(150) DEFAULT NULL,
   `Imagen_url` varchar(200) DEFAULT NULL,
   `Cod_Categoria` int(11) DEFAULT NULL,
-  `Cod_Proveedor` int(11) DEFAULT NULL
+  `Cod_Proveedor` int(11) DEFAULT NULL,
+  `Imagen_zoom` decimal(4,2) NOT NULL DEFAULT 1.00,
+  `Imagen_pos_x` decimal(5,2) NOT NULL DEFAULT 50.00,
+  `Imagen_pos_y` decimal(5,2) NOT NULL DEFAULT 50.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Volcado de datos para la tabla `producto`
+-- Dumping data for table `producto`
 --
 
-INSERT INTO `producto` (`Cod_Producto`, `Nombre`, `Precio`, `Cantidad`, `Fecha_vencimiento`, `Descripcion`, `Imagen_url`, `Cod_Categoria`, `Cod_Proveedor`) VALUES
-(1, 'Leche Alquería 1L', 3800, 150, '2026-02-15', 'Leche entera 1L', 'leche.jpg', 2, 1),
-(2, 'Pan Tajado Bimbo', 6200, 200, '2025-12-20', 'Pan tajado familiar', 'pan.jpg', 3, 3),
-(3, 'Galletas Festival', 4800, 300, '2026-03-10', 'Galletas dulces', 'festival.jpg', 6, 4),
-(4, 'Aceite Premier 1L', 10500, 180, '2026-01-05', 'Aceite vegetal', 'aceite.jpg', 8, 5),
-(5, 'Harina Levapan 1Kg', 5200, 120, '2026-04-01', 'Harina de trigo', 'harina.jpg', 5, 7),
-(6, 'Zucaritas 300g', 11500, 90, '2026-05-12', 'Cereal zucaritas', 'zucaritas.jpg', 7, 6),
-(7, 'Yogurt Alquería Fresa', 3200, 250, '2025-12-15', 'Yogurt sabor fresa', 'yogurt.jpg', 2, 1),
-(8, 'Gaseosa Manzana 1.5L', 4300, 210, '2026-02-10', 'Manzana Postobón', 'manzana.jpg', 4, 2),
-(9, 'Chocolate Corona', 8900, 160, '2026-04-30', 'Chocolate en polvo', 'corona.jpg', 9, 8),
-(10, 'Margarina La Fina 500g', 5200, 140, '2025-12-28', 'Margarina de mesa', 'lafina.jpg', 8, 5);
+INSERT INTO `producto` (`Cod_Producto`, `Nombre`, `Precio`, `Cantidad`, `Fecha_vencimiento`, `Descripcion`, `Imagen_url`, `Cod_Categoria`, `Cod_Proveedor`, `Imagen_zoom`, `Imagen_pos_x`, `Imagen_pos_y`) VALUES
+(1, 'Leche Alquería 1L', 3800, 150, '2026-02-15', 'Leche entera 1L', 'https://s3.amazonaws.com/coreecommerce.imagenes/uploads/html/81931_h1.jpg', 2, 1, 1.00, 50.00, 50.00),
+(2, 'Pan Tajado Bimbo', 6200, 200, '2025-12-20', 'Pan tajado familiar', 'https://exitocol.vteximg.com.br/arquivos/ids/25464115/Pan-tajado-Actidefensis-BIMBO-730-gr-3107865_a.jpg?v=638666269327730000', 3, 3, 1.00, 50.00, 50.00),
+(3, 'Galletas Festival', 4800, 300, '2026-03-10', 'Galletas dulces', 'https://mercasur.com.co/rails/active_storage/blobs/proxy/eyJfcmFpbHMiOnsiZGF0YSI6NTAxMjYxLCJwdXIiOiJibG9iX2lkIn19--a59e7e3f4e559f3a7184e2e6242e72afbca2ee09/7702025103744-1.jpg?locale=es', 6, 4, 1.00, 50.00, 50.00),
+(4, 'Aceite Premier 1L', 10500, 180, '2026-01-05', 'Aceite vegetal', 'https://gldosas.com/wp-content/uploads/2024/03/Aceite-Vegetal-de-Soya-Orlandesa-1000-ml.jpeg', 8, 5, 1.00, 0.00, 0.00),
+(5, 'Harina Pan 1Kg', 5200, 120, '2026-04-01', 'Harina de trigo', 'https://olimpica.vtexassets.com/arquivos/ids/685195/7702084137520.jpg?v=637684581490100000', 5, 7, 1.00, 50.00, 50.00),
+(6, 'Zucaritas 300g', 11500, 90, '2026-05-12', 'Cereal zucaritas', 'https://arteli.vtexassets.com/arquivos/ids/244532/7501008042946_00.jpg?v=638635767517130000', 7, 6, 1.00, 50.00, 50.00),
+(7, 'Yogurt Alquería Fresa', 3200, 250, '2025-12-15', 'Yogurt sabor fresa', 'https://www.fonalcanzar.com/wp-content/uploads/2022/07/yogurt-fresa-.png', 2, 1, 1.00, 50.00, 50.00),
+(8, 'Gaseosa Manzana 1.5L', 4300, 210, '2026-02-10', 'Manzana Postobón', 'https://infonutricional.tomatelavida.com.co/wp-content/uploads/2023/06/MANZANA_postobon_250ML-ret-2.png', 4, 2, 1.00, 50.00, 50.00),
+(9, 'Chocolate Corona', 8900, 160, '2026-04-30', 'Chocolate en polvo', 'https://vaquitaexpress.com.co/media/catalog/product/cache/e89ece728e3939ca368b457071d3c0be/7/7/7702007083354.jpg', 9, 8, 1.00, 50.00, 50.00),
+(10, 'Margarina La Fina 500g', 5200, 140, '2025-12-28', 'Margarina de mesa', 'https://web.superboom.net/web/image/product.product/35639/image_1024/%5B002436%5D%20Margarina%20Barra%20La%20Fina%20500Gr?unique=b509d77', 8, 5, 1.00, 50.00, 50.00),
+(11, 'Galletas ', 8000, 1, '2025-06-09', 'Galletas jajaj', 'https://exitocol.vtexassets.com/arquivos/ids/29101190/Galleta-Dedito-647090_a.jpg?v=638881159129900000', 8, 5, 1.00, 50.00, 50.00);
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `proveedor`
+-- Table structure for table `proveedor`
 --
 
 CREATE TABLE `proveedor` (
@@ -552,7 +578,7 @@ CREATE TABLE `proveedor` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Volcado de datos para la tabla `proveedor`
+-- Dumping data for table `proveedor`
 --
 
 INSERT INTO `proveedor` (`Cod_Proveedor`, `Nombre_proveedor`, `Telefono_proveedor`, `Correo_proveedor`) VALUES
@@ -570,7 +596,7 @@ INSERT INTO `proveedor` (`Cod_Proveedor`, `Nombre_proveedor`, `Telefono_proveedo
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `reporte`
+-- Table structure for table `reporte`
 --
 
 CREATE TABLE `reporte` (
@@ -582,7 +608,7 @@ CREATE TABLE `reporte` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Volcado de datos para la tabla `reporte`
+-- Dumping data for table `reporte`
 --
 
 INSERT INTO `reporte` (`Cod_Reporte`, `Fecha_Reporte`, `Tipo_reporte`, `Descripcion`, `Num_Documento`) VALUES
@@ -620,7 +646,7 @@ INSERT INTO `reporte` (`Cod_Reporte`, `Fecha_Reporte`, `Tipo_reporte`, `Descripc
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `rol_usuario`
+-- Table structure for table `rol_usuario`
 --
 
 CREATE TABLE `rol_usuario` (
@@ -629,7 +655,7 @@ CREATE TABLE `rol_usuario` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Volcado de datos para la tabla `rol_usuario`
+-- Dumping data for table `rol_usuario`
 --
 
 INSERT INTO `rol_usuario` (`Id_rol`, `nombre_rol`) VALUES
@@ -641,34 +667,38 @@ INSERT INTO `rol_usuario` (`Id_rol`, `nombre_rol`) VALUES
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `usuario`
+-- Table structure for table `usuario`
 --
 
 CREATE TABLE `usuario` (
   `Id_usuario` int(11) NOT NULL,
-  `Id_Rol` int(11) DEFAULT NULL
+  `Id_Rol` int(11) DEFAULT NULL,
+  `Estado` varchar(20) NOT NULL DEFAULT 'Activo',
+  `SesionId` varchar(64) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Volcado de datos para la tabla `usuario`
+-- Dumping data for table `usuario`
 --
 
-INSERT INTO `usuario` (`Id_usuario`, `Id_Rol`) VALUES
-(1, 1),
-(2, 2),
-(3, 2),
-(4, 2),
-(5, 2),
-(6, 2),
-(7, 3),
-(8, 3),
-(9, 4),
-(10, 4);
+INSERT INTO `usuario` (`Id_usuario`, `Id_Rol`, `Estado`, `SesionId`) VALUES
+(1, 1, 'Activo', 'e8f0da9815a62ae526f80090708199882e8209b2d2ec3f78'),
+(2, 2, 'Activo', NULL),
+(3, 2, 'Activo', NULL),
+(4, 2, 'Activo', NULL),
+(5, 2, 'Activo', NULL),
+(6, 2, 'Activo', NULL),
+(7, 3, 'Activo', NULL),
+(8, 3, 'Activo', NULL),
+(9, 4, 'Activo', NULL),
+(10, 4, 'Activo', NULL),
+(11, 4, 'Activo', '59fb1e79ccebffa98ecd606f416e09045eeedbdba62cb45c'),
+(12, 2, 'Activo', NULL);
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `usuario_pedido`
+-- Table structure for table `usuario_pedido`
 --
 
 CREATE TABLE `usuario_pedido` (
@@ -678,7 +708,7 @@ CREATE TABLE `usuario_pedido` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Volcado de datos para la tabla `usuario_pedido`
+-- Dumping data for table `usuario_pedido`
 --
 
 INSERT INTO `usuario_pedido` (`Cod_usuario_pedido`, `Num_Documento`, `Cod_pedido`) VALUES
@@ -706,8 +736,8 @@ INSERT INTO `usuario_pedido` (`Cod_usuario_pedido`, `Num_Documento`, `Cod_pedido
 -- --------------------------------------------------------
 
 --
--- Estructura Stand-in para la vista `vista_carritos_resumen`
--- (Véase abajo para la vista actual)
+-- Stand-in structure for view `vista_carritos_resumen`
+-- (See below for the actual view)
 --
 CREATE TABLE `vista_carritos_resumen` (
 `Cod_Carrito` int(11)
@@ -721,8 +751,8 @@ CREATE TABLE `vista_carritos_resumen` (
 -- --------------------------------------------------------
 
 --
--- Estructura Stand-in para la vista `vista_pedidos_completos`
--- (Véase abajo para la vista actual)
+-- Stand-in structure for view `vista_pedidos_completos`
+-- (See below for the actual view)
 --
 CREATE TABLE `vista_pedidos_completos` (
 `Cod_Pedido` int(11)
@@ -742,8 +772,8 @@ CREATE TABLE `vista_pedidos_completos` (
 -- --------------------------------------------------------
 
 --
--- Estructura Stand-in para la vista `vista_productos_mas_vendidos`
--- (Véase abajo para la vista actual)
+-- Stand-in structure for view `vista_productos_mas_vendidos`
+-- (See below for the actual view)
 --
 CREATE TABLE `vista_productos_mas_vendidos` (
 `Cod_Producto` int(11)
@@ -754,7 +784,7 @@ CREATE TABLE `vista_productos_mas_vendidos` (
 -- --------------------------------------------------------
 
 --
--- Estructura para la vista `vista_carritos_resumen`
+-- Structure for view `vista_carritos_resumen`
 --
 DROP TABLE IF EXISTS `vista_carritos_resumen`;
 
@@ -763,7 +793,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 -- --------------------------------------------------------
 
 --
--- Estructura para la vista `vista_pedidos_completos`
+-- Structure for view `vista_pedidos_completos`
 --
 DROP TABLE IF EXISTS `vista_pedidos_completos`;
 
@@ -772,25 +802,25 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 -- --------------------------------------------------------
 
 --
--- Estructura para la vista `vista_productos_mas_vendidos`
+-- Structure for view `vista_productos_mas_vendidos`
 --
 DROP TABLE IF EXISTS `vista_productos_mas_vendidos`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vista_productos_mas_vendidos`  AS SELECT `pr`.`Cod_Producto` AS `Cod_Producto`, `pr`.`Nombre` AS `Nombre`, sum(`dp`.`Cantidad`) AS `Total_Vendido` FROM (`producto` `pr` left join `detalle_pedido` `dp` on(`dp`.`Cod_Producto` = `pr`.`Cod_Producto`)) GROUP BY `pr`.`Cod_Producto`, `pr`.`Nombre` ORDER BY sum(`dp`.`Cantidad`) DESC ;
 
 --
--- Índices para tablas volcadas
+-- Indexes for dumped tables
 --
 
 --
--- Indices de la tabla `carrito`
+-- Indexes for table `carrito`
 --
 ALTER TABLE `carrito`
   ADD PRIMARY KEY (`Cod_Carrito`),
   ADD KEY `Num_Documento` (`Num_Documento`);
 
 --
--- Indices de la tabla `carrito_item`
+-- Indexes for table `carrito_item`
 --
 ALTER TABLE `carrito_item`
   ADD PRIMARY KEY (`Cod_carrito_item`),
@@ -798,13 +828,13 @@ ALTER TABLE `carrito_item`
   ADD KEY `Cod_carrito` (`Cod_carrito`);
 
 --
--- Indices de la tabla `categoria`
+-- Indexes for table `categoria`
 --
 ALTER TABLE `categoria`
   ADD PRIMARY KEY (`Cod_Categoria`);
 
 --
--- Indices de la tabla `detalle_pedido`
+-- Indexes for table `detalle_pedido`
 --
 ALTER TABLE `detalle_pedido`
   ADD PRIMARY KEY (`Id_Detalle_Pedido`),
@@ -812,42 +842,49 @@ ALTER TABLE `detalle_pedido`
   ADD KEY `Cod_Producto` (`Cod_Producto`);
 
 --
--- Indices de la tabla `detalle_reporte`
+-- Indexes for table `detalle_reporte`
 --
 ALTER TABLE `detalle_reporte`
   ADD PRIMARY KEY (`Id_Detalle`),
   ADD KEY `Cod_Reporte` (`Cod_Reporte`);
 
 --
--- Indices de la tabla `domicilio`
+-- Indexes for table `domicilio`
 --
 ALTER TABLE `domicilio`
   ADD PRIMARY KEY (`Cod_Domicilio`),
   ADD KEY `Cod_Usuario_Pedido` (`Cod_Usuario_Pedido`);
 
 --
--- Indices de la tabla `inventario`
+-- Indexes for table `inventario`
 --
 ALTER TABLE `inventario`
   ADD PRIMARY KEY (`Cod_Inventario`),
   ADD KEY `Cod_Producto` (`Cod_Producto`);
 
 --
--- Indices de la tabla `pago`
+-- Indexes for table `oferta`
+--
+ALTER TABLE `oferta`
+  ADD PRIMARY KEY (`Cod_Oferta`),
+  ADD KEY `idx_oferta_producto` (`Cod_Producto`);
+
+--
+-- Indexes for table `pago`
 --
 ALTER TABLE `pago`
   ADD PRIMARY KEY (`Cod_Pago`),
   ADD KEY `Cod_pedido` (`Cod_pedido`);
 
 --
--- Indices de la tabla `pedido`
+-- Indexes for table `pedido`
 --
 ALTER TABLE `pedido`
   ADD PRIMARY KEY (`Cod_Pedido`),
   ADD KEY `Cod_Carrito` (`Cod_Carrito`);
 
 --
--- Indices de la tabla `persona`
+-- Indexes for table `persona`
 --
 ALTER TABLE `persona`
   ADD PRIMARY KEY (`Num_Documento`),
@@ -855,7 +892,7 @@ ALTER TABLE `persona`
   ADD KEY `Id_Usuario` (`Id_Usuario`);
 
 --
--- Indices de la tabla `producto`
+-- Indexes for table `producto`
 --
 ALTER TABLE `producto`
   ADD PRIMARY KEY (`Cod_Producto`),
@@ -863,33 +900,33 @@ ALTER TABLE `producto`
   ADD KEY `Cod_Proveedor` (`Cod_Proveedor`);
 
 --
--- Indices de la tabla `proveedor`
+-- Indexes for table `proveedor`
 --
 ALTER TABLE `proveedor`
   ADD PRIMARY KEY (`Cod_Proveedor`);
 
 --
--- Indices de la tabla `reporte`
+-- Indexes for table `reporte`
 --
 ALTER TABLE `reporte`
   ADD PRIMARY KEY (`Cod_Reporte`),
   ADD KEY `Num_Documento` (`Num_Documento`);
 
 --
--- Indices de la tabla `rol_usuario`
+-- Indexes for table `rol_usuario`
 --
 ALTER TABLE `rol_usuario`
   ADD PRIMARY KEY (`Id_rol`);
 
 --
--- Indices de la tabla `usuario`
+-- Indexes for table `usuario`
 --
 ALTER TABLE `usuario`
   ADD PRIMARY KEY (`Id_usuario`),
   ADD KEY `Id_Rol` (`Id_Rol`);
 
 --
--- Indices de la tabla `usuario_pedido`
+-- Indexes for table `usuario_pedido`
 --
 ALTER TABLE `usuario_pedido`
   ADD PRIMARY KEY (`Cod_usuario_pedido`),
@@ -897,181 +934,193 @@ ALTER TABLE `usuario_pedido`
   ADD KEY `Cod_pedido` (`Cod_pedido`);
 
 --
--- AUTO_INCREMENT de las tablas volcadas
+-- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT de la tabla `carrito`
+-- AUTO_INCREMENT for table `carrito`
 --
 ALTER TABLE `carrito`
-  MODIFY `Cod_Carrito` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `Cod_Carrito` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
--- AUTO_INCREMENT de la tabla `carrito_item`
+-- AUTO_INCREMENT for table `carrito_item`
 --
 ALTER TABLE `carrito_item`
   MODIFY `Cod_carrito_item` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
--- AUTO_INCREMENT de la tabla `categoria`
+-- AUTO_INCREMENT for table `categoria`
 --
 ALTER TABLE `categoria`
   MODIFY `Cod_Categoria` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
--- AUTO_INCREMENT de la tabla `detalle_pedido`
+-- AUTO_INCREMENT for table `detalle_pedido`
 --
 ALTER TABLE `detalle_pedido`
   MODIFY `Id_Detalle_Pedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
--- AUTO_INCREMENT de la tabla `detalle_reporte`
+-- AUTO_INCREMENT for table `detalle_reporte`
 --
 ALTER TABLE `detalle_reporte`
   MODIFY `Id_Detalle` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=93;
 
 --
--- AUTO_INCREMENT de la tabla `domicilio`
+-- AUTO_INCREMENT for table `domicilio`
 --
 ALTER TABLE `domicilio`
   MODIFY `Cod_Domicilio` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
--- AUTO_INCREMENT de la tabla `inventario`
+-- AUTO_INCREMENT for table `inventario`
 --
 ALTER TABLE `inventario`
   MODIFY `Cod_Inventario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
--- AUTO_INCREMENT de la tabla `pago`
+-- AUTO_INCREMENT for table `oferta`
+--
+ALTER TABLE `oferta`
+  MODIFY `Cod_Oferta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `pago`
 --
 ALTER TABLE `pago`
   MODIFY `Cod_Pago` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
--- AUTO_INCREMENT de la tabla `pedido`
+-- AUTO_INCREMENT for table `pedido`
 --
 ALTER TABLE `pedido`
   MODIFY `Cod_Pedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
--- AUTO_INCREMENT de la tabla `producto`
+-- AUTO_INCREMENT for table `producto`
 --
 ALTER TABLE `producto`
-  MODIFY `Cod_Producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `Cod_Producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
--- AUTO_INCREMENT de la tabla `proveedor`
+-- AUTO_INCREMENT for table `proveedor`
 --
 ALTER TABLE `proveedor`
   MODIFY `Cod_Proveedor` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
--- AUTO_INCREMENT de la tabla `reporte`
+-- AUTO_INCREMENT for table `reporte`
 --
 ALTER TABLE `reporte`
   MODIFY `Cod_Reporte` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
--- AUTO_INCREMENT de la tabla `rol_usuario`
+-- AUTO_INCREMENT for table `rol_usuario`
 --
 ALTER TABLE `rol_usuario`
   MODIFY `Id_rol` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- AUTO_INCREMENT de la tabla `usuario`
+-- AUTO_INCREMENT for table `usuario`
 --
 ALTER TABLE `usuario`
-  MODIFY `Id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `Id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
--- AUTO_INCREMENT de la tabla `usuario_pedido`
+-- AUTO_INCREMENT for table `usuario_pedido`
 --
 ALTER TABLE `usuario_pedido`
   MODIFY `Cod_usuario_pedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
--- Restricciones para tablas volcadas
+-- Constraints for dumped tables
 --
 
 --
--- Filtros para la tabla `carrito`
+-- Constraints for table `carrito`
 --
 ALTER TABLE `carrito`
   ADD CONSTRAINT `carrito_ibfk_1` FOREIGN KEY (`Num_Documento`) REFERENCES `persona` (`Num_Documento`);
 
 --
--- Filtros para la tabla `carrito_item`
+-- Constraints for table `carrito_item`
 --
 ALTER TABLE `carrito_item`
   ADD CONSTRAINT `carrito_item_ibfk_1` FOREIGN KEY (`Cod_producto`) REFERENCES `producto` (`Cod_Producto`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `carrito_item_ibfk_2` FOREIGN KEY (`Cod_carrito`) REFERENCES `carrito` (`Cod_Carrito`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `detalle_pedido`
+-- Constraints for table `detalle_pedido`
 --
 ALTER TABLE `detalle_pedido`
   ADD CONSTRAINT `detalle_pedido_ibfk_1` FOREIGN KEY (`Cod_Pedido`) REFERENCES `pedido` (`Cod_Pedido`) ON UPDATE CASCADE,
   ADD CONSTRAINT `detalle_pedido_ibfk_2` FOREIGN KEY (`Cod_Producto`) REFERENCES `producto` (`Cod_Producto`) ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `detalle_reporte`
+-- Constraints for table `detalle_reporte`
 --
 ALTER TABLE `detalle_reporte`
   ADD CONSTRAINT `detalle_reporte_ibfk_1` FOREIGN KEY (`Cod_Reporte`) REFERENCES `reporte` (`Cod_Reporte`) ON DELETE CASCADE;
 
 --
--- Filtros para la tabla `domicilio`
+-- Constraints for table `domicilio`
 --
 ALTER TABLE `domicilio`
   ADD CONSTRAINT `domicilio_ibfk_1` FOREIGN KEY (`Cod_Usuario_Pedido`) REFERENCES `usuario_pedido` (`Cod_usuario_pedido`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `inventario`
+-- Constraints for table `inventario`
 --
 ALTER TABLE `inventario`
   ADD CONSTRAINT `inventario_ibfk_1` FOREIGN KEY (`Cod_Producto`) REFERENCES `producto` (`Cod_Producto`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `pago`
+-- Constraints for table `oferta`
+--
+ALTER TABLE `oferta`
+  ADD CONSTRAINT `fk_oferta_producto` FOREIGN KEY (`Cod_Producto`) REFERENCES `producto` (`Cod_Producto`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
+-- Constraints for table `pago`
 --
 ALTER TABLE `pago`
   ADD CONSTRAINT `pago_ibfk_1` FOREIGN KEY (`Cod_pedido`) REFERENCES `pedido` (`Cod_Pedido`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `pedido`
+-- Constraints for table `pedido`
 --
 ALTER TABLE `pedido`
   ADD CONSTRAINT `pedido_ibfk_1` FOREIGN KEY (`Cod_Carrito`) REFERENCES `carrito` (`Cod_Carrito`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `persona`
+-- Constraints for table `persona`
 --
 ALTER TABLE `persona`
   ADD CONSTRAINT `persona_ibfk_1` FOREIGN KEY (`Id_Rol`) REFERENCES `rol_usuario` (`Id_rol`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `persona_ibfk_2` FOREIGN KEY (`Id_Usuario`) REFERENCES `usuario` (`Id_usuario`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `producto`
+-- Constraints for table `producto`
 --
 ALTER TABLE `producto`
   ADD CONSTRAINT `producto_ibfk_1` FOREIGN KEY (`Cod_Categoria`) REFERENCES `categoria` (`Cod_Categoria`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `producto_ibfk_2` FOREIGN KEY (`Cod_Proveedor`) REFERENCES `proveedor` (`Cod_Proveedor`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `reporte`
+-- Constraints for table `reporte`
 --
 ALTER TABLE `reporte`
   ADD CONSTRAINT `reporte_ibfk_1` FOREIGN KEY (`Num_Documento`) REFERENCES `persona` (`Num_Documento`);
 
 --
--- Filtros para la tabla `usuario`
+-- Constraints for table `usuario`
 --
 ALTER TABLE `usuario`
   ADD CONSTRAINT `usuario_ibfk_1` FOREIGN KEY (`Id_Rol`) REFERENCES `rol_usuario` (`Id_rol`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `usuario_pedido`
+-- Constraints for table `usuario_pedido`
 --
 ALTER TABLE `usuario_pedido`
   ADD CONSTRAINT `usuario_pedido_ibfk_1` FOREIGN KEY (`Num_Documento`) REFERENCES `persona` (`Num_Documento`),

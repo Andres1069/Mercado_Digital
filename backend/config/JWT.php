@@ -10,11 +10,12 @@ class JWT {
     /**
      * Genera un token JWT
      */
-    public static function generate(array $payload): string {
+    public static function generate(array $payload, ?int $expireSeconds = null): string {
         $header = base64_encode(json_encode(['alg' => 'HS256', 'typ' => 'JWT']));
 
         $payload['iat'] = time();
-        $payload['exp'] = time() + (self::$expireHours * 3600);
+        $ttl = $expireSeconds ?? (self::$expireHours * 3600);
+        $payload['exp'] = time() + $ttl;
 
         $payload64  = base64_encode(json_encode($payload));
         $signature  = hash_hmac('sha256', "$header.$payload64", self::$secretKey);

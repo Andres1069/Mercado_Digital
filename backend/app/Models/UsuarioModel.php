@@ -3,15 +3,79 @@ require_once __DIR__ . '/../../config/Database.php';
 
 class UsuarioModel {
     private PDO $db;
+    private bool $tieneEstado = false;
+    private bool $tieneSesionId = false;
 
     public function __construct() {
         $this->db = (new Database())->getConnection();
+        $this->tieneEstado = $this->verificarColumnaEstado();
+        $this->tieneSesionId = $this->verificarColumnaSesionId();
+    }
+
+    public function soportaEstado(): bool {
+        return $this->tieneEstado;
+    }
+
+    public function soportaSesionId(): bool {
+        return $this->tieneSesionId;
+    }
+
+    // Conteo total de usuarios (para dashboard).
+    public function contarUsuarios(): int {
+        return (int)$this->db->query("SELECT COUNT(*) FROM usuario")->fetchColumn();
+    }
+
+    // Conteo por estado. Si la BD no soporta Estado, asume todo Activo.
+    public function contarUsuariosPorEstado(string $estado): int {
+        if (!$this->tieneEstado) {
+            return $estado === 'Activo' ? $this->contarUsuarios() : 0;
+        }
+
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM usuario WHERE Estado = :estado");
+        $stmt->execute([':estado' => $estado]);
+        return (int)$stmt->fetchColumn();
+    }
+
+    private function verificarColumnaEstado(): bool {
+        // Compatibilidad: si la BD aún no tiene `usuario.Estado`, no debe romper listados/login.
+        try {
+            $stmt = $this->db->prepare(
+                "SELECT COUNT(*)
+                 FROM INFORMATION_SCHEMA.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME = 'usuario'
+                   AND COLUMN_NAME = 'Estado'"
+            );
+            $stmt->execute();
+            return (int)$stmt->fetchColumn() > 0;
+        } catch (Throwable $e) {
+            return false;
+        }
+    }
+
+    private function verificarColumnaSesionId(): bool {
+        // Compatibilidad: si la BD aun no tiene `usuario.SesionId`, no debe romper listados/login.
+        try {
+            $stmt = $this->db->prepare(
+                "SELECT COUNT(*)
+                 FROM INFORMATION_SCHEMA.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME = 'usuario'
+                   AND COLUMN_NAME = 'SesionId'"
+            );
+            $stmt->execute();
+            return (int)$stmt->fetchColumn() > 0;
+        } catch (Throwable $e) {
+            return false;
+        }
     }
 
     public function findByCorreo(string $correo): ?array {
+        $selectEstado = $this->tieneEstado ? "u.Estado AS estado" : "'Activo' AS estado";
+        $selectSesion = $this->tieneSesionId ? "u.SesionId AS sesion_id" : "NULL AS sesion_id";
         $sql = "SELECT p.Num_Documento, p.Nombre, p.Apellido, p.Correo,
                     p.ContrasenaHash, p.Telefono, p.Barrio, p.Direccion,
-                    r.nombre_rol AS rol, u.Id_usuario
+                    r.nombre_rol AS rol, u.Id_usuario, $selectEstado, $selectSesion
                 FROM persona p
                 INNER JOIN usuario u ON u.Id_usuario = p.Id_Usuario
                 INNER JOIN rol_usuario r ON r.Id_rol = u.Id_Rol
@@ -22,9 +86,11 @@ class UsuarioModel {
     }
 
     public function findByDocumento(int $doc): ?array {
+        $selectEstado = $this->tieneEstado ? "u.Estado AS estado" : "'Activo' AS estado";
+        $selectSesion = $this->tieneSesionId ? "u.SesionId AS sesion_id" : "NULL AS sesion_id";
         $sql = "SELECT p.Num_Documento, p.Nombre, p.Apellido, p.Correo,
                     p.Telefono, p.Barrio, p.Direccion,
-                    r.nombre_rol AS rol, r.Id_rol, u.Id_usuario
+                    r.nombre_rol AS rol, r.Id_rol, u.Id_usuario, $selectEstado, $selectSesion
                 FROM persona p
                 INNER JOIN usuario u ON u.Id_usuario = p.Id_Usuario
                 INNER JOIN rol_usuario r ON r.Id_rol = u.Id_Rol
@@ -35,9 +101,11 @@ class UsuarioModel {
     }
 
     public function findByCorreoYDocumento(string $correo, int $doc): ?array {
+        $selectEstado = $this->tieneEstado ? "u.Estado AS estado" : "'Activo' AS estado";
+        $selectSesion = $this->tieneSesionId ? "u.SesionId AS sesion_id" : "NULL AS sesion_id";
         $sql = "SELECT p.Num_Documento, p.Nombre, p.Apellido, p.Correo,
                     p.ContrasenaHash, p.Telefono, p.Barrio, p.Direccion,
-                    r.nombre_rol AS rol, u.Id_usuario
+                    r.nombre_rol AS rol, u.Id_usuario, $selectEstado, $selectSesion
                 FROM persona p
                 INNER JOIN usuario u ON u.Id_usuario = p.Id_Usuario
                 INNER JOIN rol_usuario r ON r.Id_rol = u.Id_Rol
@@ -112,14 +180,79 @@ class UsuarioModel {
     }
 
     public function getAll(): array {
+        $selectEstado = $this->tieneEstado ? "u.Estado AS estado" : "'Activo' AS estado";
         return $this->db->query(
             "SELECT p.Num_Documento, p.Nombre, p.Apellido, p.Correo,
                     p.Telefono, p.Barrio, p.Direccion, r.nombre_rol AS rol,
-                    r.Id_rol, u.Id_usuario
+                    r.Id_rol, u.Id_usuario, $selectEstado
              FROM persona p
              INNER JOIN usuario u ON u.Id_usuario = p.Id_Usuario
              INNER JOIN rol_usuario r ON r.Id_rol = u.Id_Rol ORDER BY p.Nombre"
         )->fetchAll();
+    }
+
+    // Lee el estado de la cuenta para invalidar tokens si el usuario fue desactivado.
+    public function obtenerEstadoPorDocumento(int $doc): ?string {
+        if (!$this->tieneEstado) {
+            return 'Activo';
+        }
+        $stmt = $this->db->prepare(
+            "SELECT u.Estado
+             FROM usuario u
+             INNER JOIN persona p ON p.Id_Usuario = u.Id_usuario
+             WHERE p.Num_Documento = :doc
+             LIMIT 1"
+        );
+        $stmt->execute([':doc' => $doc]);
+        $estado = $stmt->fetchColumn();
+        return $estado !== false ? (string)$estado : null;
+    }
+
+    public function obtenerSesionIdPorDocumento(int $doc): ?string {
+        if (!$this->tieneSesionId) {
+            return null;
+        }
+
+        $stmt = $this->db->prepare(
+            "SELECT u.SesionId
+             FROM usuario u
+             INNER JOIN persona p ON p.Id_Usuario = u.Id_usuario
+             WHERE p.Num_Documento = :doc
+             LIMIT 1"
+        );
+        $stmt->execute([':doc' => $doc]);
+        $sid = $stmt->fetchColumn();
+        if ($sid === false || $sid === null) {
+            return null;
+        }
+        $sid = (string)$sid;
+        return $sid !== '' ? $sid : null;
+    }
+
+    public function actualizarSesionId(int $doc, ?string $sid): bool {
+        if (!$this->tieneSesionId) {
+            return false;
+        }
+
+        return $this->db->prepare(
+            "UPDATE usuario u
+             INNER JOIN persona p ON p.Id_Usuario = u.Id_usuario
+             SET u.SesionId = :sid
+             WHERE p.Num_Documento = :doc"
+        )->execute([':sid' => $sid, ':doc' => $doc]);
+    }
+
+    // Cambia el estado (Activo/Inactivo) por documento, sin exponer Id_usuario al frontend.
+    public function actualizarEstado(int $doc, string $estado): bool {
+        if (!$this->tieneEstado) {
+            return false;
+        }
+        return $this->db->prepare(
+            "UPDATE usuario u
+             INNER JOIN persona p ON p.Id_Usuario = u.Id_usuario
+             SET u.Estado = :estado
+             WHERE p.Num_Documento = :doc"
+        )->execute([':estado' => $estado, ':doc' => $doc]);
     }
 
     public function getRoles(): array {

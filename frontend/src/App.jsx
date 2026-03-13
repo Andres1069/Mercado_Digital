@@ -20,6 +20,7 @@ import AdminOfertas from "./pages/admin/AdminOfertas";
 import AdminProductos from "./pages/admin/AdminProductos";
 import AdminUsuarios from "./pages/admin/AdminUsuarios";
 import AdminReportes from "./pages/admin/AdminReportes";
+import RouteTitle from "./components/RouteTitle";
 
 function RutaPrivada({ children }) {
   const { estaLogueado, cargando } = useAuth();
@@ -66,41 +67,44 @@ function Proximamente({ nombre }) {
 
 function AppRoutes() {
   return (
-    <Routes>
-      {/* Publicas */}
-      <Route path="/" element={<RutaSoloPublica><Landing /></RutaSoloPublica>} />
-      <Route path="/login" element={<RutaSoloPublica><Login /></RutaSoloPublica>} />
-      <Route path="/registro" element={<RutaSoloPublica><Registro /></RutaSoloPublica>} />
+    <>
+      <RouteTitle />
+      <Routes>
+        {/* Publicas */}
+        <Route path="/" element={<RutaSoloPublica><Landing /></RutaSoloPublica>} />
+        <Route path="/login" element={<RutaSoloPublica><Login /></RutaSoloPublica>} />
+        <Route path="/registro" element={<RutaSoloPublica><Registro /></RutaSoloPublica>} />
 
-      {/* Cliente */}
-      <Route path="/tienda" element={<RutaPrivada><Tienda /></RutaPrivada>} />
-      <Route path="/carrito" element={<RutaPrivada><Carrito /></RutaPrivada>} />
-      <Route path="/mis-pedidos" element={<RutaPrivada><MisPedidos /></RutaPrivada>} />
-      <Route path="/perfil" element={<RutaPrivada><Perfil /></RutaPrivada>} />
+        {/* Cliente */}
+        <Route path="/tienda" element={<RutaPrivada><Tienda /></RutaPrivada>} />
+        <Route path="/carrito" element={<RutaPrivada><Carrito /></RutaPrivada>} />
+        <Route path="/mis-pedidos" element={<RutaPrivada><MisPedidos /></RutaPrivada>} />
+        <Route path="/perfil" element={<RutaPrivada><Perfil /></RutaPrivada>} />
 
-      {/* Admin */}
-      <Route path="/admin/dashboard" element={<RutaAdmin><AdminDashboard /></RutaAdmin>} />
-      <Route path="/admin/productos" element={<RutaAdmin><AdminProductos /></RutaAdmin>} />
-      <Route path="/admin/ofertas" element={<RutaAdmin><AdminOfertas /></RutaAdmin>} />
-      <Route path="/admin/pedidos" element={<RutaAdmin><Proximamente nombre="Gestion de Pedidos" /></RutaAdmin>} />
-      <Route path="/admin/inventario" element={<RutaAdmin><Proximamente nombre="Inventario" /></RutaAdmin>} />
-      <Route path="/admin/reportes" element={<RutaSoloAdmin><AdminReportes /></RutaSoloAdmin>} />
-      <Route path="/admin/usuarios" element={<RutaSoloAdmin><AdminUsuarios /></RutaSoloAdmin>} />
+        {/* Admin */}
+        <Route path="/admin/dashboard" element={<RutaAdmin><AdminDashboard /></RutaAdmin>} />
+        <Route path="/admin/productos" element={<RutaAdmin><AdminProductos /></RutaAdmin>} />
+        <Route path="/admin/ofertas" element={<RutaAdmin><AdminOfertas /></RutaAdmin>} />
+        <Route path="/admin/pedidos" element={<RutaAdmin><Proximamente nombre="Gestion de Pedidos" /></RutaAdmin>} />
+        <Route path="/admin/inventario" element={<RutaAdmin><Proximamente nombre="Inventario" /></RutaAdmin>} />
+        <Route path="/admin/reportes" element={<RutaSoloAdmin><AdminReportes /></RutaSoloAdmin>} />
+        <Route path="/admin/usuarios" element={<RutaSoloAdmin><AdminUsuarios /></RutaSoloAdmin>} />
 
-      {/* 404 */}
-      <Route
-        path="*"
-        element={
-          <div className="min-h-screen flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-6xl mb-4">404</div>
-              <h2 className="text-2xl font-bold text-gray-700">Pagina no encontrada</h2>
-              <a href="/" className="text-sm mt-4 inline-block" style={{ color: "#74B495" }}>Volver al inicio</a>
+        {/* 404 */}
+        <Route
+          path="*"
+          element={
+            <div className="min-h-screen flex items-center justify-center">
+              <div className="text-center">
+                <div className="text-6xl mb-4">404</div>
+                <h2 className="text-2xl font-bold text-gray-700">Pagina no encontrada</h2>
+                <a href="/" className="text-sm mt-4 inline-block" style={{ color: "#74B495" }}>Volver al inicio</a>
+              </div>
             </div>
-          </div>
-        }
-      />
-    </Routes>
+          }
+        />
+      </Routes>
+    </>
   );
 }
 

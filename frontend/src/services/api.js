@@ -1,5 +1,9 @@
 // frontend/src/services/api.js
-const BASE_URL = "http://localhost/mercado_digital/backend/public";
+// Permite usar la API desde otros dispositivos (ej: celular) sin quedar amarrado a "localhost".
+// Puedes sobrescribirlo con VITE_API_BASE_URL en `.env` si lo necesitas.
+const BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  `${window.location.protocol}//${window.location.hostname}/mercado_digital/backend/public`;
 
 export function resolverImagen(url) {
   if (!url) return "";
@@ -34,6 +38,24 @@ async function request(ruta, opciones = {}) {
     .replace(/\s+/g, " ")
     .trim();
 
+  // Si la API invalida el token (expirado o sesion cerrada), limpiamos la sesion local y forzamos login.
+  if (!res.ok && res.status === 401) {
+    const msg = (data?.message || data?.mensaje || textoLimpio || "").toLowerCase();
+    const debeCerrarSesion =
+      msg.includes("sesion cerrada") ||
+      msg.includes("sesion expirada") ||
+      msg.includes("token inv") ||
+      msg.includes("token requerido");
+
+    if (debeCerrarSesion) {
+      localStorage.removeItem("md_token");
+      localStorage.removeItem("md_usuario");
+      if (!window.location.pathname.startsWith("/login")) {
+        window.location.assign("/login?reason=session");
+      }
+    }
+  }
+
   if (!res.ok) {
     const base = data?.message || data?.mensaje || "";
     const detalle = data?.detail ? ` ${data.detail}` : "";
@@ -58,6 +80,8 @@ export const authService = {
   login:    (correo, contrasena) => post("auth/login",    { correo, contrasena }),
   registro: (datos)              => post("auth/registro", datos),
   cambiarPassword: (datos)       => post("auth/cambiar-password", datos),
+  resetRequest: (correo)         => post("auth/reset-request", { correo }),
+  resetConfirm: (token, nueva_contrasena) => post("auth/reset-confirm", { token, nueva_contrasena }),
   me:       ()                   => get("auth/me"),
   actualizarPerfil: (datos)      => put("auth/perfil", datos),
 };
@@ -130,9 +154,11 @@ export const ofertaService = {
 
 export const usuarioService = {
   listar:     ()          => get("usuarios"),
+  stats:      ()          => get("usuarios/stats"),
   roles:      ()          => get("usuarios/roles"),
   crear:      (datos)     => post("usuarios", datos),
   actualizar: (doc, datos)=> put(`usuarios/${doc}`, datos),
   cambiarRol: (doc, rolId)=> put(`usuarios/${doc}/rol`, { rol_id: rolId }),
+  cambiarEstado: (doc, estado)=> put(`usuarios/${doc}/estado`, { estado }),
   eliminar:   (doc)       => del(`usuarios/${doc}`),
 };

@@ -1,19 +1,17 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { authService } from "../services/api";
 
 const loginInicial = { correo: "", contrasena: "" };
-const resetInicial = {
-  correo: "",
-  num_documento: "",
-  nueva_contrasena: "",
-  confirmar_contrasena: "",
-};
+const resetInicial = { correo: "", token: "", nueva_contrasena: "", confirmar_contrasena: "" };
 
 export default function Login() {
   const { iniciarSesion } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const reason = searchParams.get("reason");
+  const tokenFromUrl = searchParams.get("token") || "";
 
   const [form, setForm] = useState(loginInicial);
   const [formReset, setFormReset] = useState(resetInicial);
@@ -23,9 +21,12 @@ export default function Login() {
   const [cargando, setCargando] = useState(false);
   const [cambiandoPassword, setCambiandoPassword] = useState(false);
   const [mostrarCambioPassword, setMostrarCambioPassword] = useState(false);
+  const [pasoReset, setPasoReset] = useState(tokenFromUrl ? 2 : 1);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
   const handleChangeReset = (e) => setFormReset({ ...formReset, [e.target.name]: e.target.value });
+
+  const resetToken = useMemo(() => formReset.token || tokenFromUrl, [formReset.token, tokenFromUrl]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,26 +50,44 @@ export default function Login() {
     }
   };
 
-  const handleCambioPassword = async (e) => {
+  const handleResetRequest = async (e) => {
     e.preventDefault();
     setErrorReset("");
     setMensajeReset("");
 
+    setCambiandoPassword(true);
+
+    try {
+      const res = await authService.resetRequest(formReset.correo);
+      setMensajeReset(res.message || "Si el correo existe, enviaremos un codigo para restablecer la contrasena.");
+      setPasoReset(2);
+    } catch (err) {
+      setErrorReset(err.message);
+    } finally {
+      setCambiandoPassword(false);
+    }
+  };
+
+  const handleResetConfirm = async (e) => {
+    e.preventDefault();
+    setErrorReset("");
+    setMensajeReset("");
+
+    if (!resetToken) {
+      setErrorReset("Debes ingresar el codigo/token que llego a tu correo.");
+      return;
+    }
     if (formReset.nueva_contrasena !== formReset.confirmar_contrasena) {
       setErrorReset("Las contrasenas no coinciden.");
       return;
     }
 
     setCambiandoPassword(true);
-
     try {
-      const res = await authService.cambiarPassword({
-        correo: formReset.correo,
-        num_documento: formReset.num_documento,
-        nueva_contrasena: formReset.nueva_contrasena,
-      });
+      const res = await authService.resetConfirm(resetToken, formReset.nueva_contrasena);
       setMensajeReset(res.message || "Contrasena actualizada correctamente.");
       setFormReset(resetInicial);
+      setPasoReset(1);
     } catch (err) {
       setErrorReset(err.message);
     } finally {
@@ -113,6 +132,12 @@ export default function Login() {
             </div>
           )}
 
+          {reason === "session" && (
+            <div className="px-4 py-3 rounded-2xl mb-6 text-sm border border-amber-200 bg-amber-50 text-amber-800">
+              Tu sesion fue cerrada porque iniciaste en otro dispositivo (o el token expiro). Inicia sesion nuevamente.
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Correo electronico</label>
@@ -141,6 +166,7 @@ export default function Login() {
                 setMostrarCambioPassword(!mostrarCambioPassword);
                 setErrorReset("");
                 setMensajeReset("");
+                setPasoReset(tokenFromUrl ? 2 : 1);
               }}
               className="w-full text-sm font-semibold text-left md-accent-text"
             >
@@ -148,19 +174,31 @@ export default function Login() {
             </button>
 
             {mostrarCambioPassword && (
-              <form onSubmit={handleCambioPassword} className="space-y-4 mt-4">
+              <div className="space-y-4 mt-4">
                 {errorReset && <div className="px-4 py-3 rounded-2xl text-sm border border-rose-200 bg-rose-50 text-rose-700">{errorReset}</div>}
                 {mensajeReset && <div className="px-4 py-3 rounded-2xl text-sm border border-emerald-200 bg-emerald-50 text-emerald-700">{mensajeReset}</div>}
 
-                <input type="email" name="correo" value={formReset.correo} onChange={handleChangeReset} required placeholder="Correo electronico" className="md-input" />
-                <input type="text" name="num_documento" value={formReset.num_documento} onChange={handleChangeReset} required placeholder="Numero de documento" className="md-input" />
-                <input type="password" name="nueva_contrasena" value={formReset.nueva_contrasena} onChange={handleChangeReset} required minLength={6} placeholder="Nueva contrasena" className="md-input" />
-                <input type="password" name="confirmar_contrasena" value={formReset.confirmar_contrasena} onChange={handleChangeReset} required minLength={6} placeholder="Confirmar contrasena" className="md-input" />
-
-                <button type="submit" disabled={cambiandoPassword} className="w-full text-white font-semibold py-3 rounded-2xl transition disabled:opacity-60" style={{ backgroundColor: "#877FD7" }}>
-                  {cambiandoPassword ? "Actualizando..." : "Actualizar contrasena"}
-                </button>
-              </form>
+                {pasoReset === 1 ? (
+                  <form onSubmit={handleResetRequest} className="space-y-4">
+                    <input type="email" name="correo" value={formReset.correo} onChange={handleChangeReset} required placeholder="Correo electronico" className="md-input" />
+                    <button type="submit" disabled={cambiandoPassword} className="w-full text-white font-semibold py-3 rounded-2xl transition disabled:opacity-60" style={{ backgroundColor: "#877FD7" }}>
+                      {cambiandoPassword ? "Enviando..." : "Enviar codigo al correo"}
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleResetConfirm} className="space-y-4">
+                    <input type="text" name="token" value={formReset.token} onChange={handleChangeReset} required={!tokenFromUrl} placeholder="Codigo/Token (revisa tu correo)" className="md-input" />
+                    <input type="password" name="nueva_contrasena" value={formReset.nueva_contrasena} onChange={handleChangeReset} required minLength={6} placeholder="Nueva contrasena" className="md-input" />
+                    <input type="password" name="confirmar_contrasena" value={formReset.confirmar_contrasena} onChange={handleChangeReset} required minLength={6} placeholder="Confirmar contrasena" className="md-input" />
+                    <button type="submit" disabled={cambiandoPassword} className="w-full text-white font-semibold py-3 rounded-2xl transition disabled:opacity-60" style={{ backgroundColor: "#877FD7" }}>
+                      {cambiandoPassword ? "Actualizando..." : "Actualizar contrasena"}
+                    </button>
+                    <button type="button" onClick={() => setPasoReset(1)} className="w-full text-sm font-semibold text-slate-600 hover:underline">
+                      Volver
+                    </button>
+                  </form>
+                )}
+              </div>
             )}
           </div>
 

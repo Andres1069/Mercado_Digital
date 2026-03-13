@@ -13,6 +13,8 @@ export default function Registro() {
     apellido: "",
     correo: "",
     telefono: "",
+    barrio: "Chicala del Sur",
+    direccion: "",
     contrasena: "",
     confirmar: "",
   });
@@ -42,6 +44,8 @@ export default function Registro() {
         apellido: form.apellido,
         correo: form.correo,
         telefono: form.telefono,
+        barrio: form.barrio,
+        direccion: form.direccion,
         contrasena: form.contrasena,
       });
       iniciarSesion(res.token, res.usuario);
@@ -77,6 +81,13 @@ export default function Registro() {
 
             <input type="email" name="correo" value={form.correo} onChange={handleChange} required placeholder="Correo electronico" className="md-input" />
             <input type="tel" name="telefono" value={form.telefono} onChange={handleChange} placeholder="Telefono" className="md-input" />
+
+            <div className="grid sm:grid-cols-2 gap-4">
+              <select name="barrio" value={form.barrio} onChange={handleChange} required className="md-input">
+                <option value="Chicala del Sur">Chicala del Sur (Bogota)</option>
+              </select>
+              <input type="text" name="direccion" value={form.direccion} onChange={handleChange} required placeholder="Direccion" className="md-input" />
+            </div>
 
             <div className="grid sm:grid-cols-2 gap-4">
               <input type="password" name="contrasena" value={form.contrasena} onChange={handleChange} required placeholder="Contrasena" className="md-input" />

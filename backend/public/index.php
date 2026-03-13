@@ -4,7 +4,18 @@ error_reporting(E_ALL);
 date_default_timezone_set('America/Bogota');
 
 header('Content-Type: application/json; charset=UTF-8');
-header('Access-Control-Allow-Origin: http://localhost:3000');
+// CORS: permite consumir la API desde el dev-server (Vite) en localhost o en la IP local del PC.
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+$originPermitido = false;
+if ($origin) {
+    $originPermitido = (bool)preg_match(
+        '/^http:\/\/(localhost|127\.0\.0\.1|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}):3000$/',
+        $origin
+    );
+}
+
+header('Access-Control-Allow-Origin: ' . ($originPermitido ? $origin : 'http://localhost:3000'));
+header('Vary: Origin');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
@@ -48,6 +59,8 @@ switch ($modulo) {
             $metodo === 'POST' && $accion === 'login'    => $ctrl->login(),
             $metodo === 'POST' && $accion === 'registro' => $ctrl->registro(),
             $metodo === 'POST' && $accion === 'cambiar-password' => $ctrl->cambiarPassword(),
+            $metodo === 'POST' && $accion === 'reset-request' => $ctrl->resetRequest(),
+            $metodo === 'POST' && $accion === 'reset-confirm' => $ctrl->resetConfirm(),
             $metodo === 'GET'  && $accion === 'me'       => $ctrl->me(),
             $metodo === 'PUT'  && $accion === 'perfil'   => $ctrl->actualizarPerfil(),
             default => ruta404()
@@ -112,7 +125,10 @@ switch ($modulo) {
         match(true) {
             $metodo === 'GET'    && $accion === ''                      => $ctrl->listar(),
             $metodo === 'GET'    && $accion === 'roles'                 => $ctrl->roles(),
+            $metodo === 'GET'    && $accion === 'stats'                 => $ctrl->stats(),
             $metodo === 'POST'   && $accion === ''                      => $ctrl->crear(),
+            $metodo === 'PUT'    && isset($partes[2]) && $partes[2] === 'estado' && is_numeric($accion)
+                                                                     => $ctrl->cambiarEstado((int)$accion),
             $metodo === 'PUT'    && isset($partes[2]) && $partes[2] === 'rol' && is_numeric($accion)
                                                                      => $ctrl->cambiarRol((int)$accion),
             $metodo === 'PUT'    && is_numeric($accion)                 => $ctrl->actualizar((int)$accion),
