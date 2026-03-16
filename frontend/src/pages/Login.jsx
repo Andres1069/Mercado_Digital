@@ -123,7 +123,7 @@ export default function Login() {
             <h2 className="text-4xl font-black md-title-serif mt-2">
               <span style={{ color: "#74B495" }}>Bienvenido</span>
             </h2>
-            <p className="text-slate-500 mt-3">Ingresa con tu correo y contrasena.</p>
+            <p className="text-slate-500 mt-3">Ingresa con tu correo y contraseñua.</p>
           </div>
 
           {error && (
@@ -203,7 +203,7 @@ export default function Login() {
           </div>
 
           <p className="text-center text-sm text-slate-500 mt-8">
-            No tienes cuenta?{" "}
+            ¿No tienes cuenta?{" "}
             <Link to="/registro" className="font-semibold md-accent-text">
               Registrate aqui
             </Link>

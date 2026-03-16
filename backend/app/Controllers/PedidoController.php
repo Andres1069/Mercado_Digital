@@ -25,7 +25,7 @@ class PedidoController {
 
     private function ok(array $data, string $msg = 'OK', int $code = 200): never {
         http_response_code($code);
-        echo json_encode(['success' => true, 'message' => $msg, ...$data]);
+        echo json_encode(array_replace(['success' => true, 'message' => $msg], $data));
         exit;
     }
 

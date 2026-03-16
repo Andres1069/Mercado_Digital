@@ -1,13 +1,11 @@
 <?php
 // backend/config/Database.php
-// Clase de conexión a MySQL usando PDO (más seguro que mysqli)
 
 class Database {
-    // ⚠️ Cambia estos valores si los tuyos son diferentes
     private string $host     = 'localhost';
     private string $db_name  = 'mercado_digital';
     private string $username = 'root';
-    private string $password = '';           // XAMPP por defecto no tiene password
+    private string $password = '';        
     private string $charset  = 'utf8mb4';
 
     private ?PDO $connection = null;

@@ -9,7 +9,8 @@ $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $originPermitido = false;
 if ($origin) {
     $originPermitido = (bool)preg_match(
-        '/^http:\/\/(localhost|127\.0\.0\.1|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}):3000$/',
+        // Acepta localhost/127 y rangos privados (para probar desde celular) en cualquier puerto típico de dev.
+        '/^https?:\/\/(localhost|127\.0\.0\.1|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})(:\d{2,5})?$/',
         $origin
     );
 }
@@ -45,6 +46,7 @@ require_once __DIR__ . '/../app/Controllers/OfertaController.php';
 require_once __DIR__ . '/../app/Controllers/PedidoController.php';
 require_once __DIR__ . '/../app/Controllers/UsuarioController.php';
 require_once __DIR__ . '/../app/Controllers/ReporteController.php';
+require_once __DIR__ . '/../app/Controllers/DomicilioController.php';
 
 $ruta   = $_GET['ruta'] ?? '';
 $metodo = $_SERVER['REQUEST_METHOD'];
@@ -137,6 +139,18 @@ switch ($modulo) {
         };
         break;
 
+    case 'domicilio':
+        $ctrl = new DomicilioController();
+        match(true) {
+            $metodo === 'POST' && $accion === 'crear'        => $ctrl->crear(),
+            $metodo === 'GET'  && $accion === 'usuario'      => $ctrl->usuario(),
+            $metodo === 'GET'  && $accion === 'detalle'      => $ctrl->detalle(),
+            $metodo === 'GET'  && $accion === 'cancelar'     => $ctrl->cancelar(),
+            $metodo === 'GET'  && $accion === 'seguimiento'  => $ctrl->seguimiento(),
+            default => ruta404()
+        };
+        break;
+
     case '':
         echo json_encode(['success' => true, 'mensaje' => 'API Mercado Digital v2.0', 'version' => '2.0.0']);
         break;
@@ -150,3 +164,4 @@ function ruta404(): never {
     echo json_encode(['success' => false, 'message' => 'Ruta no encontrada.']);
     exit;
 }
+
