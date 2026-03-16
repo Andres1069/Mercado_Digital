@@ -20,6 +20,7 @@ import AdminOfertas from "./pages/admin/AdminOfertas";
 import AdminProductos from "./pages/admin/AdminProductos";
 import AdminUsuarios from "./pages/admin/AdminUsuarios";
 import AdminReportes from "./pages/admin/AdminReportes";
+import AdminPagos from "./pages/admin/AdminPagos";
 import RouteTitle from "./components/RouteTitle";
 
 function RutaPrivada({ children }) {
@@ -86,6 +87,7 @@ function AppRoutes() {
         <Route path="/admin/productos" element={<RutaAdmin><AdminProductos /></RutaAdmin>} />
         <Route path="/admin/ofertas" element={<RutaAdmin><AdminOfertas /></RutaAdmin>} />
         <Route path="/admin/pedidos" element={<RutaAdmin><Proximamente nombre="Gestion de Pedidos" /></RutaAdmin>} />
+        <Route path="/admin/pagos" element={<RutaAdmin><AdminPagos /></RutaAdmin>} />
         <Route path="/admin/inventario" element={<RutaAdmin><Proximamente nombre="Inventario" /></RutaAdmin>} />
         <Route path="/admin/reportes" element={<RutaSoloAdmin><AdminReportes /></RutaSoloAdmin>} />
         <Route path="/admin/usuarios" element={<RutaSoloAdmin><AdminUsuarios /></RutaSoloAdmin>} />

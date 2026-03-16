@@ -218,6 +218,7 @@ export default function AdminDashboard() {
               <QuickLink to="/admin/productos" titulo="Gestionar productos" detalle="Crear, editar y organizar catalogo" />
               <QuickLink to="/admin/ofertas" titulo="Gestionar ofertas" detalle="Publicar promociones activas" />
               <QuickLink to="/admin/pedidos" titulo="Ver pedidos" detalle="Revisar flujo de compra y despacho" />
+              <QuickLink to="/admin/pagos" titulo="Gestionar pagos" detalle="Validar estados y transacciones" />
               <QuickLink to="/admin/usuarios" titulo="Gestionar usuarios" detalle="Roles, datos y administracion" />
               <QuickLink to="/admin/inventario" titulo="Revisar inventario" detalle="Detectar alertas y reposicion" />
               <QuickLink to="/admin/reportes" titulo="Consultar reportes" detalle="Resumenes y exportaciones" />

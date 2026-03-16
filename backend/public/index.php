@@ -9,7 +9,7 @@ $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $originPermitido = false;
 if ($origin) {
     $originPermitido = (bool)preg_match(
-        '/^http:\/\/(localhost|127\.0\.0\.1|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}):3000$/',
+        '/^http:\/\/(localhost|127\.0\.0\.1|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}):(3000|5173)$/',
         $origin
     );
 }
@@ -38,6 +38,7 @@ require_once __DIR__ . '/../app/Models/UsuarioModel.php';
 require_once __DIR__ . '/../app/Models/ProductoModel.php';
 require_once __DIR__ . '/../app/Models/OfertaModel.php';
 require_once __DIR__ . '/../app/Models/PedidoModel.php';
+require_once __DIR__ . '/../app/Models/PagoModel.php';
 require_once __DIR__ . '/../app/Models/ReporteModel.php';
 require_once __DIR__ . '/../app/Controllers/AuthController.php';
 require_once __DIR__ . '/../app/Controllers/ProductoController.php';
@@ -45,6 +46,8 @@ require_once __DIR__ . '/../app/Controllers/OfertaController.php';
 require_once __DIR__ . '/../app/Controllers/PedidoController.php';
 require_once __DIR__ . '/../app/Controllers/UsuarioController.php';
 require_once __DIR__ . '/../app/Controllers/ReporteController.php';
+require_once __DIR__ . '/../app/Controllers/CarritoController.php';
+require_once __DIR__ . '/../app/Controllers/PagoController.php';
 
 $ruta   = $_GET['ruta'] ?? '';
 $metodo = $_SERVER['REQUEST_METHOD'];
@@ -104,6 +107,19 @@ switch ($modulo) {
         $ctrl = new PedidoController();
         match(true) {
             $metodo === 'GET' && $accion === 'mis-pedidos' => $ctrl->misPedidos(),
+            $metodo === 'POST' && $accion === ''           => $ctrl->crear(),
+            default => ruta404()
+        };
+        break;
+
+    case 'carrito':
+        $ctrl = new CarritoController();
+        match(true) {
+            $metodo === 'GET'    && $accion === ''         => $ctrl->obtener(),
+            $metodo === 'POST'   && $accion === 'agregar'  => $ctrl->agregar(),
+            $metodo === 'DELETE' && $accion === 'vaciar'   => $ctrl->vaciar(),
+            $metodo === 'DELETE' && $accion === 'item' && isset($partes[2]) && is_numeric($partes[2])
+                                                          => $ctrl->quitar((int)$partes[2]),
             default => ruta404()
         };
         break;
@@ -116,6 +132,16 @@ switch ($modulo) {
             $metodo === 'GET' && $accion === 'productos-mas-vendidos' => $ctrl->productosMasVendidos(),
             $metodo === 'GET' && $accion === 'pedidos-estado'       => $ctrl->pedidosPorEstado(),
             $metodo === 'GET' && $accion === 'ingresos'             => $ctrl->ingresos(),
+            default => ruta404()
+        };
+        break;
+
+    case 'pagos':
+        $ctrl = new PagoController();
+        match(true) {
+            $metodo === 'GET' && $accion === ''                     => $ctrl->listar(),
+            $metodo === 'PUT' && is_numeric($accion) && isset($partes[2]) && $partes[2] === 'estado'
+                                                                     => $ctrl->cambiarEstado((int)$accion),
             default => ruta404()
         };
         break;

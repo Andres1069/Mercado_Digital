@@ -23,6 +23,26 @@ class PedidoController {
         $this->ok(['pedidos' => $pedidos]);
     }
 
+    // POST /api/pedidos
+    public function crear(): void {
+        $payload = AuthMiddleware::verify();
+        $doc = (int)($payload['num_documento'] ?? 0);
+        if ($doc <= 0) {
+            $this->err('No se pudo identificar el usuario.', 401);
+        }
+
+        $body = $this->body();
+        $items = $body['items'] ?? [];
+        $metodoPago = trim((string)($body['metodo_pago'] ?? 'Efectivo'));
+
+        $venta = $this->model->crearVenta($doc, $items, $metodoPago);
+        $this->ok(['venta' => $venta], 'Venta registrada.', 201);
+    }
+
+    private function body(): array {
+        return json_decode(file_get_contents('php://input'), true) ?? [];
+    }
+
     private function ok(array $data, string $msg = 'OK', int $code = 200): never {
         http_response_code($code);
         echo json_encode(['success' => true, 'message' => $msg, ...$data]);

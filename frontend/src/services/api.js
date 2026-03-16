@@ -128,6 +128,19 @@ export const pedidoService = {
   cambiarEstado:(id, estado)    => put(`pedidos/${id}/estado`, { estado }),
 };
 
+// ── Pagos ───────────────────────────────────────────────────────────
+export const pagoService = {
+  listar: (filtros = {}) => {
+    const params = new URLSearchParams();
+    if (filtros.estado) params.append("estado", filtros.estado);
+    if (filtros.desde) params.append("desde", filtros.desde);
+    if (filtros.hasta) params.append("hasta", filtros.hasta);
+    const qs = params.toString();
+    return get(`pagos${qs ? "?" + qs : ""}`);
+  },
+  cambiarEstado: (id, estado) => put(`pagos/${id}/estado`, { estado }),
+};
+
 // ── Reportes ──────────────────────────────────────────────
 export const reporteService = {
   registros:            ()       => get("reportes"),

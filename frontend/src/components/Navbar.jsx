@@ -45,6 +45,7 @@ export default function Navbar({ carritoCount }) {
               ["/admin/productos", "Productos"],
               ["/admin/ofertas", "Ofertas"],
               ["/admin/pedidos", "Pedidos"],
+              ["/admin/pagos", "Pagos"],
             ].map(([to, label]) => (
               <Link
                 key={to}
