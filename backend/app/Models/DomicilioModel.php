@@ -1,143 +1,334 @@
 <?php
 
-require_once __DIR__.'/../../config/Database.php';
+require_once __DIR__ . '/../../config/Database.php';
 
-class DomicilioModel{
+class DomicilioModel {
+    private PDO $db;
+    private array $domicilioCols = [];
+    private bool $tieneHistorial = false;
+    private array $historialCols = [];
 
-private $db;
+    public function __construct() {
+        $this->db = (new Database())->getConnection();
+        $this->detectarSchema();
+    }
 
-public function __construct(){
-$database=new Database();
-$this->db=$database->getConnection();
-}
+    private function detectarSchema(): void {
+        try {
+            $stmt = $this->db->prepare(
+                "SELECT COLUMN_NAME
+                 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME = 'domicilio'"
+            );
+            $stmt->execute();
+            $this->domicilioCols = array_values(array_map(
+                static fn($r) => (string)$r['COLUMN_NAME'],
+                $stmt->fetchAll() ?: []
+            ));
+        } catch (Throwable $e) {
+            $this->domicilioCols = [];
+        }
 
-/* Crear domicilio cuando se genera el pedido */
+        // Tabla opcional: historial_estado_pedido 
+        try {
+            $stmt = $this->db->prepare(
+                "SELECT COUNT(*)
+                 FROM information_schema.TABLES
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME = 'historial_estado_pedido'"
+            );
+            $stmt->execute();
+            $this->tieneHistorial = (int)$stmt->fetchColumn() > 0;
+        } catch (Throwable $e) {
+            $this->tieneHistorial = false;
+        }
 
-public function crearDomicilio($data){
+        if ($this->tieneHistorial) {
+            try {
+                $stmt = $this->db->prepare(
+                    "SELECT COLUMN_NAME
+                     FROM information_schema.COLUMNS
+                     WHERE TABLE_SCHEMA = DATABASE()
+                       AND TABLE_NAME = 'historial_estado_pedido'"
+                );
+                $stmt->execute();
+                $this->historialCols = array_values(array_map(
+                    static fn($r) => (string)$r['COLUMN_NAME'],
+                    $stmt->fetchAll() ?: []
+                ));
+            } catch (Throwable $e) {
+                $this->historialCols = [];
+            }
+        }
+    }
 
-$sql="INSERT INTO domicilio
-(Fecha,Estado,Cod_Usuario_pedido,Direccion_entrega,Telefono,Notas,Costo_envio,Distancia_km,Tiempo_estimado,Cod_pedido)
-VALUES(NOW(),'Pedido recibido',?,?,?,?,?,?,?,?)";
+    private function hasDomicilioCol(string $col): bool {
+        if (!$this->domicilioCols) return false;
+        foreach ($this->domicilioCols as $c) {
+            if (strcasecmp($c, $col) === 0) return true;
+        }
+        return false;
+    }
 
-$stmt=$this->db->prepare($sql);
+    private function hasHistorialCol(string $col): bool {
+        if (!$this->historialCols) return false;
+        foreach ($this->historialCols as $c) {
+            if (strcasecmp($c, $col) === 0) return true;
+        }
+        return false;
+    }
 
-return $stmt->execute([
-$data['usuario'],
-$data['direccion'],
-$data['telefono'],
-$data['notas'],
-$data['costo_envio'],
-$data['distancia'],
-$data['tiempo'],
-$data['pedido']
-]);
+    /**
+     * Lista domicilios del usuario (por documento) con info del pedido.
+     */
+    public function listarPorDocumento(int $numDocumento): array {
+        $extra = [];
+        if ($this->hasDomicilioCol('Direccion_entrega')) $extra[] = 'd.Direccion_entrega';
+        if ($this->hasDomicilioCol('Telefono'))          $extra[] = 'd.Telefono';
+        if ($this->hasDomicilioCol('Notas'))             $extra[] = 'd.Notas';
+        if ($this->hasDomicilioCol('Costo_envio'))       $extra[] = 'd.Costo_envio';
+        if ($this->hasDomicilioCol('Distancia_km'))      $extra[] = 'd.Distancia_km';
+        if ($this->hasDomicilioCol('Tiempo_estimado'))   $extra[] = 'd.Tiempo_estimado';
+        if ($this->hasDomicilioCol('Cod_pedido'))        $extra[] = 'd.Cod_pedido';
 
-}
+        $selectExtra = $extra ? ",\n                    " . implode(",\n                    ", $extra) : '';
 
-/* Guardar historial de estado */
+        $sql = "SELECT
+                    p.Cod_Pedido,
+                    p.Fecha_Pedido,
+                    p.Estado_Pedido,
+                    d.Cod_Domicilio,
+                    d.Estado AS Estado_Domicilio,
+                    d.Fecha  AS Fecha_Domicilio
+                    $selectExtra
+                FROM usuario_pedido up
+                INNER JOIN pedido p ON p.Cod_Pedido = up.Cod_pedido
+                LEFT JOIN domicilio d ON d.Cod_Usuario_Pedido = up.Cod_usuario_pedido
+                WHERE up.Num_Documento = :doc
+                ORDER BY p.Fecha_Pedido DESC";
 
-public function guardarHistorial($pedido,$estado){
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':doc' => $numDocumento]);
+        return $stmt->fetchAll();
+    }
 
-$sql="INSERT INTO historial_estado_pedido
-(Cod_pedido,Estado,Fecha)
-VALUES(?,?,NOW())";
+    /**
+     * Obtiene detalle de un pedido del usuario con su domicilio (si existe).
+     */
+    public function detallePorDocumento(int $numDocumento, int $pedidoId): ?array {
+        $extra = [];
+        if ($this->hasDomicilioCol('Direccion_entrega')) $extra[] = 'd.Direccion_entrega';
+        if ($this->hasDomicilioCol('Telefono'))          $extra[] = 'd.Telefono';
+        if ($this->hasDomicilioCol('Notas'))             $extra[] = 'd.Notas';
+        if ($this->hasDomicilioCol('Costo_envio'))       $extra[] = 'd.Costo_envio';
+        if ($this->hasDomicilioCol('Distancia_km'))      $extra[] = 'd.Distancia_km';
+        if ($this->hasDomicilioCol('Tiempo_estimado'))   $extra[] = 'd.Tiempo_estimado';
+        if ($this->hasDomicilioCol('Cod_pedido'))        $extra[] = 'd.Cod_pedido';
 
-$stmt=$this->db->prepare($sql);
+        $selectExtra = $extra ? ",\n                    " . implode(",\n                    ", $extra) : '';
 
-$stmt->execute([$pedido,$estado]);
+        $sql = "SELECT
+                    p.Cod_Pedido,
+                    p.Fecha_Pedido,
+                    p.Estado_Pedido,
+                    d.Cod_Domicilio,
+                    d.Estado AS Estado_Domicilio,
+                    d.Fecha  AS Fecha_Domicilio
+                    $selectExtra
+                FROM usuario_pedido up
+                INNER JOIN pedido p ON p.Cod_Pedido = up.Cod_pedido
+                LEFT JOIN domicilio d ON d.Cod_Usuario_Pedido = up.Cod_usuario_pedido
+                WHERE up.Num_Documento = :doc
+                  AND p.Cod_Pedido = :pedido
+                LIMIT 1";
 
-}
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':doc' => $numDocumento, ':pedido' => $pedidoId]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
 
-/* Ver domicilios del usuario */
+    /**
+     * Crea (si no existe) el domicilio para un pedido del usuario.
+     * Es idempotente: si ya hay domicilio, no crea otro.
+     */
+    public function crearParaPedido(int $numDocumento, int $pedidoId, string $estado = 'Pendiente', array $extra = []): array {
+        $this->db->beginTransaction();
+        try {
+            $stmt = $this->db->prepare(
+                "SELECT Cod_usuario_pedido
+                 FROM usuario_pedido
+                 WHERE Num_Documento = :doc AND Cod_pedido = :pedido
+                 LIMIT 1"
+            );
+            $stmt->execute([':doc' => $numDocumento, ':pedido' => $pedidoId]);
+            $usuarioPedidoId = (int)($stmt->fetchColumn() ?: 0);
+            if ($usuarioPedidoId <= 0) {
+                $this->db->rollBack();
+                throw new RuntimeException('No se encontro el pedido para este usuario.');
+            }
 
-public function domiciliosUsuario($usuario){
+            $stmt = $this->db->prepare(
+                "SELECT Cod_Domicilio, Fecha, Estado
+                 FROM domicilio
+                 WHERE Cod_Usuario_Pedido = :up
+                 LIMIT 1"
+            );
+            $stmt->execute([':up' => $usuarioPedidoId]);
+            $existente = $stmt->fetch();
+            if ($existente) {
+                $this->db->commit();
+                return ['created' => false, 'domicilio' => $existente];
+            }
 
-$sql="SELECT
-p.Cod_Pedido,
-p.Fecha_Pedido,
-p.Estado_Pedido,
-d.Direccion_entrega,
-d.Costo_envio
-FROM pedido p
-JOIN domicilio d
-ON p.Cod_Pedido=d.Cod_pedido
-WHERE d.Cod_Usuario_pedido=?";
+            $cols = ['Fecha', 'Estado', 'Cod_Usuario_Pedido'];
+            $vals = ['NOW()', ':estado', ':up'];
+            $params = [':estado' => $estado, ':up' => $usuarioPedidoId];
 
-$stmt=$this->db->prepare($sql);
-$stmt->execute([$usuario]);
+            // Campos opcionales según tu BD actual (si existen, los usamos).
+            $map = [
+                'Direccion_entrega' => 'direccion',
+                'Telefono' => 'telefono',
+                'Notas' => 'notas',
+                'Costo_envio' => 'costo_envio',
+                'Distancia_km' => 'distancia',
+                'Tiempo_estimado' => 'tiempo',
+                'Cod_pedido' => 'pedido',
+            ];
 
-return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($map as $colDb => $keyBody) {
+                if (!$this->hasDomicilioCol($colDb)) continue;
+                if (!array_key_exists($keyBody, $extra)) continue;
+                $cols[] = $colDb;
+                $ph = ':' . $keyBody;
+                $vals[] = $ph;
+                $params[$ph] = $extra[$keyBody];
+            }
 
-}
+            $sql = "INSERT INTO domicilio (" . implode(', ', $cols) . ")
+                    VALUES (" . implode(', ', $vals) . ")";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
 
-/* Detalle del pedido */
+            $domicilio = [
+                'Cod_Domicilio' => (int)$this->db->lastInsertId(),
+                'Fecha' => date('Y-m-d H:i:s'),
+                'Estado' => $estado,
+            ];
 
-public function detallePedido($pedido){
+            // Si existe una tabla de historial, guardamos el evento inicial.
+            if ($this->tieneHistorial && $this->hasHistorialCol('Cod_pedido') && $this->hasHistorialCol('Estado') && $this->hasHistorialCol('Fecha')) {
+                $this->db->prepare(
+                    "INSERT INTO historial_estado_pedido (Cod_pedido, Estado, Fecha)
+                     VALUES (:pedido, :estado, NOW())"
+                )->execute([':pedido' => $pedidoId, ':estado' => $estado]);
+            }
 
-$sql="SELECT
-p.Cod_Pedido,
-p.Fecha_Pedido,
-p.Estado_Pedido,
-d.Direccion_entrega,
-d.Telefono,
-d.Notas,
-d.Costo_envio
-FROM pedido p
-JOIN domicilio d
-ON p.Cod_Pedido=d.Cod_pedido
-WHERE p.Cod_Pedido=?";
+            $this->db->commit();
+            return ['created' => true, 'domicilio' => $domicilio];
+        } catch (Throwable $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            throw $e;
+        }
+    }
 
-$stmt=$this->db->prepare($sql);
-$stmt->execute([$pedido]);
+    /**
+     * Cancela el pedido (si pertenece al usuario) y marca el domicilio como Cancelado (si existe).
+     */
+    public function cancelarPedido(int $numDocumento, int $pedidoId): bool {
+        $this->db->beginTransaction();
+        try {
+            $stmt = $this->db->prepare(
+                "UPDATE pedido p
+                 INNER JOIN usuario_pedido up ON up.Cod_pedido = p.Cod_Pedido
+                 SET p.Estado_Pedido = 'Cancelado'
+                 WHERE p.Cod_Pedido = :pedido
+                   AND up.Num_Documento = :doc"
+            );
+            $stmt->execute([':pedido' => $pedidoId, ':doc' => $numDocumento]);
+            $ok = $stmt->rowCount() > 0;
 
-return $stmt->fetch(PDO::FETCH_ASSOC);
+            // Si hay domicilio, también lo cancelamos.
+            $stmt = $this->db->prepare(
+                "UPDATE domicilio d
+                 INNER JOIN usuario_pedido up ON up.Cod_usuario_pedido = d.Cod_Usuario_Pedido
+                 SET d.Estado = 'Cancelado'
+                 WHERE up.Cod_pedido = :pedido
+                   AND up.Num_Documento = :doc"
+            );
+            $stmt->execute([':pedido' => $pedidoId, ':doc' => $numDocumento]);
 
-}
+            if ($ok && $this->tieneHistorial && $this->hasHistorialCol('Cod_pedido') && $this->hasHistorialCol('Estado') && $this->hasHistorialCol('Fecha')) {
+                $this->db->prepare(
+                    "INSERT INTO historial_estado_pedido (Cod_pedido, Estado, Fecha)
+                     VALUES (:pedido, 'Cancelado', NOW())"
+                )->execute([':pedido' => $pedidoId]);
+            }
 
-/* Cancelar pedido */
+            $this->db->commit();
+            return $ok;
+        } catch (Throwable $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            throw $e;
+        }
+    }
 
-public function cancelarPedido($pedido){
+    /**
+     * Seguimiento: como el esquema actual no tiene tabla de historial, devolvemos el estado actual.
+     */
+    public function seguimiento(int $numDocumento, int $pedidoId): array {
+        // Si existe la tabla de historial, devolvemos la línea de tiempo.
+        if ($this->tieneHistorial && $this->hasHistorialCol('Cod_pedido') && $this->hasHistorialCol('Estado') && $this->hasHistorialCol('Fecha')) {
+            $detalle = $this->detallePorDocumento($numDocumento, $pedidoId);
+            if (!$detalle) {
+                throw new RuntimeException('Pedido no encontrado.');
+            }
 
-$sql="UPDATE pedido
-SET Estado_Pedido='Cancelado'
-WHERE Cod_Pedido=? AND Estado_Pedido='Pedido recibido'";
+            $stmt = $this->db->prepare(
+                "SELECT Estado, Fecha
+                 FROM historial_estado_pedido
+                 WHERE Cod_pedido = :pedido
+                 ORDER BY Fecha ASC"
+            );
+            $stmt->execute([':pedido' => $pedidoId]);
+            $hist = $stmt->fetchAll();
 
-$stmt=$this->db->prepare($sql);
+            return [
+                'pedido' => [
+                    'Cod_Pedido' => $detalle['Cod_Pedido'],
+                    'Fecha_Pedido' => $detalle['Fecha_Pedido'],
+                    'Estado_Pedido' => $detalle['Estado_Pedido'],
+                ],
+                'domicilio' => [
+                    'Cod_Domicilio' => $detalle['Cod_Domicilio'] ?? null,
+                    'Fecha_Domicilio' => $detalle['Fecha_Domicilio'] ?? null,
+                    'Estado_Domicilio' => $detalle['Estado_Domicilio'] ?? null,
+                ],
+                'historial' => $hist,
+            ];
+        }
 
-return $stmt->execute([$pedido]);
+        $detalle = $this->detallePorDocumento($numDocumento, $pedidoId);
+        if (!$detalle) {
+            throw new RuntimeException('Pedido no encontrado.');
+        }
 
-}
-
-/* Ver historial de estados */
-
-public function historial($pedido){
-
-$sql="SELECT Estado,Fecha
-FROM historial_estado_pedido
-WHERE Cod_pedido=?
-ORDER BY Fecha ASC";
-
-$stmt=$this->db->prepare($sql);
-$stmt->execute([$pedido]);
-
-return $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-}
-
-}
-
-function calcularEnvio($distancia,$total){
-
-$costoBase=3000;
-
-$costoKm=$distancia*500;
-
-$costo=$costoBase+$costoKm;
-
-if($total>50000){
-$costo=0;
-}
-
-return $costo;
-
+        return [
+            'pedido' => [
+                'Cod_Pedido' => $detalle['Cod_Pedido'],
+                'Fecha_Pedido' => $detalle['Fecha_Pedido'],
+                'Estado_Pedido' => $detalle['Estado_Pedido'],
+            ],
+            'domicilio' => [
+                'Cod_Domicilio' => $detalle['Cod_Domicilio'] ?? null,
+                'Fecha_Domicilio' => $detalle['Fecha_Domicilio'] ?? null,
+                'Estado_Domicilio' => $detalle['Estado_Domicilio'] ?? null,
+            ],
+        ];
+    }
 }

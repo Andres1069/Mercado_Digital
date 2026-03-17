@@ -5,6 +5,12 @@ const BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
   `${window.location.protocol}//${window.location.hostname}/mercado_digital/backend/public`;
 
+if (import.meta.env.DEV) {
+  // Ayuda a diagnosticar problemas de CORS/URL en desarrollo.
+  // eslint-disable-next-line no-console
+  console.info("[api] BASE_URL:", BASE_URL);
+}
+
 export function resolverImagen(url) {
   if (!url) return "";
   if (/^https?:\/\//i.test(url)) return url;
@@ -22,7 +28,16 @@ async function request(ruta, opciones = {}) {
     },
     ...opciones,
   };
-  const res = await fetch(`${BASE_URL}/${ruta}`, config);
+
+  const url = `${BASE_URL}/${ruta}`;
+  let res;
+  try {
+    res = await fetch(url, config);
+  } catch (e) {
+    // Esto pasa típicamente por: API apagada, URL mal, CORS bloqueado, o mixed content (https->http).
+    const detalle = e instanceof Error ? e.message : String(e);
+    throw new Error(`No se pudo conectar con la API (${detalle}). URL: ${url}`);
+  }
   const raw = await res.text();
 
   let data = null;

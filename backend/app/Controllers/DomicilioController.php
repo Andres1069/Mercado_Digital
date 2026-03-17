@@ -1,79 +1,131 @@
 <?php
 
-require_once __DIR__.'/../Models/DomicilioModel.php';
+require_once __DIR__ . '/../Models/DomicilioModel.php';
+require_once __DIR__ . '/../Middleware/AuthMiddleware.php';
 
-class DomicilioController{
+class DomicilioController {
+    private DomicilioModel $model;
 
-private $model;
+    public function __construct() {
+        $this->model = new DomicilioModel();
+    }
 
-public function __construct(){
-$this->model=new DomicilioModel();
-}
+    // POST /domicilio/crear
+    // Crea el domicilio para un pedido del usuario (si no existe).
+    public function crear(): void {
+        $payload = AuthMiddleware::verify();
+        $doc = (int)($payload['num_documento'] ?? 0);
+        if ($doc <= 0) {
+            $this->error('No se pudo identificar el usuario.', 401);
+        }
 
-/* Crear domicilio */
+        $body = $this->body();
+        $pedidoId = (int)($body['pedido'] ?? 0);
+        if ($pedidoId <= 0) {
+            $this->error('El campo pedido es requerido.', 400);
+        }
 
-public function crear(){
+        $estado = trim((string)($body['estado'] ?? 'Pendiente'));
+        // Extra opcional: si tu BD tiene columnas extendidas en `domicilio`, el modelo las usa.
+        $extra = [
+            'pedido' => $pedidoId,
+            'direccion' => $body['direccion'] ?? null,
+            'telefono' => $body['telefono'] ?? null,
+            'notas' => $body['notas'] ?? null,
+            'costo_envio' => $body['costo_envio'] ?? null,
+            'distancia' => $body['distancia'] ?? null,
+            'tiempo' => $body['tiempo'] ?? null,
+        ];
 
-$data=json_decode(file_get_contents("php://input"),true);
+        $res = $this->model->crearParaPedido($doc, $pedidoId, $estado === '' ? 'Pendiente' : $estado, $extra);
+        $msg = $res['created'] ? 'Domicilio creado.' : 'El domicilio ya existia.';
+        $this->ok($res, $msg, $res['created'] ? 201 : 200);
+    }
 
-$resultado=$this->model->crearDomicilio($data);
+    // GET /domicilio/usuario
+    public function usuario(): void {
+        $payload = AuthMiddleware::verify();
+        $doc = (int)($payload['num_documento'] ?? 0);
+        if ($doc <= 0) {
+            $this->error('No se pudo identificar el usuario.', 401);
+        }
 
-$this->model->guardarHistorial($data['pedido'],'Pedido recibido');
+        $domicilios = $this->model->listarPorDocumento($doc);
+        $this->ok(['domicilios' => $domicilios]);
+    }
 
-echo json_encode(["success"=>$resultado]);
+    // GET /domicilio/detalle?pedido=123
+    public function detalle(): void {
+        $payload = AuthMiddleware::verify();
+        $doc = (int)($payload['num_documento'] ?? 0);
+        if ($doc <= 0) {
+            $this->error('No se pudo identificar el usuario.', 401);
+        }
 
-}
+        $pedidoId = (int)($_GET['pedido'] ?? 0);
+        if ($pedidoId <= 0) {
+            $this->error('Parametro pedido requerido.', 400);
+        }
 
-/* Historial domicilios usuario */
+        $detalle = $this->model->detallePorDocumento($doc, $pedidoId);
+        if (!$detalle) {
+            $this->error('Pedido no encontrado.', 404);
+        }
 
-public function usuario(){
+        $this->ok(['detalle' => $detalle]);
+    }
 
-$usuario=$_GET['usuario'];
+    // GET /domicilio/cancelar?pedido=123
+    public function cancelar(): void {
+        $payload = AuthMiddleware::verify();
+        $doc = (int)($payload['num_documento'] ?? 0);
+        if ($doc <= 0) {
+            $this->error('No se pudo identificar el usuario.', 401);
+        }
 
-$resultado=$this->model->domiciliosUsuario($usuario);
+        $pedidoId = (int)($_GET['pedido'] ?? 0);
+        if ($pedidoId <= 0) {
+            $this->error('Parametro pedido requerido.', 400);
+        }
 
-echo json_encode($resultado);
+        $ok = $this->model->cancelarPedido($doc, $pedidoId);
+        if (!$ok) {
+            $this->error('No se pudo cancelar el pedido (no existe o no pertenece al usuario).', 404);
+        }
 
-}
+        $this->ok(['success' => true], 'Pedido cancelado.');
+    }
 
-/* Detalle pedido */
+    // GET /domicilio/seguimiento?pedido=123
+    public function seguimiento(): void {
+        $payload = AuthMiddleware::verify();
+        $doc = (int)($payload['num_documento'] ?? 0);
+        if ($doc <= 0) {
+            $this->error('No se pudo identificar el usuario.', 401);
+        }
 
-public function detalle(){
+        $pedidoId = (int)($_GET['pedido'] ?? 0);
+        if ($pedidoId <= 0) {
+            $this->error('Parametro pedido requerido.', 400);
+        }
 
-$pedido=$_GET['pedido'];
+        $data = $this->model->seguimiento($doc, $pedidoId);
+        $this->ok($data);
+    }
 
-$resultado=$this->model->detallePedido($pedido);
+    private function body(): array {
+        return json_decode(file_get_contents('php://input'), true) ?? [];
+    }
 
-echo json_encode($resultado);
+    private function ok(array $data, string $msg = 'OK', int $code = 200): never {
+        http_response_code($code);
+        echo json_encode(array_replace(['success' => true, 'message' => $msg], $data));
+        exit;
+    }
 
-}
-
-/* Cancelar pedido */
-
-public function cancelar(){
-
-$pedido=$_GET['pedido'];
-
-$resultado=$this->model->cancelarPedido($pedido);
-
-if($resultado){
-$this->model->guardarHistorial($pedido,'Cancelado');
-}
-
-echo json_encode(["success"=>$resultado]);
-
-}
-
-/* Seguimiento */
-
-public function seguimiento(){
-
-$pedido=$_GET['pedido'];
-
-$resultado=$this->model->historial($pedido);
-
-echo json_encode($resultado);
-
-}
-
+    private function error(string $msg, int $code = 400): never {
+        http_response_code($code);
+        echo json_encode(['success' => false, 'message' => $msg]);
+        exit;
+    }
 }
