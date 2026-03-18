@@ -7,6 +7,7 @@ import { CartProvider } from "./context/CartContext";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Registro from "./pages/Registro";
+import Catalogo from "./pages/Catalogo";
 
 // Paginas cliente
 import Tienda from "./pages/Tienda";
@@ -73,6 +74,7 @@ function AppRoutes() {
       <Routes>
         {/* Publicas */}
         <Route path="/" element={<RutaSoloPublica><Landing /></RutaSoloPublica>} />
+        <Route path="/productos" element={<Catalogo />} />
         <Route path="/login" element={<RutaSoloPublica><Login /></RutaSoloPublica>} />
         <Route path="/registro" element={<RutaSoloPublica><Registro /></RutaSoloPublica>} />
 

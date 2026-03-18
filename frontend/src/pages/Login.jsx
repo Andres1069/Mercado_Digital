@@ -11,7 +11,16 @@ export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const reason = searchParams.get("reason");
+  const nextRaw = searchParams.get("next") || "";
   const tokenFromUrl = searchParams.get("token") || "";
+
+  const next =
+    nextRaw &&
+    nextRaw.startsWith("/") &&
+    !nextRaw.startsWith("//") &&
+    !nextRaw.toLowerCase().startsWith("/\\")
+      ? nextRaw
+      : "";
 
   const [form, setForm] = useState(loginInicial);
   const [formReset, setFormReset] = useState(resetInicial);
@@ -42,7 +51,7 @@ export default function Login() {
         return;
       }
 
-      navigate("/tienda");
+      navigate(next || "/tienda");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -135,6 +144,12 @@ export default function Login() {
           {reason === "session" && (
             <div className="px-4 py-3 rounded-2xl mb-6 text-sm border border-amber-200 bg-amber-50 text-amber-800">
               Tu sesion fue cerrada porque iniciaste en otro dispositivo (o el token expiro). Inicia sesion nuevamente.
+            </div>
+          )}
+
+          {reason === "cart" && (
+            <div className="px-4 py-3 rounded-2xl mb-6 text-sm border border-indigo-200 bg-indigo-50 text-indigo-800">
+              Inicia sesion para agregar productos al carrito.
             </div>
           )}
 

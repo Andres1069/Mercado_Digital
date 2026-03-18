@@ -1,13 +1,18 @@
-import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import ProductoCard from "../components/ProductoCard";
-import { productoService, ofertaService, categoriaService } from "../services/api";
+import { categoriaService, ofertaService, productoService } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { aplicarOfertas } from "../utils/productos";
 
-export default function Tienda() {
+export default function Catalogo() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { estaLogueado } = useAuth();
+  const { addItem } = useCart();
+
   const [productos, setProductos] = useState([]);
   const [ofertas, setOfertas] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -16,10 +21,10 @@ export default function Tienda() {
   const [catActiva, setCatActiva] = useState(null);
   const [verOfertas, setVerOfertas] = useState(searchParams.get("ofertas") === "1");
   const [notif, setNotif] = useState("");
-  const { addItem } = useCart();
 
   useEffect(() => {
     cargarDatos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [catActiva, buscar]);
 
   const cargarDatos = async () => {
@@ -45,6 +50,10 @@ export default function Tienda() {
   };
 
   const agregarAlCarrito = (producto) => {
+    if (!estaLogueado()) {
+      navigate(`/login?reason=cart&next=${encodeURIComponent("/productos")}`);
+      return;
+    }
     addItem(producto);
     setNotif("Producto agregado: " + producto.Nombre);
     setTimeout(() => setNotif(""), 2200);
@@ -67,6 +76,15 @@ export default function Tienda() {
       )}
 
       <div className="max-w-6xl mx-auto px-4 py-8">
+        {!estaLogueado() && (
+          <div className="rounded-3xl border border-black/5 bg-amber-50 text-amber-900 px-5 py-4 mb-6">
+            <p className="font-bold text-sm">Explora el catalogo</p>
+            <p className="text-sm opacity-90 mt-1">
+              Puedes ver productos sin cuenta. Para agregar al carrito, primero inicia sesion.
+            </p>
+          </div>
+        )}
+
         {ofertas.length > 0 && !verOfertas && (
           <div
             className="relative overflow-hidden rounded-3xl mb-8 p-8 text-white shadow-2xl"
@@ -208,3 +226,4 @@ export default function Tienda() {
     </div>
   );
 }
+

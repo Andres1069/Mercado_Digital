@@ -1,5 +1,9 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import BrandMark from "../components/BrandMark";
+import ProductoCard from "../components/ProductoCard";
+import { ofertaService, productoService } from "../services/api";
+import { aplicarOfertas } from "../utils/productos";
 
 const categorias = [
   { icono: "🧴", nombre: "Aseo Personal" },
@@ -26,6 +30,34 @@ const stats = [
 ];
 
 export default function Landing() {
+  const navigate = useNavigate();
+  const [productos, setProductos] = useState([]);
+  const [cargandoProductos, setCargandoProductos] = useState(true);
+
+  useEffect(() => {
+    let cancelado = false;
+
+    const cargar = async () => {
+      setCargandoProductos(true);
+      try {
+        const [prods, ofrs] = await Promise.all([
+          productoService.listar(),
+          ofertaService.listar(),
+        ]);
+        const lista = aplicarOfertas(prods.productos || [], ofrs.ofertas || []);
+        if (!cancelado) setProductos(lista.slice(0, 8));
+      } catch (e) {
+        console.error(e);
+        if (!cancelado) setProductos([]);
+      } finally {
+        if (!cancelado) setCargandoProductos(false);
+      }
+    };
+
+    cargar();
+    return () => { cancelado = true; };
+  }, []);
+
   return (
     <div className="min-h-screen text-slate-900 md-app-bg">
       <nav className="sticky top-0 z-30 border-b border-black/5" style={{ backgroundColor: "rgba(247, 245, 239, 0.96)" }}>
@@ -41,6 +73,12 @@ export default function Landing() {
           </div>
 
           <div className="flex items-center gap-3">
+            <Link
+              to="/productos"
+              className="hidden sm:inline-block px-4 py-2.5 rounded-full text-sm font-semibold border border-slate-300 hover:border-slate-500 transition"
+            >
+              Ver productos
+            </Link>
             <Link
               to="/login"
               className="px-4 py-2.5 rounded-full text-sm font-semibold border border-slate-300 hover:border-slate-500 transition"
@@ -91,6 +129,12 @@ export default function Landing() {
                     className="px-7 py-3.5 rounded-full font-semibold border border-slate-300 hover:bg-white/70 transition"
                   >
                     Ya tengo cuenta
+                  </Link>
+                  <Link
+                    to="/productos"
+                    className="px-7 py-3.5 rounded-full font-semibold border border-slate-300 hover:bg-white/70 transition"
+                  >
+                    Ver productos
                   </Link>
                 </div>
 
@@ -152,6 +196,54 @@ export default function Landing() {
           <div className="max-w-6xl mx-auto px-5">
             <div className="flex items-end justify-between gap-4 mb-8 flex-wrap">
               <div>
+                <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Productos</p>
+                <h2 className="text-3xl md:text-4xl font-black mt-2" style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: "#34594f" }}>
+                  Aprovecha en Mercado Digital. 👨🏻‍💻
+                </h2>
+              </div>
+              <Link
+                to="/productos"
+                className="px-5 py-2.5 rounded-full text-sm font-semibold border border-slate-300 hover:bg-white/70 transition"
+              >
+                Ver catalogo completo
+              </Link>
+            </div>
+
+            {cargandoProductos ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="bg-white rounded-2xl h-72 animate-pulse border border-gray-100">
+                    <div className="bg-gray-100 h-44 rounded-t-2xl" />
+                    <div className="p-4 space-y-2">
+                      <div className="bg-gray-100 h-3 rounded-full w-1/2" />
+                      <div className="bg-gray-100 h-4 rounded-full" />
+                      <div className="bg-gray-100 h-8 rounded-xl mt-4" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : productos.length === 0 ? (
+              <div className="rounded-3xl border border-black/5 bg-white/70 p-8 text-center text-slate-500">
+                No pudimos cargar productos en este momento.
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {productos.map((p) => (
+                  <ProductoCard
+                    key={p.Cod_Producto}
+                    producto={p}
+                    onAgregar={() => navigate(`/login?reason=cart&next=${encodeURIComponent("/productos")}`)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="py-16">
+          <div className="max-w-6xl mx-auto px-5">
+            <div className="flex items-end justify-between gap-4 mb-8 flex-wrap">
+              <div>
                 <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Categorias</p>
                 <h2 className="text-3xl md:text-4xl font-black mt-2" style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: "#4f4aa9" }}>
                   Lo que necesitas, ordenado de forma simple.
@@ -166,7 +258,7 @@ export default function Landing() {
               {categorias.map((cat) => (
                 <Link
                   key={cat.nombre}
-                  to="/login"
+                  to="/productos"
                   className="group rounded-3xl p-5 border border-black/5 shadow-sm hover:-translate-y-1 transition"
                   style={{ backgroundColor: "rgba(255,255,255,0.8)" }}
                 >

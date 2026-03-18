@@ -5,12 +5,13 @@ import { useCart } from "../context/CartContext";
 import BrandMark from "./BrandMark";
 
 export default function Navbar({ carritoCount }) {
-  const { usuario, cerrarSesion, esAdmin, esEmpleado } = useAuth();
+  const { usuario, cerrarSesion, esAdmin, esEmpleado, estaLogueado } = useAuth();
   const { itemsCount } = useCart();
   const navigate = useNavigate();
   const [menuAbierto, setMenuAbierto] = useState(false);
   const count = carritoCount ?? itemsCount;
   const rolUsuario = usuario?.rol || (usuario ? "Sin rol" : "Invitado");
+  const logueado = estaLogueado();
 
   const handleCerrar = () => {
     cerrarSesion();
@@ -24,7 +25,7 @@ export default function Navbar({ carritoCount }) {
     >
       <div className="max-w-6xl mx-auto px-3 sm:px-5 py-2.5 sm:py-3.5 flex items-center justify-between gap-3 sm:gap-6 text-white">
         <Link
-          to={esAdmin() || esEmpleado() ? "/admin/dashboard" : "/tienda"}
+          to={logueado ? (esAdmin() || esEmpleado() ? "/admin/dashboard" : "/tienda") : "/productos"}
           className="flex items-center gap-3 min-w-0 pr-2"
         >
           <BrandMark className="w-10 h-10 sm:w-12 sm:h-12" />
@@ -38,7 +39,7 @@ export default function Navbar({ carritoCount }) {
           </div>
         </Link>
 
-        {(esAdmin() || esEmpleado()) && (
+        {logueado && (esAdmin() || esEmpleado()) && (
           <div className="hidden md:flex items-center gap-2 text-sm font-medium">
             {[
               ["/admin/dashboard", "Dashboard"],
@@ -69,7 +70,7 @@ export default function Navbar({ carritoCount }) {
         )}
 
         <div className="flex items-center gap-2 sm:gap-3">
-          {!esAdmin() && !esEmpleado() && (
+          {logueado && !esAdmin() && !esEmpleado() && (
             <Link
               to="/carrito"
               className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-2xl transition hover:bg-white/10 flex items-center justify-center flex-shrink-0"
@@ -88,6 +89,28 @@ export default function Navbar({ carritoCount }) {
             </Link>
           )}
 
+          {!logueado ? (
+            <div className="flex items-center gap-2">
+              <Link
+                to="/productos"
+                className="hidden sm:inline-block px-4 py-2 rounded-full text-sm font-semibold border border-white/35 hover:bg-white/10 transition"
+              >
+                Productos
+              </Link>
+              <Link
+                to="/login"
+                className="px-4 py-2 rounded-full text-sm font-semibold border border-white/35 hover:bg-white/10 transition"
+              >
+                Iniciar sesion
+              </Link>
+              <Link
+                to="/registro"
+                className="px-4 py-2 rounded-full text-sm font-semibold text-slate-900 bg-white hover:opacity-90 transition"
+              >
+                Registrarse
+              </Link>
+            </div>
+          ) : (
           <div className="relative flex-shrink-0">
             <button
               onClick={() => setMenuAbierto(!menuAbierto)}
@@ -134,6 +157,7 @@ export default function Navbar({ carritoCount }) {
               </div>
             )}
           </div>
+          )}
         </div>
       </div>
     </nav>

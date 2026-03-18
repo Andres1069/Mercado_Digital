@@ -1,11 +1,20 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { authService } from "../services/api";
 
 export default function Registro() {
   const { iniciarSesion } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const nextRaw = searchParams.get("next") || "";
+  const next =
+    nextRaw &&
+    nextRaw.startsWith("/") &&
+    !nextRaw.startsWith("//") &&
+    !nextRaw.toLowerCase().startsWith("/\\")
+      ? nextRaw
+      : "";
 
   const [form, setForm] = useState({
     num_documento: "",
@@ -49,7 +58,7 @@ export default function Registro() {
         contrasena: form.contrasena,
       });
       iniciarSesion(res.token, res.usuario);
-      navigate("/tienda");
+      navigate(next || "/tienda");
     } catch (err) {
       setError(err.message);
     } finally {
