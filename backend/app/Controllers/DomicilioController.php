@@ -2,10 +2,17 @@
 
 require_once __DIR__ . '/../Models/DomicilioModel.php';
 require_once __DIR__ . '/../Middleware/AuthMiddleware.php';
+require_once __DIR__ . '/../Models/DomicilioModel.php';
+require_once __DIR__ . '/../Middleware/AuthMiddleware.php';
 
 class DomicilioController {
     private DomicilioModel $model;
+class DomicilioController {
+    private DomicilioModel $model;
 
+    public function __construct() {
+        $this->model = new DomicilioModel();
+    }
     public function __construct() {
         $this->model = new DomicilioModel();
     }
