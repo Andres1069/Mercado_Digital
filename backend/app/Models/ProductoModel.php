@@ -91,6 +91,7 @@ class ProductoModel {
             )
              VALUES (:nombre, :desc, :precio, :img, :img_zoom, :img_pos_x, :img_pos_y, :cantidad, :vence, :cat, :prov)"
         );
+        $cantidad = (int)($d['cantidad'] ?? 0);
         $stmt->execute([
             ':nombre'   => $d['nombre'],
             ':desc'     => $d['descripcion']      ?? null,
@@ -99,15 +100,24 @@ class ProductoModel {
             ':img_zoom' => $d['imagen_zoom']       ?? 1,
             ':img_pos_x'=> $d['imagen_pos_x']      ?? 50,
             ':img_pos_y'=> $d['imagen_pos_y']      ?? 50,
-            ':cantidad' => $d['cantidad']          ?? 0,
+            ':cantidad' => $cantidad,
             ':vence'    => $d['fecha_vencimiento'] ?? null,
             ':cat'      => $d['cod_categoria']     ?? null,
             ':prov'     => $d['cod_proveedor']     ?? null,
         ]);
-        return (int)$this->db->lastInsertId();
+        $codProducto = (int)$this->db->lastInsertId();
+
+        // Crear fila en inventario automáticamente con el stock inicial
+        $this->db->prepare(
+            "INSERT INTO inventario (Stock, Registrar_Entradas, Registrar_Salidas, Fecha_Actualizacion, Novedades, Cod_Producto)
+             VALUES (:stock, :stock, 0, NOW(), 'Stock inicial', :prod)"
+        )->execute([':stock' => $cantidad, ':prod' => $codProducto]);
+
+        return $codProducto;
     }
 
     public function actualizar(int $id, array $d): bool {
+        $cantidad = (int)($d['cantidad'] ?? 0);
         $stmt = $this->db->prepare(
             "UPDATE producto SET
                 Nombre            = :nombre,
@@ -123,7 +133,7 @@ class ProductoModel {
                 Cod_Proveedor     = :prov
              WHERE Cod_Producto = :id"
         );
-        return $stmt->execute([
+        $ok = $stmt->execute([
             ':nombre'   => $d['nombre'],
             ':desc'     => $d['descripcion']      ?? null,
             ':precio'   => $d['precio'],
@@ -131,12 +141,31 @@ class ProductoModel {
             ':img_zoom' => $d['imagen_zoom']       ?? 1,
             ':img_pos_x'=> $d['imagen_pos_x']      ?? 50,
             ':img_pos_y'=> $d['imagen_pos_y']      ?? 50,
-            ':cantidad' => $d['cantidad']          ?? 0,
+            ':cantidad' => $cantidad,
             ':vence'    => $d['fecha_vencimiento'] ?? null,
             ':cat'      => $d['cod_categoria']     ?? null,
             ':prov'     => $d['cod_proveedor']     ?? null,
             ':id'       => $id,
         ]);
+
+        // Sincronizar inventario: actualizar si existe, crear si no existe
+        $chk = $this->db->prepare("SELECT Cod_Inventario FROM inventario WHERE Cod_Producto = :prod");
+        $chk->execute([':prod' => $id]);
+        $codInv = $chk->fetchColumn();
+
+        if ($codInv) {
+            $this->db->prepare(
+                "UPDATE inventario SET Stock = :stock, Fecha_Actualizacion = NOW(), Novedades = 'Actualizado desde productos'
+                 WHERE Cod_Inventario = :inv"
+            )->execute([':stock' => $cantidad, ':inv' => (int)$codInv]);
+        } else {
+            $this->db->prepare(
+                "INSERT INTO inventario (Stock, Registrar_Entradas, Registrar_Salidas, Fecha_Actualizacion, Novedades, Cod_Producto)
+                 VALUES (:stock, :stock, 0, NOW(), 'Creado desde productos', :prod)"
+            )->execute([':stock' => $cantidad, ':prod' => $id]);
+        }
+
+        return $ok;
     }
 
     public function eliminar(int $id): bool {

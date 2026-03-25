@@ -4,6 +4,7 @@
 require_once __DIR__ . '/../Models/UsuarioModel.php';
 require_once __DIR__ . '/../../config/JWT.php';
 require_once __DIR__ . '/../Middleware/AuthMiddleware.php';
+require_once __DIR__ . '/../../config/Mailer.php';
 
 class AuthController {
     private UsuarioModel $model;
@@ -70,7 +71,7 @@ class AuthController {
             $this->error('El correo no tiene un formato válido.', 400);
         }
 
-        if (strlen($body['contrasena']) < 6) {
+        if (strlen($body['contrasena']) > 6) {
             $this->error('La contraseña debe tener al menos 6 caracteres.', 400);
         }
 
@@ -216,12 +217,12 @@ class AuthController {
         @file_put_contents($dir . '/reset_tokens.log', date('c') . " RESET_REQUEST correo=$correo" . PHP_EOL, FILE_APPEND);
 
         if ($correo === '' || !filter_var($correo, FILTER_VALIDATE_EMAIL)) {
-            $this->ok([], 'Si el correo existe, enviaremos un codigo para restablecer la contrasena.');
+            $this->ok([], 'Se ha envio el codigo de recuperación.');
         }
 
         $usuario = $this->model->findByCorreo($correo);
         if (!$usuario || (!empty($usuario['estado']) && $usuario['estado'] !== 'Activo')) {
-            $this->ok([], 'Si el correo existe, enviaremos un codigo para restablecer la contrasena.');
+            $this->ok([], 'Se ha envio el codigo de recuperación.');
         }
 
         $ph = hash('sha256', (string)$usuario['ContrasenaHash']);
@@ -251,7 +252,7 @@ class AuthController {
         $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
         $this->enviarCorreoReset($usuario['Correo'], $codigo, $origin);
 
-        $this->ok([], 'Si el correo existe, enviaremos un codigo para restablecer la contrasena.');
+        $this->ok([], 'Se ha envio el codigo de recuperación.');
     }
 
     // POST /auth/reset-confirm
@@ -359,22 +360,24 @@ class AuthController {
     }
 
     private function enviarCorreoReset(string $correo, string $codigo, string $origin): void {
-        // Para produccion: configura SMTP. En XAMPP/Windows `mail()` suele no entregar correos aunque retorne true.
-        // Por eso en desarrollo dejamos siempre una copia del token en `backend/storage/reset_tokens.log`.
-        $subject = 'Codigo para restablecer tu contrasena';
+        $subject = 'Codigo para restablecer tu contrasena - Mercado Digital';
         $link = '';
         if ($origin) {
             $link = rtrim($origin, '/') . '/login?token=' . urlencode($codigo);
         }
 
-        $body = "Se solicito restablecer tu contrasena.\n\n";
-        $body .= "Codigo:\n$codigo\n\n";
+        $body  = "Hola,\n\n";
+        $body .= "Recibimos una solicitud para restablecer la contrasena de tu cuenta en Mercado Digital.\n\n";
+        $body .= "Tu codigo de verificacion es:\n\n";
+        $body .= "    $codigo\n\n";
+        $body .= "Este codigo es valido por 15 minutos.\n\n";
         if ($link) {
-            $body .= "O abre este enlace:\n$link\n\n";
+            $body .= "Tambien puedes abrir este enlace directamente:\n$link\n\n";
         }
-        $body .= "Si no fuiste tu, ignora este mensaje.\n";
+        $body .= "Si no solicitaste este cambio, ignora este correo. Tu contrasena no sera modificada.\n\n";
+        $body .= "— Equipo Mercado Digital\n";
 
-        // Persistencia local (dev) para poder probar el flujo sin SMTP.
+        // Copia local de respaldo (util en desarrollo).
         $dir = __DIR__ . '/../../storage';
         if (!is_dir($dir)) {
             @mkdir($dir, 0775, true);
@@ -382,15 +385,16 @@ class AuthController {
         $line = date('c') . " RESET_CODE correo=$correo codigo=$codigo" . ($link ? " link=$link" : "") . PHP_EOL;
         @file_put_contents($dir . '/reset_tokens.log', $line, FILE_APPEND);
 
-        $ok = false;
-        try {
-            $ok = @mail($correo, $subject, $body);
-        } catch (Throwable $e) {
-            $ok = false;
+        // Intenta enviar por SMTP (configurado en backend/config/MailConfig.php).
+        $enviado = Mailer::send($correo, $subject, $body);
+
+        // Si el SMTP falla, intenta con mail() nativo (funciona en servidores con sendmail configurado).
+        if (!$enviado) {
+            $enviado = @mail($correo, $subject, $body);
         }
 
-        if (!$ok) {
-            error_log("RESET_CODE correo=$correo codigo=$codigo");
+        if (!$enviado) {
+            error_log("[Auth] Correo no enviado — verifica MailConfig.php. RESET_CODE correo=$correo codigo=$codigo");
         }
     }
 

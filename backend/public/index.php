@@ -40,6 +40,10 @@ require_once __DIR__ . '/../app/Models/ProductoModel.php';
 require_once __DIR__ . '/../app/Models/OfertaModel.php';
 require_once __DIR__ . '/../app/Models/PedidoModel.php';
 require_once __DIR__ . '/../app/Models/ReporteModel.php';
+require_once __DIR__ . '/../app/Models/CarritoModel.php';
+require_once __DIR__ . '/../app/Models/InventarioModel.php';
+require_once __DIR__ . '/../app/Models/PagoModel.php';
+require_once __DIR__ . '/../app/Models/MetodoPagoConfigModel.php';
 require_once __DIR__ . '/../app/Controllers/AuthController.php';
 require_once __DIR__ . '/../app/Controllers/ProductoController.php';
 require_once __DIR__ . '/../app/Controllers/OfertaController.php';
@@ -47,6 +51,14 @@ require_once __DIR__ . '/../app/Controllers/PedidoController.php';
 require_once __DIR__ . '/../app/Controllers/UsuarioController.php';
 require_once __DIR__ . '/../app/Controllers/ReporteController.php';
 require_once __DIR__ . '/../app/Controllers/DomicilioController.php';
+require_once __DIR__ . '/../app/Controllers/CarritoController.php';
+require_once __DIR__ . '/../app/Controllers/InventarioController.php';
+require_once __DIR__ . '/../app/Models/CategoriaModel.php';
+require_once __DIR__ . '/../app/Controllers/CategoriaController.php';
+require_once __DIR__ . '/../app/Controllers/PagoController.php';
+require_once __DIR__ . '/../app/Controllers/MetodoPagoConfigController.php';
+require_once __DIR__ . '/../app/Models/ProveedorModel.php';
+require_once __DIR__ . '/../app/Controllers/ProveedorController.php';
 
 $ruta   = $_GET['ruta'] ?? '';
 $metodo = $_SERVER['REQUEST_METHOD'];
@@ -83,11 +95,26 @@ switch ($modulo) {
         break;
 
     case 'categorias':
-        (new ProductoController())->categorias();
+        $ctrl = new CategoriaController();
+        match(true) {
+            $metodo === 'GET'    && $accion === ''        => $ctrl->listar(),
+            $metodo === 'POST'   && $accion === ''        => $ctrl->crear(),
+            $metodo === 'PUT'    && is_numeric($accion)   => $ctrl->actualizar((int)$accion),
+            $metodo === 'DELETE' && is_numeric($accion)   => $ctrl->eliminar((int)$accion),
+            default => ruta404()
+        };
         break;
 
     case 'proveedores':
-        (new ProductoController())->proveedores();
+        $ctrl = new ProveedorController();
+        match(true) {
+            $metodo === 'GET'    && $accion === ''          => $ctrl->listar(),
+            $metodo === 'GET'    && is_numeric($accion)     => $ctrl->obtener((int)$accion),
+            $metodo === 'POST'   && $accion === ''          => $ctrl->crear(),
+            $metodo === 'PUT'    && is_numeric($accion)     => $ctrl->actualizar((int)$accion),
+            $metodo === 'DELETE' && is_numeric($accion)     => $ctrl->eliminar((int)$accion),
+            default => ruta404()
+        };
         break;
 
     case 'ofertas':
@@ -105,7 +132,33 @@ switch ($modulo) {
     case 'pedidos':
         $ctrl = new PedidoController();
         match(true) {
-            $metodo === 'GET' && $accion === 'mis-pedidos' => $ctrl->misPedidos(),
+            $metodo === 'GET'  && $accion === 'mis-pedidos'                             => $ctrl->misPedidos(),
+            $metodo === 'GET'  && $accion === ''                                        => $ctrl->todos(),
+            $metodo === 'POST' && $accion === ''                                        => $ctrl->crear(),
+            $metodo === 'GET'  && is_numeric($accion)                                  => $ctrl->obtener((int)$accion),
+            $metodo === 'PUT'  && is_numeric($accion) && ($partes[2] ?? '') === 'estado' => $ctrl->cambiarEstado((int)$accion),
+            default => ruta404()
+        };
+        break;
+
+    case 'carrito':
+        $ctrl = new CarritoController();
+        match(true) {
+            $metodo === 'GET'    && $accion === ''        => $ctrl->obtener(),
+            $metodo === 'POST'   && $accion === 'agregar' => $ctrl->agregar(),
+            $metodo === 'DELETE' && $accion === 'vaciar'  => $ctrl->vaciar(),
+            $metodo === 'DELETE' && $accion === 'item' && isset($partes[2]) && is_numeric($partes[2])
+                                                         => $ctrl->quitarItem((int)$partes[2]),
+            default => ruta404()
+        };
+        break;
+
+    case 'inventario':
+        $ctrl = new InventarioController();
+        match(true) {
+            $metodo === 'GET' && $accion === ''          => $ctrl->listar(),
+            $metodo === 'GET' && $accion === 'alertas'   => $ctrl->alertas(),
+            $metodo === 'PUT' && is_numeric($accion)     => $ctrl->actualizar((int)$accion),
             default => ruta404()
         };
         break;
@@ -141,12 +194,38 @@ switch ($modulo) {
 
     case 'domicilio':
         $ctrl = new DomicilioController();
+        // PUT /domicilio/{id}/estado  needs segment[1] = 'estado'
+        $subAccion = $partes[2] ?? '';
         match(true) {
-            $metodo === 'POST' && $accion === 'crear'        => $ctrl->crear(),
-            $metodo === 'GET'  && $accion === 'usuario'      => $ctrl->usuario(),
-            $metodo === 'GET'  && $accion === 'detalle'      => $ctrl->detalle(),
-            $metodo === 'GET'  && $accion === 'cancelar'     => $ctrl->cancelar(),
-            $metodo === 'GET'  && $accion === 'seguimiento'  => $ctrl->seguimiento(),
+            $metodo === 'POST' && $accion === 'crear'                             => $ctrl->crear(),
+            $metodo === 'GET'  && $accion === 'usuario'                           => $ctrl->usuario(),
+            $metodo === 'GET'  && $accion === 'todos'                             => $ctrl->todos(),
+            $metodo === 'GET'  && $accion === 'detalle'                           => $ctrl->detalle(),
+            $metodo === 'GET'  && $accion === 'cancelar'                          => $ctrl->cancelar(),
+            $metodo === 'GET'  && $accion === 'seguimiento'                       => $ctrl->seguimiento(),
+            $metodo === 'PUT'  && is_numeric($accion) && $subAccion === 'estado'  => $ctrl->actualizarEstado((int)$accion),
+            default => ruta404()
+        };
+        break;
+
+    case 'pago':
+        $ctrl = new PagoController();
+        match(true) {
+            $metodo === 'GET'  && $accion === ''                                              => $ctrl->todos(),
+            $metodo === 'GET'  && is_numeric($accion)                                         => $ctrl->obtener((int)$accion),
+            $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'comprobante' => $ctrl->subirComprobante((int)$accion),
+            $metodo === 'PUT'  && is_numeric($accion) && ($partes[2] ?? '') === 'verificar'   => $ctrl->verificar((int)$accion),
+            default => ruta404()
+        };
+        break;
+
+    case 'metodos-pago':
+        $ctrl = new MetodoPagoConfigController();
+        match(true) {
+            $metodo === 'GET'  && $accion === ''                                              => $ctrl->listar(),
+            $metodo === 'GET'  && !is_numeric($accion) && $accion !== ''                      => $ctrl->obtenerPorMetodo($accion),
+            $metodo === 'PUT'  && is_numeric($accion)                                         => $ctrl->actualizar((int)$accion),
+            $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'upload-qr'   => $ctrl->uploadQR((int)$accion),
             default => ruta404()
         };
         break;

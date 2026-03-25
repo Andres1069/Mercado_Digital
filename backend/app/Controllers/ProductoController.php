@@ -42,9 +42,9 @@ class ProductoController {
         $this->ok(['productos' => $this->model->getMasVendidos()]);
     }
 
-    // POST /api/productos (solo admin/empleado)
+    // POST /api/productos (solo admin)
     public function crear(): void {
-        AuthMiddleware::requireRole(['Administrador', 'Empleado']);
+        AuthMiddleware::requireRole(['Administrador']);
         $body = $this->body();
         if (empty($body['nombre']) || empty($body['precio'])) {
             $this->err('Nombre y precio son requeridos.', 400);
@@ -53,7 +53,7 @@ class ProductoController {
         $this->ok(['id' => $id], 'Producto creado exitosamente.', 201);
     }
 
-    // PUT /api/productos/:id (solo admin/empleado)
+    // PUT /api/productos/:id (admin y empleado)
     public function actualizar(int $id): void {
         AuthMiddleware::requireRole(['Administrador', 'Empleado']);
         $body = $this->body();

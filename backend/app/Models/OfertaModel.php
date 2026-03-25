@@ -42,7 +42,8 @@ class OfertaModel {
     }
 
     public function getAll(): array {
-        $sql = "SELECT o.*, p.Nombre AS nombre_producto
+        $sql = "SELECT o.*, p.Nombre AS nombre_producto, p.Precio AS precio_original,
+                    ROUND(p.Precio - (p.Precio * o.Porcentaje_Descuento / 100)) AS precio_oferta
                 FROM oferta o
                 LEFT JOIN producto p ON p.Cod_Producto = o.Cod_Producto
                 ORDER BY o.Fecha_Fin DESC";

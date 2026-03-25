@@ -1,256 +1,428 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import Navbar from "../../components/Navbar";
+import Sidebar from "../../components/Sidebar";
 import {
-  categoriaService,
-  ofertaService,
+  pedidoService,
   productoService,
   reporteService,
-  usuarioService,
+  resolverImagen,
 } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 
-function Card({ titulo, valor, detalle, tono = "green" }) {
-  const estilos = {
-    green: {
-      bg: "rgba(168, 200, 152, 0.18)",
-      accent: "#74B495",
-    },
-    purple: {
-      bg: "rgba(135, 127, 215, 0.16)",
-      accent: "#877FD7",
-    },
-    mixed: {
-      bg: "rgba(116, 180, 149, 0.12)",
-      accent: "#2d5463",
-    },
-  };
+const CARD = { backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2", boxShadow: "0 2px 8px rgba(27,39,39,0.06)" };
+const MESES = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 
-  const estilo = estilos[tono] || estilos.green;
+function fmt(n) {
+  if (!n && n !== 0) return "—";
+  const num = Number(n);
+  if (num >= 1_000_000) return `$${(num / 1_000_000).toFixed(1)}M`;
+  if (num >= 1_000)     return `$${(num / 1_000).toFixed(0)}K`;
+  return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(num);
+}
 
-  return (
-    <div className="rounded-[1.8rem] border border-[var(--md-border)] p-5 shadow-sm" style={{ backgroundColor: "#fffdf9" }}>
-      <div
-        className="w-11 h-11 rounded-2xl flex items-center justify-center text-lg mb-4"
-        style={{ backgroundColor: estilo.bg, color: estilo.accent }}
-      >
-        ●
-      </div>
-      <p className="text-xs uppercase tracking-[0.22em] text-slate-400 font-semibold">{titulo}</p>
-      <p className="text-4xl font-black text-slate-900 mt-2">{valor}</p>
-      <p className="text-sm text-slate-500 mt-2">{detalle}</p>
+function fmtFull(n) {
+  return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(Number(n) || 0);
+}
+
+function badgePedido(estado) {
+  const e = String(estado || "").toLowerCase();
+  if (e.includes("entregado"))                     return { bg: "rgba(107,142,78,0.2)",  color: "#6B8E4E" };
+  if (e.includes("camino"))                        return { bg: "rgba(107,142,78,0.18)",   color: "#3C5148" };
+  if (e.includes("prepar") || e.includes("confirmado")) return { bg: "rgba(178,197,178,0.2)", color: "#3C5148" };
+  if (e.includes("cancel"))                        return { bg: "rgba(239,68,68,0.15)",   color: "#f87171" };
+  return                                                  { bg: "rgba(245,158,11,0.15)",  color: "#fbbf24" };
+}
+
+/* ── Gráfica de barras SVG ─────────────────────────── */
+function BarChart({ data }) {
+  if (!data.length) return (
+    <div className="h-44 flex items-center justify-center" style={{ color: "#1B2727" }}>
+      Sin datos suficientes
     </div>
   );
-}
+  const max = Math.max(...data.map((d) => d.value), 1);
+  const W = 100, H = 56, padX = 2;
+  const n = data.length;
+  const slotW = (W - padX * 2) / n;
+  const barW  = slotW * 0.55;
 
-function QuickLink({ to, titulo, detalle }) {
   return (
-    <Link
-      to={to}
-      className="rounded-[1.4rem] border border-[var(--md-border)] p-4 bg-white hover:-translate-y-0.5 hover:shadow-sm transition"
-    >
-      <p className="font-semibold text-slate-800">{titulo}</p>
-      <p className="text-sm text-slate-500 mt-1">{detalle}</p>
-    </Link>
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: "176px" }}>
+      {/* baseline */}
+      <line x1={padX} y1={H - 8} x2={W - padX} y2={H - 8}
+        stroke="rgba(107,142,78,0.12)" strokeWidth="0.4" />
+
+      {data.map((d, i) => {
+        const ratio   = d.value / max;
+        const barH    = Math.max(ratio * (H - 16), 1.5);
+        const x       = padX + i * slotW + (slotW - barW) / 2;
+        const y       = H - 8 - barH;
+        const isTop   = d.value === max;
+        const opacity = 0.4 + ratio * 0.6;
+        return (
+          <g key={i}>
+            {/* bar background track */}
+            <rect x={x} y={H - 8 - (H - 16)} width={barW} height={H - 16}
+              rx="1.5" fill="rgba(107,142,78,0.06)" />
+            {/* bar */}
+            <rect x={x} y={y} width={barW} height={barH} rx="1.5"
+              fill={isTop ? "#6B8E4E" : "#4A6741"} opacity={opacity} />
+            {/* label */}
+            <text x={x + barW / 2} y={H - 0.5} fontSize="3.5"
+              textAnchor="middle" fill="#3C5148">
+              {d.label}
+            </text>
+            {/* value on highest bar */}
+            {isTop && (
+              <text x={x + barW / 2} y={y - 1.5} fontSize="3.2"
+                textAnchor="middle" fill="#1B2727" fontWeight="bold">
+                {fmt(d.value)}
+              </text>
+            )}
+          </g>
+        );
+      })}
+    </svg>
   );
 }
 
+/* ── Dashboard ──────────────────────────────────────── */
 export default function AdminDashboard() {
-  const { usuario } = useAuth();
-  const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState("");
-  const [stats, setStats] = useState({
-    productos: 0,
-    categorias: 0,
-    ofertasActivas: 0,
-    bajoStock: 0,
-    usuarios: 0,
-    reportes: 0,
-  });
+  const { usuario, esEmpleado } = useAuth();
+  const esEmp = esEmpleado();
+  const base  = esEmp ? "/empleado" : "/admin";
 
-  const cargarDashboard = async () => {
+  const [cargando,   setCargando]   = useState(true);
+  const [pedidos,    setPedidos]    = useState([]);
+  const [productos,  setProductos]  = useState([]);
+  const [chartData,  setChartData]  = useState([]);
+
+  const cargar = async () => {
     setCargando(true);
-    setError("");
     try {
-      const [prodsRes, catsRes, ofertasRes, usuariosRes, reportesRes] = await Promise.allSettled([
+      const [pedRes, prodRes, ventasRes] = await Promise.allSettled([
+        pedidoService.todos(),
         productoService.listar(),
-        categoriaService.listar(),
-        ofertaService.listar(),
-        usuarioService.stats(),
-        reporteService.registros(),
+        reporteService.ventas(),
       ]);
 
-      const productos = prodsRes.status === "fulfilled" ? (prodsRes.value.productos || []) : [];
-      const categorias = catsRes.status === "fulfilled" ? (catsRes.value.categorias || []) : [];
-      const ofertas = ofertasRes.status === "fulfilled" ? (ofertasRes.value.ofertas || []) : [];
-      const usuariosStats = usuariosRes.status === "fulfilled" ? (usuariosRes.value.stats || {}) : {};
-      const reportes = reportesRes.status === "fulfilled" ? (reportesRes.value.reportes || []) : [];
-      const bajoStock = productos.filter((p) => Number(p.Cantidad || 0) <= 5).length;
+      const peds  = pedRes.status  === "fulfilled" ? (pedRes.value.pedidos   || []) : [];
+      const prods = prodRes.status === "fulfilled" ? (prodRes.value.productos || []) : [];
+      const vents = ventasRes.status === "fulfilled" ? ventasRes.value : null;
 
-      setStats({
-        productos: productos.length,
-        categorias: categorias.length,
-        ofertasActivas: ofertas.length,
-        bajoStock,
-        usuarios: Number(usuariosStats.total || 0),
-        reportes: reportes.length,
-      });
+      setPedidos(peds);
+      setProductos(prods);
 
-      if (
-        prodsRes.status === "rejected" ||
-        catsRes.status === "rejected" ||
-        usuariosRes.status === "rejected"
-      ) {
-        setError("No se pudieron cargar todos los datos del dashboard.");
+      /* Construir datos de la gráfica */
+      if (vents?.ventas?.length) {
+        setChartData(
+          vents.ventas.slice(-9).map((v) => ({
+            label: MESES[new Date(v.fecha || v.mes || "").getMonth()] ?? String(v.mes || "").slice(0, 3),
+            value: Number(v.total || v.ingresos || 0),
+          }))
+        );
+      } else {
+        /* Fallback: agrupar pedidos por mes */
+        const byMonth = {};
+        peds.forEach((p) => {
+          const d = new Date(p.Fecha_Pedido || "");
+          if (!isNaN(d.getTime())) {
+            const k = `${d.getFullYear()}-${d.getMonth()}`;
+            if (!byMonth[k]) byMonth[k] = { label: MESES[d.getMonth()], value: 0, ts: d.getTime() };
+            byMonth[k].value += Number(p.Total || 0);
+          }
+        });
+        const entries = Object.values(byMonth).sort((a, b) => a.ts - b.ts).slice(-9);
+        setChartData(entries);
       }
     } catch {
-      setError("Error inesperado al cargar el dashboard.");
+      // silencioso
     } finally {
       setCargando(false);
     }
   };
 
-  useEffect(() => {
-    cargarDashboard();
-  }, []);
+  useEffect(() => { cargar(); }, []);
 
-  const mensajeStock = useMemo(() => {
-    if (stats.bajoStock === 0) return "Sin alertas de inventario";
-    if (stats.bajoStock === 1) return "1 producto con stock critico";
-    return `${stats.bajoStock} productos con stock critico`;
-  }, [stats.bajoStock]);
+  /* Derivados */
+  const hoy        = new Date();
+  const pedidosHoy = pedidos.filter((p) => {
+    const d = new Date(p.Fecha_Pedido || "");
+    return d.getDate() === hoy.getDate() && d.getMonth() === hoy.getMonth() && d.getFullYear() === hoy.getFullYear();
+  }).length;
 
-  const saludoResumen = useMemo(() => {
-    if (stats.bajoStock > 0) return "Hay inventario que revisar hoy.";
-    if (stats.ofertasActivas === 0) return "No hay promociones activas en este momento.";
-    return "El panel se ve estable y con actividad normal.";
-  }, [stats.bajoStock, stats.ofertasActivas]);
+  const totalVentas    = pedidos.reduce((s, p) => s + Number(p.Total || 0), 0);
+  const bajoStock      = productos.filter((p) => Number(p.Cantidad || 0) <= 5).length;
+  const recentPedidos  = [...pedidos]
+    .sort((a, b) => new Date(b.Fecha_Pedido || 0) - new Date(a.Fecha_Pedido || 0))
+    .slice(0, 6);
+  const recentProductos = productos.slice(0, 6);
+
+  const STATS = [
+    {
+      label: "Pedidos del dia",
+      value: cargando ? "—" : pedidosHoy,
+      icon: "📋",
+      color: "#3C5148",
+      bg: "rgba(107,142,78,0.18)",
+      to: `${base}/pedidos`,
+    },
+    {
+      label: "Ventas totales",
+      value: cargando ? "—" : fmt(totalVentas),
+      icon: "💰",
+      color: "#6B8E4E",
+      bg: "rgba(107,142,78,0.2)",
+      to: `${base}/reportes`,
+    },
+    {
+      label: "Productos",
+      value: cargando ? "—" : productos.length,
+      icon: "📦",
+      color: "#3C5148",
+      bg: "rgba(178,197,178,0.2)",
+      to: `${base}/productos`,
+    },
+    {
+      label: "Stock bajo",
+      value: cargando ? "—" : bajoStock,
+      icon: "⚠️",
+      color: bajoStock > 0 ? "#f87171" : "#6B8E4E",
+      bg: bajoStock > 0 ? "rgba(239,68,68,0.15)" : "rgba(107,142,78,0.2)",
+      to: `${base}/inventario`,
+    },
+  ];
 
   return (
-    <div className="min-h-screen md-app-bg">
-      <Navbar />
+    <div className="flex min-h-screen" style={{ backgroundColor: "#D5DDDF" }}>
+      <Sidebar />
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="grid xl:grid-cols-[1.1fr,0.9fr] gap-6 mb-7">
-          <div
-            className="rounded-[2rem] px-7 py-6 text-white overflow-hidden relative"
-            style={{ backgroundColor: "#74B495" }}
-          >
-            <p className="text-xs uppercase tracking-[0.32em] text-white/75">Panel administrativo</p>
-            <h1 className="text-3xl md:text-4xl font-black md-title-serif mt-3">
-              Bienvenido {usuario?.Nombre || "usuario"}
-            </h1>
-            <p className="text-white/90 mt-4 text-base md:text-lg max-w-2xl leading-relaxed">
-              {saludoResumen} Desde aqui puedes controlar productos, ofertas, usuarios y reportes sin perder de vista el estado general.
-            </p>
+      <div className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
+        <div className="max-w-6xl mx-auto px-4 py-8">
 
-            <div className="flex flex-wrap gap-3 mt-6">
-              <button
-                onClick={cargarDashboard}
-                disabled={cargando}
-                className="px-5 py-3 rounded-2xl font-semibold text-sm disabled:opacity-60"
-                style={{ backgroundColor: "white", color: "#2f6b5b" }}
-              >
-                {cargando ? "Actualizando..." : "Actualizar datos"}
-              </button>
-              <Link to="/admin/reportes" className="px-5 py-3 rounded-2xl font-semibold text-sm border border-white/30 hover:bg-white/10 transition">
-                Ver reportes
+          {/* ── Header ── */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Dashboard</h1>
+              <p className="text-sm mt-0.5" style={{ color: "#3C5148" }}>
+                Bienvenido, {usuario?.Nombre || "usuario"}
+              </p>
+            </div>
+            <button onClick={cargar} disabled={cargando}
+              className="px-4 py-2 rounded-xl text-sm font-semibold transition disabled:opacity-50"
+              style={{ ...CARD, color: "#3C5148" }}>
+              {cargando ? "Cargando..." : "↻ Actualizar"}
+            </button>
+          </div>
+
+          {/* ── Stat cards ── */}
+          <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+            {STATS.map(({ label, value, icon, color, bg, to }) => (
+              <Link key={label} to={to}
+                className="rounded-2xl p-5 flex items-center gap-4 transition hover:-translate-y-0.5"
+                style={CARD}>
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
+                  style={{ backgroundColor: bg }}>
+                  {icon}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[11px] font-bold uppercase tracking-wider leading-none"
+                    style={{ color: "#6B8E4E" }}>{label}</p>
+                  <p className="text-2xl font-black mt-1.5 leading-none" style={{ color }}>{value}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          {/* ── Gráfica + Pedidos recientes ── */}
+          <div className="grid lg:grid-cols-[1.3fr,0.7fr] gap-4 mb-4">
+
+            {/* Ventas por día */}
+            <div className="rounded-2xl p-6" style={CARD}>
+              <div className="flex items-center justify-between mb-1">
+                <h2 className="text-base font-bold" style={{ color: "#1B2727" }}>Ventas por Dia</h2>
+                <span className="text-[11px] px-2 py-1 rounded-lg font-semibold"
+                  style={{ backgroundColor: "rgba(107,142,78,0.18)", color: "#3C5148" }}>
+                  Por periodo
+                </span>
+              </div>
+              <p className="text-xs mb-4" style={{ color: "#6B8E4E" }}>
+                {chartData.length
+                  ? `${chartData.length} periodos registrados · pico ${fmt(Math.max(...chartData.map((d) => d.value)))}`
+                  : "Cargando datos de ventas..."}
+              </p>
+              {cargando ? (
+                <div className="h-44 rounded-xl animate-pulse"
+                  style={{ backgroundColor: "rgba(107,142,78,0.08)" }} />
+              ) : (
+                <BarChart data={chartData} />
+              )}
+            </div>
+
+            {/* Pedidos recientes */}
+            <div className="rounded-2xl p-6 flex flex-col" style={CARD}>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-base font-bold" style={{ color: "#1B2727" }}>Pedidos Recientes</h2>
+                <Link to={`${base}/pedidos`}
+                  className="text-xs font-semibold transition hover:opacity-70"
+                  style={{ color: "#6B8E4E" }}>
+                  Ver todos →
+                </Link>
+              </div>
+
+              <div className="flex-1 space-y-2.5 overflow-hidden">
+                {cargando ? (
+                  [...Array(5)].map((_, i) => (
+                    <div key={i} className="h-10 rounded-xl animate-pulse"
+                      style={{ backgroundColor: "rgba(107,142,78,0.1)" }} />
+                  ))
+                ) : recentPedidos.length === 0 ? (
+                  <p className="text-sm text-center py-10" style={{ color: "#6B8E4E" }}>
+                    Sin pedidos aún
+                  </p>
+                ) : (
+                  recentPedidos.map((p) => {
+                    const badge  = badgePedido(p.Estado_Pedido);
+                    const nombre = `${p.Nombre || ""} ${p.Apellido || ""}`.trim() || `#${p.Cod_Pedido}`;
+                    return (
+                      <div key={p.Cod_Pedido} className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-sm"
+                          style={{ backgroundColor: "rgba(107,142,78,0.15)" }}>
+                          📋
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold truncate" style={{ color: "#1B2727" }}>
+                            #{p.Cod_Pedido} · {nombre}
+                          </p>
+                          <p className="text-[11px]" style={{ color: "#6B8E4E" }}>
+                            {fmtFull(p.Total)}
+                          </p>
+                        </div>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold flex-shrink-0 whitespace-nowrap"
+                          style={{ backgroundColor: badge.bg, color: badge.color }}>
+                          {p.Estado_Pedido || "Pendiente"}
+                        </span>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Tabla de productos ── */}
+          <div className="rounded-2xl overflow-x-auto" style={CARD}>
+            <div className="px-6 py-4 flex items-center justify-between"
+              style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
+              <h2 className="text-base font-bold" style={{ color: "#1B2727" }}>Gestion de Productos</h2>
+              <Link to={`${base}/productos`}
+                className="text-xs font-semibold px-3 py-1.5 rounded-lg transition hover:opacity-80"
+                style={{ backgroundColor: "rgba(107,142,78,0.18)", color: "#3C5148" }}>
+                Ver todos
               </Link>
             </div>
 
-            <div className="grid sm:grid-cols-3 gap-3 mt-7">
-              <div className="rounded-2xl px-4 py-3 border border-white/20 bg-white/10">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/70">Usuarios</p>
-                <p className="text-2xl font-black mt-1">{stats.usuarios}</p>
-              </div>
-              <div className="rounded-2xl px-4 py-3 border border-white/20 bg-white/10">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/70">Reportes</p>
-                <p className="text-2xl font-black mt-1">{stats.reportes}</p>
-              </div>
-              <div className="rounded-2xl px-4 py-3 border border-white/20 bg-white/10">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/70">Stock bajo</p>
-                <p className="text-2xl font-black mt-1">{stats.bajoStock}</p>
-              </div>
-            </div>
+            <table className="w-full text-sm">
+              <thead>
+                <tr style={{ borderBottom: "1px solid rgba(107,142,78,0.1)" }}>
+                  {["Producto", "Categoria", "Precio", "Stock", "Estado"].map((h, i) => (
+                    <th key={h}
+                      className={`px-5 py-3 text-[11px] font-bold uppercase tracking-wider
+                        ${i === 0 ? "text-left" : ""}
+                        ${i === 1 ? "text-left hidden sm:table-cell" : ""}
+                        ${i >= 2 ? "text-center" : ""}`}
+                      style={{ color: "#6B8E4E" }}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {cargando ? (
+                  [...Array(5)].map((_, i) => (
+                    <tr key={i} style={{ borderTop: "1px solid rgba(107,142,78,0.08)" }}>
+                      <td colSpan={5} className="px-5 py-3">
+                        <div className="h-4 rounded animate-pulse"
+                          style={{ backgroundColor: "rgba(107,142,78,0.1)" }} />
+                      </td>
+                    </tr>
+                  ))
+                ) : recentProductos.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-5 py-10 text-center" style={{ color: "#6B8E4E" }}>
+                      Sin productos registrados
+                    </td>
+                  </tr>
+                ) : (
+                  recentProductos.map((prod) => {
+                    const stock  = Number(prod.Cantidad || 0);
+                    const activo = String(prod.Estado || "").toLowerCase() === "activo" || stock > 0;
+                    const stockColor = stock <= 5 ? "#f87171" : stock <= 20 ? "#fbbf24" : "#6B8E4E";
+                    return (
+                      <tr key={prod.Cod_Producto}
+                        style={{ borderTop: "1px solid rgba(107,142,78,0.08)" }}
+                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.025)"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ""; }}>
+
+                        {/* Producto */}
+                        <td className="px-5 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl overflow-hidden flex-shrink-0"
+                              style={{ backgroundColor: "rgba(107,142,78,0.12)" }}>
+                              {prod.Foto ? (
+                                <img src={resolverImagen(prod.Foto)} alt={prod.Nombre}
+                                  className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-base">📦</div>
+                              )}
+                            </div>
+                            <p className="font-semibold truncate max-w-[150px]"
+                              style={{ color: "#1B2727" }}>
+                              {prod.Nombre}
+                            </p>
+                          </div>
+                        </td>
+
+                        {/* Categoria */}
+                        <td className="px-5 py-3 hidden sm:table-cell">
+                          <span className="text-xs px-2 py-1 rounded-lg"
+                            style={{ backgroundColor: "rgba(107,142,78,0.12)", color: "#3C5148" }}>
+                            {prod.Categoria || prod.categoria || "—"}
+                          </span>
+                        </td>
+
+                        {/* Precio */}
+                        <td className="px-5 py-3 text-center">
+                          <p className="font-bold" style={{ color: "#1B2727" }}>
+                            {fmtFull(prod.Precio)}
+                          </p>
+                        </td>
+
+                        {/* Stock */}
+                        <td className="px-5 py-3 text-center">
+                          <span className="font-black text-base" style={{ color: stockColor }}>
+                            {stock}
+                          </span>
+                        </td>
+
+                        {/* Estado */}
+                        <td className="px-5 py-3 text-center">
+                          <span className="px-2.5 py-1 rounded-full text-xs font-bold"
+                            style={{
+                              backgroundColor: activo ? "rgba(107,142,78,0.2)" : "rgba(239,68,68,0.15)",
+                              color: activo ? "#6B8E4E" : "#f87171",
+                            }}>
+                            {activo ? "Activo" : "Inactivo"}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
 
-          <div className="rounded-[2rem] border border-[var(--md-border)] bg-[var(--md-surface)] p-6 shadow-sm">
-            <p className="text-xs uppercase tracking-[0.22em] text-slate-400 font-semibold">Resumen rapido</p>
-            <div className="space-y-4 mt-5">
-              <div className="rounded-2xl px-4 py-4" style={{ backgroundColor: "rgba(168, 200, 152, 0.18)" }}>
-                <p className="text-sm text-slate-500">Usuarios registrados</p>
-                <p className="text-3xl font-black mt-1" style={{ color: "#2e5a4d" }}>{stats.usuarios}</p>
-              </div>
-              <div className="rounded-2xl px-4 py-4" style={{ backgroundColor: "rgba(135, 127, 215, 0.15)" }}>
-                <p className="text-sm text-slate-500">Reportes guardados</p>
-                <p className="text-3xl font-black mt-1" style={{ color: "#6c62ca" }}>{stats.reportes}</p>
-              </div>
-              <div className="rounded-2xl border border-dashed border-[var(--md-border)] px-4 py-4">
-                <p className="text-sm text-slate-500">Estado del sistema</p>
-                <p className="text-base font-semibold text-slate-800 mt-1">
-                  {stats.bajoStock > 0 ? "Requiere atencion en inventario" : "Operacion estable"}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {error && (
-          <div
-            className="mb-5 px-4 py-3 rounded-2xl border text-sm"
-            style={{ backgroundColor: "#fff8e8", borderColor: "#f8d37b", color: "#8a6b1a" }}
-          >
-            {error}
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-7">
-          <Card titulo="Productos" valor={stats.productos} detalle="Registrados en catalogo" tono="green" />
-          <Card titulo="Categorias" valor={stats.categorias} detalle="Categorias activas" tono="purple" />
-          <Card titulo="Ofertas" valor={stats.ofertasActivas} detalle="Promociones visibles ahora" tono="mixed" />
-          <Card titulo="Stock bajo" valor={stats.bajoStock} detalle={mensajeStock} tono="purple" />
-        </div>
-
-        <div className="grid lg:grid-cols-[1.1fr,0.9fr] gap-6">
-          <div className="rounded-[2rem] border border-[var(--md-border)] bg-[var(--md-surface)] p-6 shadow-sm">
-            <h2 className="text-xl font-black text-slate-900 mb-5">Acciones rapidas</h2>
-            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
-              <QuickLink to="/admin/productos" titulo="Gestionar productos" detalle="Crear, editar y organizar catalogo" />
-              <QuickLink to="/admin/ofertas" titulo="Gestionar ofertas" detalle="Publicar promociones activas" />
-              <QuickLink to="/admin/pedidos" titulo="Ver pedidos" detalle="Revisar flujo de compra y despacho" />
-              <QuickLink to="/admin/usuarios" titulo="Gestionar usuarios" detalle="Roles, datos y administracion" />
-              <QuickLink to="/admin/inventario" titulo="Revisar inventario" detalle="Detectar alertas y reposicion" />
-              <QuickLink to="/admin/reportes" titulo="Consultar reportes" detalle="Resumenes y exportaciones" />
-            </div>
-          </div>
-
-          <div className="rounded-[2rem] border border-[var(--md-border)] bg-[var(--md-surface)] p-6 shadow-sm">
-            <h2 className="text-xl font-black text-slate-900 mb-5">Lectura del dia</h2>
-            <div className="space-y-4">
-              <div className="rounded-2xl p-4" style={{ backgroundColor: "rgba(116, 180, 149, 0.12)" }}>
-                <p className="text-sm font-semibold text-slate-800">Inventario</p>
-                <p className="text-sm text-slate-500 mt-1">
-                  {stats.bajoStock > 0
-                    ? "Hay productos que conviene revisar antes de que afecten ventas."
-                    : "No hay alertas importantes en el inventario actual."}
-                </p>
-              </div>
-              <div className="rounded-2xl p-4" style={{ backgroundColor: "rgba(135, 127, 215, 0.12)" }}>
-                <p className="text-sm font-semibold text-slate-800">Promociones</p>
-                <p className="text-sm text-slate-500 mt-1">
-                  {stats.ofertasActivas > 0
-                    ? `Tienes ${stats.ofertasActivas} ofertas activas publicadas.`
-                    : "No hay ofertas activas; podria ser buen momento para lanzar una."}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-dashed border-[var(--md-border)] p-4">
-                <p className="text-sm font-semibold text-slate-800">Siguiente paso sugerido</p>
-                <p className="text-sm text-slate-500 mt-1">
-                  {stats.bajoStock > 0 ? "Empieza por inventario y luego revisa productos destacados." : "Revisa reportes o prepara nuevas ofertas desde el panel."}
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

@@ -5,6 +5,12 @@ const BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
   `${window.location.protocol}//${window.location.hostname}/mercado_digital/backend/public`;
 
+if (import.meta.env.DEV) {
+  // Ayuda a diagnosticar problemas de CORS/URL en desarrollo.
+  // eslint-disable-next-line no-console
+  console.info("[api] BASE_URL:", BASE_URL);
+}
+
 export function resolverImagen(url) {
   if (!url) return "";
   if (/^https?:\/\//i.test(url)) return url;
@@ -22,7 +28,16 @@ async function request(ruta, opciones = {}) {
     },
     ...opciones,
   };
-  const res = await fetch(`${BASE_URL}/${ruta}`, config);
+
+  const url = `${BASE_URL}/${ruta}`;
+  let res;
+  try {
+    res = await fetch(url, config);
+  } catch (e) {
+    // Esto pasa típicamente por: API apagada, URL mal, CORS bloqueado, o mixed content (https->http).
+    const detalle = e instanceof Error ? e.message : String(e);
+    throw new Error(`No se pudo conectar con la API (${detalle}). URL: ${url}`);
+  }
   const raw = await res.text();
 
   let data = null;
@@ -104,11 +119,18 @@ export const productoService = {
 
 // ── Categorías ────────────────────────────────────────────
 export const categoriaService = {
-  listar: () => get("categorias"),
+  listar:    ()          => get("categorias"),
+  crear:     (datos)     => post("categorias", datos),
+  actualizar:(id, datos) => put(`categorias/${id}`, datos),
+  eliminar:  (id)        => del(`categorias/${id}`),
 };
 
 export const proveedorService = {
-  listar: () => get("proveedores"),
+  listar:    ()          => get("proveedores"),
+  obtener:   (id)        => get(`proveedores/${id}`),
+  crear:     (datos)     => post("proveedores", datos),
+  actualizar:(id, datos) => put(`proveedores/${id}`, datos),
+  eliminar:  (id)        => del(`proveedores/${id}`),
 };
 
 // ── Carrito ───────────────────────────────────────────────
@@ -139,8 +161,9 @@ export const reporteService = {
 
 // ── Inventario ────────────────────────────────────────────
 export const inventarioService = {
-  listar:    ()          => get("inventario"),
-  actualizar:(id, datos) => put(`inventario/${id}`, datos),
+  listar:    ()               => get("inventario"),
+  actualizar:(id, datos)      => put(`inventario/${id}`, datos),
+  alertas:   (umbral = 10)    => get(`inventario/alertas?umbral=${umbral}`),
 };
 
 // ── Ofertas ─────────────────────────────────────────────────────
@@ -161,4 +184,59 @@ export const usuarioService = {
   cambiarRol: (doc, rolId)=> put(`usuarios/${doc}/rol`, { rol_id: rolId }),
   cambiarEstado: (doc, estado)=> put(`usuarios/${doc}/estado`, { estado }),
   eliminar:   (doc)       => del(`usuarios/${doc}`),
+};
+
+// ── Domicilio ─────────────────────────────────────────────
+export const domicilioService = {
+  crear:           (datos)          => post("domicilio/crear", datos),
+  misEnvios:       ()               => get("domicilio/usuario"),
+  detalle:         (pedido)         => get(`domicilio/detalle?pedido=${pedido}`),
+  cancelar:        (pedido)         => get(`domicilio/cancelar?pedido=${pedido}`),
+  seguimiento:     (pedido)         => get(`domicilio/seguimiento?pedido=${pedido}`),
+  todos:           ()               => get("domicilio/todos"),
+  actualizarEstado:(id, estado)     => put(`domicilio/${id}/estado`, { estado }),
+};
+
+// ── Helper para subir archivos (multipart/form-data) ──────
+async function uploadFile(ruta, formData) {
+  const token = localStorage.getItem("md_token");
+  const url   = `${BASE_URL}/${ruta}`;
+  let res;
+  try {
+    res = await fetch(url, {
+      method:  "POST",
+      // NO ponemos Content-Type: el navegador lo establece con el boundary correcto
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body:    formData,
+    });
+  } catch (e) {
+    throw new Error(`No se pudo conectar con la API (${e instanceof Error ? e.message : String(e)}). URL: ${url}`);
+  }
+  const raw = await res.text();
+  let data = null;
+  try { data = raw ? JSON.parse(raw) : null; } catch { data = null; }
+  const textoLimpio = (raw || "")
+    .replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  if (!res.ok) {
+    const base = data?.message || data?.mensaje || "";
+    const det  = data?.detail ? ` ${data.detail}` : "";
+    throw new Error((base + det).trim() || textoLimpio.slice(0, 220) || "Error al subir archivo.");
+  }
+  return data;
+}
+
+// ── Pago ──────────────────────────────────────────────────
+export const pagoService = {
+  obtener:          (pedidoId)                  => get(`pago/${pedidoId}`),
+  todos:            ()                           => get("pago"),
+  subirComprobante: (pedidoId, formData)         => uploadFile(`pago/${pedidoId}/comprobante`, formData),
+  verificar:        (pagoId, estado, notas = "") => put(`pago/${pagoId}/verificar`, { estado, notas }),
+};
+
+// ── Configuración de métodos de pago (QR + número) ────────
+export const metodoPagoConfigService = {
+  listar:    ()             => get("metodos-pago"),
+  obtener:   (metodo)       => get(`metodos-pago/${metodo}`),
+  actualizar:(id, datos)    => put(`metodos-pago/${id}`, datos),
+  uploadQR:  (id, formData) => uploadFile(`metodos-pago/${id}/upload-qr`, formData),
 };

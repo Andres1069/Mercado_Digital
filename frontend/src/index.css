@@ -3,31 +3,35 @@
 @tailwind utilities;
 
 :root {
-  --md-bg: #f7f5ef;
-  --md-surface: #fffdf9;
-  --md-surface-soft: #f2f7f1;
-  --md-border: #dfe7df;
-  --md-text: #1c2430;
-  --md-text-soft: #667085;
-  --md-sage: #A8C898;
-  --md-aqua: #74B495;
-  --md-lavender: #877FD7;
-  --md-accent: linear-gradient(135deg, #74B495 0%, #877FD7 100%);
+  --md-bg: #D5DDDF;
+  --md-surface: #FFFFFF;
+  --md-surface-soft: #F0F4F0;
+  --md-border: #B2C5B2;
+  --md-text: #1B2727;
+  --md-text-soft: #3C5148;
+  --md-sage: #B2C5B2;
+  --md-aqua: #6B8E4E;
+  --md-lavender: #3C5148;
+  --md-accent: linear-gradient(135deg, #6B8E4E 0%, #3C5148 100%);
   --md-shadow: 0 18px 40px rgba(116, 180, 149, 0.12);
 }
 
 html {
   background: var(--md-bg);
+  overflow-x: hidden;
 }
 
 body {
   font-family: "Segoe UI", system-ui, sans-serif;
   background: var(--md-bg);
   color: var(--md-text);
+  overflow-x: hidden;
+  min-width: 320px;
 }
 
 #root {
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 @layer components {
@@ -45,11 +49,11 @@ body {
 
   .md-soft-card {
     background: var(--md-surface-soft);
-    border: 1px solid rgba(116, 180, 149, 0.14);
+    border: 1px solid rgba(107, 142, 78, 0.2);
   }
 
   .md-hero-gradient {
-    background: linear-gradient(135deg, #A8C898 0%, #74B495 48%, #877FD7 100%);
+    background: linear-gradient(135deg, #B2C5B2 0%, #6B8E4E 48%, #3C5148 100%);
   }
 
   .md-accent-text {
@@ -86,8 +90,8 @@ body {
 
   .md-input:focus {
     outline: none;
-    border-color: rgba(135, 127, 215, 0.55);
-    box-shadow: 0 0 0 4px rgba(135, 127, 215, 0.14);
+    border-color: rgba(107, 142, 78, 0.6);
+    box-shadow: 0 0 0 4px rgba(107, 142, 78, 0.15);
     background: white;
   }
 

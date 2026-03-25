@@ -20,11 +20,11 @@ export default function Navbar({ carritoCount }) {
   return (
     <nav
       className="sticky top-0 z-40 border-b border-white/15 shadow-lg"
-      style={{ background: "linear-gradient(90deg, #74B495 0%, #877FD7 100%)" }}
+      style={{ background: "linear-gradient(90deg, #1B2727 0%, #3C5148 100%)" }}
     >
-      <div className="max-w-6xl mx-auto px-3 sm:px-5 py-2.5 sm:py-3.5 flex items-center justify-between gap-3 sm:gap-6 text-white">
+      <div className="max-w-7xl mx-auto px-3 sm:px-5 py-2.5 sm:py-3.5 flex items-center justify-between gap-3 sm:gap-4 text-white">
         <Link
-          to={esAdmin() || esEmpleado() ? "/admin/dashboard" : "/tienda"}
+          to={esAdmin() ? "/admin/dashboard" : esEmpleado() ? "/empleado/dashboard" : "/tienda"}
           className="flex items-center gap-3 min-w-0 pr-2"
         >
           <BrandMark className="w-10 h-10 sm:w-12 sm:h-12" />
@@ -38,36 +38,47 @@ export default function Navbar({ carritoCount }) {
           </div>
         </Link>
 
-        {(esAdmin() || esEmpleado()) && (
-          <div className="hidden md:flex items-center gap-2 text-sm font-medium">
+        {/* Links admin — sidebar cubre móvil/tablet */}
+        {esAdmin() && (
+          <div className="hidden xl:flex items-center gap-1 text-xs font-medium overflow-hidden">
             {[
-              ["/admin/dashboard", "Dashboard"],
-              ["/admin/productos", "Productos"],
-              ["/admin/ofertas", "Ofertas"],
-              ["/admin/pedidos", "Pedidos"],
+              ["/admin/dashboard",   "Dashboard"],
+              ["/admin/productos",   "Productos"],
+              ["/admin/ofertas",     "Ofertas"],
+              ["/admin/pedidos",     "Pedidos"],
+              ["/admin/pagos",       "Pagos"],
+              ["/admin/inventario",  "Inventario"],
+              ["/admin/domicilios",  "Domicilios"],
+              ["/admin/reportes",    "Reportes"],
+              ["/admin/usuarios",    "Usuarios"],
+              ["/admin/categorias",  "Categorias"],
+              ["/admin/proveedores", "Proveedores"],
             ].map(([to, label]) => (
-              <Link
-                key={to}
-                to={to}
-                className="px-3 py-2 rounded-xl hover:bg-white/10 transition"
-              >
+              <Link key={to} to={to} className="px-2.5 py-1.5 rounded-xl hover:bg-white/10 transition whitespace-nowrap">
                 {label}
               </Link>
             ))}
-            {esAdmin() && (
-              <Link to="/admin/usuarios" className="px-3 py-2 rounded-xl hover:bg-white/10 transition">
-                Usuarios
-              </Link>
-            )}
-            {esAdmin() && (
-              <Link to="/admin/reportes" className="px-3 py-2 rounded-xl hover:bg-white/10 transition">
-                Reportes
-              </Link>
-            )}
           </div>
         )}
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        {/* Links empleado */}
+        {esEmpleado() && (
+          <div className="hidden md:flex items-center gap-1 text-xs font-medium">
+            {[
+              ["/empleado/dashboard",  "Dashboard"],
+              ["/empleado/pedidos",    "Pedidos"],
+              ["/empleado/inventario", "Inventario"],
+              ["/empleado/domicilios", "Domicilios"],
+              ["/empleado/reportes",   "Reportes"],
+            ].map(([to, label]) => (
+              <Link key={to} to={to} className="px-2.5 py-1.5 rounded-xl hover:bg-white/10 transition whitespace-nowrap">
+                {label}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        <div className="flex items-center gap-2 sm:gap-3 ml-auto">
           {!esAdmin() && !esEmpleado() && (
             <Link
               to="/carrito"
@@ -79,7 +90,7 @@ export default function Navbar({ carritoCount }) {
               {count > 0 && (
                 <span
                   className="absolute -top-1 -right-1 text-white text-[11px] rounded-full min-w-5 h-5 px-1 flex items-center justify-center font-bold"
-                  style={{ background: "linear-gradient(135deg, #A8C898, #877FD7)" }}
+                  style={{ background: "linear-gradient(135deg, #6B8E4E, #3C5148)" }}
                 >
                   {count}
                 </span>
@@ -90,8 +101,8 @@ export default function Navbar({ carritoCount }) {
           <div className="relative flex-shrink-0">
             <button
               onClick={() => setMenuAbierto(!menuAbierto)}
-              className="flex items-center gap-3 px-3 sm:px-4 py-2 sm:py-2.5 rounded-[1.35rem] transition hover:bg-white/12 min-w-[52px] sm:min-w-[220px]"
-              style={{ background: "rgba(255,255,255,0.12)" }}
+              className="flex items-center gap-2 sm:gap-3 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-[1.35rem] transition hover:bg-white/12"
+              style={{ background: "rgba(213,221,223,0.15)" }}
             >
               <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl flex items-center justify-center text-lg flex-shrink-0" style={{ background: "rgba(255,255,255,0.14)" }}>
                 👋
@@ -107,10 +118,10 @@ export default function Navbar({ carritoCount }) {
 
             {menuAbierto && (
               <div
-                className="absolute right-0 mt-2 w-60 rounded-3xl overflow-hidden shadow-2xl border border-black/5"
-                style={{ backgroundColor: "#fffdf8" }}
+                className="absolute right-0 mt-2 w-56 sm:w-60 rounded-3xl overflow-hidden shadow-2xl border border-black/5"
+                style={{ backgroundColor: "#FFFFFF" }}
               >
-                <div className="px-5 py-4 text-white" style={{ background: "linear-gradient(135deg, #74B495, #877FD7)" }}>
+                <div className="px-5 py-4 text-white" style={{ background: "linear-gradient(135deg, #6B8E4E, #3C5148)" }}>
                   <p className="font-bold text-sm truncate">{usuario?.Nombre} {usuario?.Apellido}</p>
                   <p className="text-xs text-white/80 mt-1 uppercase tracking-normal font-semibold">{rolUsuario}</p>
                 </div>

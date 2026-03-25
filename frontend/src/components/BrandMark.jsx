@@ -2,7 +2,7 @@ export default function BrandMark({ className = "" }) {
   return (
     <div
       className={`rounded-[1.2rem] flex items-center justify-center shadow-sm flex-shrink-0 ${className}`}
-      style={{ backgroundColor: "#74B495" }}
+      style={{ backgroundColor: "#6B8E4E" }}
       aria-hidden="true"
     >
       <svg

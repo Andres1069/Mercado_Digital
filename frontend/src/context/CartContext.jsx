@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useAuth } from "./AuthContext";
 
 const CartContext = createContext(null);
 
@@ -12,11 +13,26 @@ function parseSafe(json, fallback) {
 }
 
 export function CartProvider({ children }) {
-  const [items, setItems] = useState(() => parseSafe(localStorage.getItem("md_cart"), []));
+  const { usuario } = useAuth();
+  const cartKey = usuario?.Num_Documento ? `md_cart_${usuario.Num_Documento}` : null;
 
+  const [items, setItems] = useState([]);
+
+  // Cuando cambia el usuario (login/logout), cargar su carrito propio
   useEffect(() => {
-    localStorage.setItem("md_cart", JSON.stringify(items));
-  }, [items]);
+    if (cartKey) {
+      setItems(parseSafe(localStorage.getItem(cartKey), []));
+    } else {
+      setItems([]);
+    }
+  }, [cartKey]);
+
+  // Persistir cambios solo si hay usuario autenticado
+  useEffect(() => {
+    if (cartKey) {
+      localStorage.setItem(cartKey, JSON.stringify(items));
+    }
+  }, [items, cartKey]);
 
   const addItem = (producto) => {
     const id = Number(producto.Cod_Producto);
