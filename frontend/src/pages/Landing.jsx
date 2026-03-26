@@ -9,6 +9,30 @@ function formatMoney(v) {
   return `$${Number(v || 0).toLocaleString("es-CO")}`;
 }
 
+function NequiBadge() {
+  return (
+    <div className="w-16 h-16 rounded-2xl bg-white/18 flex items-center justify-center flex-shrink-0 shadow-inner">
+      <img
+        src="https://yt3.googleusercontent.com/tBl_djxQMQ-IAxboBoNRIeKJ9hDXG8fC-M2ZEWHWCykr-P0umEveM3dbGi4Di04EHFRn7aB7=s900-c-k-c0x00ffffff-no-rj"
+        alt="Logo Nequi"
+        className="w-12 h-12 object-contain rounded-xl"
+      />
+    </div>
+  );
+}
+
+function DaviplataBadge() {
+  return (
+    <div className="w-16 h-16 rounded-2xl bg-white/18 flex items-center justify-center flex-shrink-0 shadow-inner">
+      <img
+        src="https://play-lh.googleusercontent.com/bNPDiFqg28L6ckatfuP-WgrxDRDk0JEOkC6nUIQp7Q61RW78i1bw-ffMmEjyxl-qP6dv3ANDOQqmIbBtgJI3EA"
+        alt="Logo Daviplata"
+        className="w-12 h-12 object-contain rounded-xl"
+      />
+    </div>
+  );
+}
+
 function ProductoCard({ producto }) {
   const { esOscuro } = useTheme();
   const tieneOferta = Number(producto.Porcentaje_Descuento || 0) > 0;
@@ -507,12 +531,9 @@ export default function Landing() {
             <div className="grid sm:grid-cols-2 gap-4 sm:gap-5 max-w-2xl mx-auto">
 
               {/* Nequi */}
-              <div className="rounded-3xl p-6 text-white flex items-center gap-5 transition hover:-translate-y-1"
-                style={nequiCardStyle}>
-                <div className="relative w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0" style={pagoIconBoxStyle}>
-                  <span className="absolute left-3 top-3 w-2.5 h-2.5 rounded-[4px]" style={{ backgroundColor: "#ff1177" }} />
-                  <span className="text-3xl font-black text-white">N</span>
-                </div>
+              <div className="rounded-3xl p-6 text-white shadow-lg flex items-center gap-5"
+                style={{ background: "linear-gradient(135deg, #5b21b6, #8b5cf6)" }}>
+                <NequiBadge />
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="inline-block w-2.5 h-2.5 rounded-[4px]" style={{ backgroundColor: "#ff1177" }} />
@@ -548,6 +569,13 @@ export default function Landing() {
                   </p>
                   <p className="text-white/80 text-sm mt-1 leading-relaxed max-w-[18rem]">Usa tu cuenta DAVIplata para completar el pago al instante.</p>
                   <span className="inline-block mt-3 text-xs font-bold px-3 py-1 rounded-full" style={pagoBadgeStyle}>
+              <div className="rounded-3xl p-6 text-white shadow-lg flex items-center gap-5"
+                style={{ background: "linear-gradient(135deg, #b91c1c, #ef4444)" }}>
+                <DaviplataBadge />
+                <div>
+                  <p className="font-black text-xl">Daviplata</p>
+                  <p className="text-white/75 text-sm mt-1">Usa tu cuenta Daviplata para completar el pago al instante.</p>
+                  <span className="inline-block mt-2 text-xs font-bold bg-white/20 px-3 py-1 rounded-full">
                     Billetera digital
                   </span>
                 </div>

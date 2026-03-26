@@ -251,10 +251,9 @@ export default function Sidebar() {
   return (
     <>
       {/* Desktop */}
-      <aside className="hidden md:block w-60 flex-shrink-0">
-        <div className="fixed top-0 left-0 w-60 h-screen z-30">
-          {Contenido()}
-        </div>
+      <div className="hidden md:block w-60 flex-shrink-0" aria-hidden="true" />
+      <aside className="hidden md:flex fixed left-0 top-0 w-60 h-screen z-30 flex-col">
+        <Contenido />
       </aside>
 
       {/* Mobile: botón hamburguesa */}
