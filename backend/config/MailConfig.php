@@ -1,19 +1,26 @@
 <?php
-// ─────────────────────────────────────────────────────────────────
-//  Configuración SMTP para Mercado Digital
-//  Edita este archivo con tus credenciales antes de usar el sistema
-//  de recuperación de contraseña.
+// Configuracion SMTP para Mercado Digital.
+// Puedes editar este archivo o definir variables de entorno:
+// MAIL_HOST, MAIL_PORT, MAIL_USER, MAIL_PASS, MAIL_FROM, MAIL_FROM_NAME
 //
-//  Para Gmail:
-//    1. Activa "Verificación en dos pasos" en tu cuenta Google.
-//    2. Ve a: Cuenta Google → Seguridad → Contraseñas de aplicaciones.
-//    3. Genera una contraseña para "Otra aplicación" → copia los 16 caracteres.
-//    4. Pega esa contraseña en MAIL_PASS (sin espacios).
-// ─────────────────────────────────────────────────────────────────
+// Para Gmail:
+// 1. Activa la verificacion en dos pasos.
+// 2. Genera una contrasena de aplicacion.
+// 3. Usa esa contrasena en MAIL_PASS.
 
-define('MAIL_HOST',      'smtp.gmail.com');
-define('MAIL_PORT',      587);
-define('MAIL_USER',      'tucorreo@gmail.com');    // ← cambia esto
-define('MAIL_PASS',      'tuAppPassword16chars');  // ← contraseña de aplicación Google
-define('MAIL_FROM',      'tucorreo@gmail.com');    // ← igual a MAIL_USER
-define('MAIL_FROM_NAME', 'Mercado Digital');
+if (!function_exists('md_mail_env')) {
+    function md_mail_env(string $key, string $default): string {
+        $value = getenv($key);
+        if ($value === false || $value === '') {
+            return $default;
+        }
+        return $value;
+    }
+}
+
+define('MAIL_HOST', md_mail_env('MAIL_HOST', 'smtp.gmail.com'));
+define('MAIL_PORT', (int) md_mail_env('MAIL_PORT', '587'));
+define('MAIL_USER', md_mail_env('MAIL_USER', 'mercado.digital.bog@gmail.com'));
+define('MAIL_PASS', md_mail_env('MAIL_PASS', 'lmfv gssx iytc iyli'));
+define('MAIL_FROM', md_mail_env('MAIL_FROM', MAIL_USER));
+define('MAIL_FROM_NAME', md_mail_env('MAIL_FROM_NAME', 'Mercado Digital'));

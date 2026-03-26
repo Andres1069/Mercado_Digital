@@ -7,6 +7,30 @@ function formatMoney(v) {
   return `$${Number(v || 0).toLocaleString("es-CO")}`;
 }
 
+function NequiBadge() {
+  return (
+    <div className="w-16 h-16 rounded-2xl bg-white/18 flex items-center justify-center flex-shrink-0 shadow-inner">
+      <img
+        src="https://yt3.googleusercontent.com/tBl_djxQMQ-IAxboBoNRIeKJ9hDXG8fC-M2ZEWHWCykr-P0umEveM3dbGi4Di04EHFRn7aB7=s900-c-k-c0x00ffffff-no-rj"
+        alt="Logo Nequi"
+        className="w-12 h-12 object-contain rounded-xl"
+      />
+    </div>
+  );
+}
+
+function DaviplataBadge() {
+  return (
+    <div className="w-16 h-16 rounded-2xl bg-white/18 flex items-center justify-center flex-shrink-0 shadow-inner">
+      <img
+        src="https://play-lh.googleusercontent.com/bNPDiFqg28L6ckatfuP-WgrxDRDk0JEOkC6nUIQp7Q61RW78i1bw-ffMmEjyxl-qP6dv3ANDOQqmIbBtgJI3EA"
+        alt="Logo Daviplata"
+        className="w-12 h-12 object-contain rounded-xl"
+      />
+    </div>
+  );
+}
+
 function ProductoCard({ producto }) {
   const tieneOferta = Number(producto.Porcentaje_Descuento || 0) > 0;
   const precio = tieneOferta ? producto.precio_oferta : producto.Precio;
@@ -359,10 +383,8 @@ export default function Landing() {
 
               {/* Nequi */}
               <div className="rounded-3xl p-6 text-white shadow-lg flex items-center gap-5"
-                style={{ background: "linear-gradient(135deg, #3C5148, #6B8E4E)" }}>
-                <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
-                  <span className="text-3xl font-black text-white">N</span>
-                </div>
+                style={{ background: "linear-gradient(135deg, #5b21b6, #8b5cf6)" }}>
+                <NequiBadge />
                 <div>
                   <p className="font-black text-xl">Nequi</p>
                   <p className="text-white/75 text-sm mt-1">Paga directo desde tu app sin salir del flujo de compra.</p>
@@ -375,9 +397,7 @@ export default function Landing() {
               {/* Daviplata */}
               <div className="rounded-3xl p-6 text-white shadow-lg flex items-center gap-5"
                 style={{ background: "linear-gradient(135deg, #b91c1c, #ef4444)" }}>
-                <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
-                  <span className="text-3xl font-black text-white">D</span>
-                </div>
+                <DaviplataBadge />
                 <div>
                   <p className="font-black text-xl">Daviplata</p>
                   <p className="text-white/75 text-sm mt-1">Usa tu cuenta Daviplata para completar el pago al instante.</p>

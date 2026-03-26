@@ -110,8 +110,12 @@ class ProductoModel {
         // Crear fila en inventario automáticamente con el stock inicial
         $this->db->prepare(
             "INSERT INTO inventario (Stock, Registrar_Entradas, Registrar_Salidas, Fecha_Actualizacion, Novedades, Cod_Producto)
-             VALUES (:stock, :stock, 0, NOW(), 'Stock inicial', :prod)"
-        )->execute([':stock' => $cantidad, ':prod' => $codProducto]);
+             VALUES (:stock, :entradas, 0, NOW(), 'Stock inicial', :prod)"
+        )->execute([
+            ':stock' => $cantidad,
+            ':entradas' => $cantidad,
+            ':prod' => $codProducto,
+        ]);
 
         return $codProducto;
     }
@@ -161,8 +165,12 @@ class ProductoModel {
         } else {
             $this->db->prepare(
                 "INSERT INTO inventario (Stock, Registrar_Entradas, Registrar_Salidas, Fecha_Actualizacion, Novedades, Cod_Producto)
-                 VALUES (:stock, :stock, 0, NOW(), 'Creado desde productos', :prod)"
-            )->execute([':stock' => $cantidad, ':prod' => $id]);
+                 VALUES (:stock, :entradas, 0, NOW(), 'Creado desde productos', :prod)"
+            )->execute([
+                ':stock' => $cantidad,
+                ':entradas' => $cantidad,
+                ':prod' => $id,
+            ]);
         }
 
         return $ok;
