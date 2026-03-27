@@ -17,6 +17,11 @@ const VACIO = {
   rol_id: "",
 };
 
+const CARD = { backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2", boxShadow: "0 2px 8px rgba(27,39,39,0.06)" };
+const INPUT_STYLE = { backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", color: "#1B2727" };
+const LABEL = { color: "#3C5148" };
+const SELECT_TABLE = { backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", color: "#1B2727", borderRadius: "0.5rem", padding: "0.375rem 0.75rem", fontSize: "0.75rem" };
+
 export default function AdminUsuarios() {
   const { esOscuro } = useTheme();
   const { usuario } = useAuth();
@@ -185,44 +190,8 @@ export default function AdminUsuarios() {
     );
   }, [buscar, usuarios]);
 
-  const cardStyle = {
-    backgroundColor: "var(--md-surface)",
-    border: "1px solid var(--md-border)",
-    boxShadow: "var(--md-shadow)",
-  };
-
-  const inputStyle = {
-    backgroundColor: esOscuro ? "#0f172a" : "#F8FAF9",
-    border: `1px solid ${esOscuro ? "#334155" : "#B2C5B2"}`,
-    color: esOscuro ? "#e5e7eb" : "#1B2727",
-  };
-
-  const labelStyle = { color: esOscuro ? "#94a3b8" : "#3C5148" };
-
-  const selectBaseStyle = {
-    ...inputStyle,
-    appearance: "none",
-    WebkitAppearance: "none",
-    MozAppearance: "none",
-    opacity: 1,
-    WebkitTextFillColor: esOscuro ? "#e5e7eb" : "#1B2727",
-    backgroundImage:
-      "linear-gradient(45deg, transparent 50%, #94a3b8 50%), linear-gradient(135deg, #94a3b8 50%, transparent 50%)",
-    backgroundPosition: "calc(100% - 16px) calc(50% - 3px), calc(100% - 10px) calc(50% - 3px)",
-    backgroundSize: "6px 6px, 6px 6px",
-    backgroundRepeat: "no-repeat",
-    paddingRight: "2rem",
-  };
-
-  const selectTableStyle = {
-    ...selectBaseStyle,
-    borderRadius: "0.5rem",
-    padding: "0.375rem 0.75rem",
-    fontSize: "0.75rem",
-  };
-
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: "var(--md-bg)" }}>
+    <div className="flex min-h-screen" style={{ backgroundColor: "#D5DDDF" }}>
       <Sidebar />
       <div className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
 
@@ -257,10 +226,10 @@ export default function AdminUsuarios() {
             <input type="text" placeholder="Buscar por documento, nombre, correo, rol o estado..."
               value={buscar} onChange={(e) => setBuscar(e.target.value)}
               className="w-full sm:w-96 px-4 py-2.5 rounded-xl text-sm focus:outline-none"
-              style={inputStyle} />
+              style={INPUT_STYLE} />
           </div>
 
-          <div className="rounded-2xl overflow-x-auto" style={cardStyle}>
+          <div className="rounded-2xl overflow-x-auto" style={CARD}>
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
@@ -291,13 +260,10 @@ export default function AdminUsuarios() {
                 ) : (
                   usuariosFiltrados.map((item) => {
                     const esPropioUsuario = Number(item.Num_Documento) === Number(usuario?.Num_Documento);
-                    const estadoActual = String(item.estado || "Activo");
-                    const estadoPendiente = String(estadosPendientes[item.Num_Documento] || "Activo");
-                    const hayCambioEstado = estadoActual !== estadoPendiente;
                     return (
                       <tr key={item.Num_Documento} className="transition"
                         style={{ borderTop: "1px solid rgba(107,142,78,0.08)" }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = esOscuro ? "rgba(148,163,184,0.08)" : "rgba(107,142,78,0.06)"}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(107,142,78,0.06)"}
                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ""}>
                         <td className="px-4 py-3 font-semibold" style={{ color: "#3C5148" }}>
                           {item.Num_Documento}
@@ -316,11 +282,9 @@ export default function AdminUsuarios() {
                               value={rolesPendientes[item.Num_Documento] || ""}
                               disabled={esPropioUsuario}
                               onChange={(e) => setRolesPendientes((prev) => ({ ...prev, [item.Num_Documento]: e.target.value }))}
-                              style={selectTableStyle}>
+                              style={SELECT_TABLE}>
                               {roles.map((rol) => (
-                                <option key={rol.Id_rol} value={rol.Id_rol} style={{ color: "#111827", backgroundColor: "#f8fafc" }}>
-                                  {rol.nombre_rol}
-                                </option>
+                                <option key={rol.Id_rol} value={rol.Id_rol}>{rol.nombre_rol}</option>
                               ))}
                             </select>
                             <button
@@ -331,47 +295,27 @@ export default function AdminUsuarios() {
                               OK
                             </button>
                           </div>
-                          {esPropioUsuario && <p className="text-xs mt-1" style={{ color: "var(--md-text)" }}>Tu rol no se puede cambiar aqui.</p>}
+                          {esPropioUsuario && <p className="text-xs mt-1" style={{ color: "#1B2727" }}>Tu rol no se puede cambiar aqui.</p>}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center justify-center gap-2">
                             <select
-                              value={estadoPendiente}
+                              value={estadosPendientes[item.Num_Documento] || "Activo"}
                               disabled={esPropioUsuario}
                               onChange={(e) => setEstadosPendientes((prev) => ({ ...prev, [item.Num_Documento]: e.target.value }))}
-                              style={selectTableStyle}>
-                              <option value="Activo" style={{ color: "#111827", backgroundColor: "#f8fafc" }}>Activo</option>
-                              <option value="Inactivo" style={{ color: "#111827", backgroundColor: "#f8fafc" }}>Inactivo</option>
+                              style={SELECT_TABLE}>
+                              <option value="Activo">Activo</option>
+                              <option value="Inactivo">Inactivo</option>
                             </select>
                             <button
                               onClick={() => handleCambioEstado(item.Num_Documento)}
-                              disabled={esPropioUsuario || !hayCambioEstado}
+                              disabled={esPropioUsuario || String(item.estado || "Activo") === String(estadosPendientes[item.Num_Documento] || "Activo")}
                               className="px-2 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50 transition"
                               style={{ backgroundColor: "#6B8E4E" }}>
                               OK
                             </button>
                           </div>
-                          <div className="mt-1 text-center">
-                            <span
-                              className="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold"
-                              style={{
-                                backgroundColor: estadoActual === "Activo" ? "rgba(107,142,78,0.2)" : "rgba(239,68,68,0.15)",
-                                color: estadoActual === "Activo" ? "#6B8E4E" : "#f87171",
-                              }}
-                            >
-                              Estado actual: {estadoActual}
-                            </span>
-                          </div>
-                          {hayCambioEstado && !esPropioUsuario && (
-                            <p className="text-xs mt-1 text-center" style={{ color: "#fbbf24" }}>
-                              Cambio pendiente: {estadoPendiente}
-                            </p>
-                          )}
-                          {esPropioUsuario && (
-                            <p className="text-xs mt-1 text-center" style={{ color: "var(--md-text)" }}>
-                              Tu estado no se puede cambiar aqui.
-                            </p>
-                          )}
+                          {esPropioUsuario && <p className="text-xs mt-1 text-center" style={{ color: "#1B2727" }}>Tu estado no se puede cambiar aqui.</p>}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center justify-center gap-2">
@@ -403,7 +347,7 @@ export default function AdminUsuarios() {
             style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
             onClick={(e) => { if (e.target === e.currentTarget) setModal(false); }}>
             <div className="rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-              style={{ backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)" }}>
+              style={{ backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2" }}>
               <div className="px-6 py-4 flex items-center justify-between"
                 style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
                 <h2 className="text-lg font-bold" style={{ color: "#1B2727" }}>
@@ -423,21 +367,19 @@ export default function AdminUsuarios() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold mb-1" style={labelStyle}>Documento *</label>
+                    <label className="block text-sm font-semibold mb-1" style={LABEL}>Documento *</label>
                     <input type="number" name="num_documento" value={form.num_documento} onChange={handleChange}
                       disabled={!!editando} required
                       className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none disabled:opacity-50"
-                      style={inputStyle} />
+                      style={INPUT_STYLE} />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold mb-1" style={labelStyle}>Rol *</label>
+                    <label className="block text-sm font-semibold mb-1" style={LABEL}>Rol *</label>
                     <select name="rol_id" value={form.rol_id} onChange={handleChange} required
-                      className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={selectBaseStyle}>
+                      className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={INPUT_STYLE}>
                       <option value="">Seleccionar...</option>
                       {roles.map((rol) => (
-                        <option key={rol.Id_rol} value={rol.Id_rol} style={{ color: "#111827", backgroundColor: "#f8fafc" }}>
-                          {rol.nombre_rol}
-                        </option>
+                        <option key={rol.Id_rol} value={rol.Id_rol}>{rol.nombre_rol}</option>
                       ))}
                     </select>
                   </div>
@@ -445,54 +387,54 @@ export default function AdminUsuarios() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold mb-1" style={labelStyle}>Nombre *</label>
+                    <label className="block text-sm font-semibold mb-1" style={LABEL}>Nombre *</label>
                     <input type="text" name="nombre" value={form.nombre} onChange={handleChange} required
-                      className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={inputStyle} />
+                      className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={INPUT_STYLE} />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold mb-1" style={labelStyle}>Apellido *</label>
+                    <label className="block text-sm font-semibold mb-1" style={LABEL}>Apellido *</label>
                     <input type="text" name="apellido" value={form.apellido} onChange={handleChange} required
-                      className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={inputStyle} />
+                      className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={INPUT_STYLE} />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold mb-1" style={labelStyle}>Correo *</label>
+                    <label className="block text-sm font-semibold mb-1" style={LABEL}>Correo *</label>
                     <input type="email" name="correo" value={form.correo} onChange={handleChange} required
-                      className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={inputStyle} />
+                      className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={INPUT_STYLE} />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold mb-1" style={labelStyle}>Telefono</label>
+                    <label className="block text-sm font-semibold mb-1" style={LABEL}>Telefono</label>
                     <input type="text" name="telefono" value={form.telefono} onChange={handleChange}
-                      className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={inputStyle} />
+                      className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={INPUT_STYLE} />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold mb-1" style={labelStyle}>Barrio</label>
+                    <label className="block text-sm font-semibold mb-1" style={LABEL}>Barrio</label>
                     <input type="text" name="barrio" value={form.barrio} onChange={handleChange}
-                      className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={inputStyle} />
+                      className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={INPUT_STYLE} />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold mb-1" style={labelStyle}>Direccion</label>
+                    <label className="block text-sm font-semibold mb-1" style={LABEL}>Direccion</label>
                     <input type="text" name="direccion" value={form.direccion} onChange={handleChange}
-                      className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={inputStyle} />
+                      className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={INPUT_STYLE} />
                   </div>
                 </div>
 
                 {!editando && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold mb-1" style={labelStyle}>Contrasena *</label>
+                      <label className="block text-sm font-semibold mb-1" style={LABEL}>Contrasena *</label>
                       <input type="password" name="contrasena" value={form.contrasena} onChange={handleChange} required
-                        className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={inputStyle} />
+                        className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={INPUT_STYLE} />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold mb-1" style={labelStyle}>Confirmar contrasena *</label>
+                      <label className="block text-sm font-semibold mb-1" style={LABEL}>Confirmar contrasena *</label>
                       <input type="password" name="confirmar" value={form.confirmar} onChange={handleChange} required
-                        className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={inputStyle} />
+                        className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={INPUT_STYLE} />
                     </div>
                   </div>
                 )}

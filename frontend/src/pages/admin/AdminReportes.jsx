@@ -5,7 +5,6 @@ import {
   domicilioService, usuarioService, proveedorService, productoService, categoriaService,
 } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
-import { useTheme } from "../../context/ThemeContext";
 
 function Card({ titulo, valor, detalle }) {
   return (
@@ -39,7 +38,6 @@ function escapeHtml(value) {
 
 export default function AdminReportes() {
   const { esEmpleado } = useAuth();
-  const { esOscuro } = useTheme();
   const esEmp = esEmpleado();
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
@@ -311,31 +309,6 @@ export default function AdminReportes() {
   const DARK_CARD = { backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2", boxShadow: "0 2px 8px rgba(27,39,39,0.06)" };
   const ITEM_ROW  = { border: "1px solid rgba(107,142,78,0.12)", borderRadius: "0.75rem", padding: "0.75rem 1rem" };
   const INPUT_STYLE = { backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", color: "#1B2727" };
-  const topSelectStyle = {
-    backgroundColor: esOscuro ? "#0f172a" : "#F8FAF9",
-    border: `1px solid ${esOscuro ? "#334155" : "#B2C5B2"}`,
-    color: esOscuro ? "#e5e7eb" : "#1B2727",
-    appearance: "none",
-    WebkitAppearance: "none",
-    MozAppearance: "none",
-    WebkitTextFillColor: esOscuro ? "#e5e7eb" : "#1B2727",
-    backgroundImage:
-      "linear-gradient(45deg, transparent 50%, #94a3b8 50%), linear-gradient(135deg, #94a3b8 50%, transparent 50%)",
-    backgroundPosition: "calc(100% - 16px) calc(50% - 3px), calc(100% - 10px) calc(50% - 3px)",
-    backgroundSize: "6px 6px, 6px 6px",
-    backgroundRepeat: "no-repeat",
-    paddingRight: "2rem",
-  };
-  const updateBtnStyle = {
-    backgroundColor: "#6B8E4E",
-    color: "#ffffff",
-    border: `1px solid ${esOscuro ? "#84cc16" : "#6B8E4E"}`,
-  };
-  const exportBtnStyle = {
-    backgroundColor: esOscuro ? "#1f2937" : "#B2C5B2",
-    border: `1px solid ${esOscuro ? "#475569" : "#B2C5B2"}`,
-    color: esOscuro ? "#e5e7eb" : "#1B2727",
-  };
 
   return (
     <>
@@ -354,20 +327,20 @@ export default function AdminReportes() {
           <div className="flex items-center gap-3">
             {!esEmp && (
               <select value={periodo} onChange={(e) => setPeriodo(e.target.value)}
-                className="rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={topSelectStyle}>
+                className="rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={INPUT_STYLE}>
                 <option value="mes">Ingresos por mes</option>
                 <option value="dia">Ingresos por dia</option>
               </select>
             )}
             <button onClick={() => cargarDatos(periodo)} disabled={cargando}
               className="text-white font-semibold px-4 py-2.5 rounded-xl text-sm disabled:opacity-60 transition"
-              style={updateBtnStyle}>
+              style={{ backgroundColor: "#6B8E4E" }}>
               {cargando ? "Actualizando..." : "Actualizar"}
             </button>
             {!esEmp && (
               <button onClick={() => setModalExport(true)} disabled={cargando}
                 className="font-semibold px-4 py-2.5 rounded-xl text-sm transition disabled:opacity-60"
-                style={exportBtnStyle}>
+                style={{ backgroundColor: "#B2C5B2", border: "1px solid #B2C5B2", color: "#1B2727" }}>
                 Exportar PDF
               </button>
             )}

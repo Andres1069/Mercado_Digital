@@ -95,8 +95,8 @@ export default function Perfil() {
   const contenido = (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="mb-6">
-        <h1 className="text-4xl font-black md-title-serif" style={{ color: "var(--md-text)" }}>Mi perfil</h1>
-        <p className="text-sm mt-2" style={{ color: "var(--md-text-soft)" }}>
+        <h1 className="text-4xl font-black md-title-serif text-slate-900">Mi perfil</h1>
+        <p className="text-sm text-slate-500 mt-2">
           Revisa y actualiza tu informacion personal.
         </p>
       </div>
@@ -130,16 +130,16 @@ export default function Perfil() {
           <h2 className="text-xl font-bold text-gray-800">
             {form.nombre || "Usuario"} {form.apellido || ""}
           </h2>
-          <p className="text-sm mt-1" style={{ color: "var(--md-text-soft)" }}>{form.rol || "Sin rol"}</p>
+          <p className="text-sm text-gray-500 mt-1">{form.rol || "Sin rol"}</p>
 
           <div className="mt-6 space-y-3 text-sm">
             <div className="rounded-2xl md-soft-card px-4 py-3">
-              <p className="text-xs uppercase tracking-wide" style={{ color: "var(--md-text-soft)" }}>Documento</p>
-              <p className="font-semibold" style={{ color: "var(--md-text)" }}>{form.num_documento || "-"}</p>
+              <p className="text-gray-400 text-xs uppercase tracking-wide">Documento</p>
+              <p className="font-semibold text-gray-700">{form.num_documento || "-"}</p>
             </div>
             <div className="rounded-2xl md-soft-card px-4 py-3">
-              <p className="text-xs uppercase tracking-wide" style={{ color: "var(--md-text-soft)" }}>Correo</p>
-              <p className="font-semibold break-all" style={{ color: "var(--md-text)" }}>{form.correo || "-"}</p>
+              <p className="text-gray-400 text-xs uppercase tracking-wide">Correo</p>
+              <p className="font-semibold text-gray-700 break-all">{form.correo || "-"}</p>
             </div>
           </div>
         </div>
@@ -155,45 +155,45 @@ export default function Perfil() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold mb-1" style={{ color: "var(--md-text-soft)" }}>Nombre</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Nombre</label>
                   <input type="text" name="nombre" value={form.nombre} onChange={handleChange} required className="md-input" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-1" style={{ color: "var(--md-text-soft)" }}>Apellido</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Apellido</label>
                   <input type="text" name="apellido" value={form.apellido} onChange={handleChange} required className="md-input" />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold mb-1" style={{ color: "var(--md-text-soft)" }}>Correo</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Correo</label>
                   <input type="email" name="correo" value={form.correo} onChange={handleChange} required className="md-input" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-1" style={{ color: "var(--md-text-soft)" }}>Telefono</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Telefono</label>
                   <input type="text" name="telefono" value={form.telefono} onChange={handleChange} className="md-input" />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold mb-1" style={{ color: "var(--md-text-soft)" }}>Barrio</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Barrio</label>
                   <input type="text" name="barrio" value={form.barrio} onChange={handleChange} className="md-input" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-1" style={{ color: "var(--md-text-soft)" }}>Direccion</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Direccion</label>
                   <input type="text" name="direccion" value={form.direccion} onChange={handleChange} className="md-input" />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold mb-1" style={{ color: "var(--md-text-soft)" }}>Documento</label>
-                  <input type="text" value={form.num_documento} disabled className="md-input" style={{ backgroundColor: "var(--md-surface-soft)", color: "var(--md-text-soft)" }} />
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Documento</label>
+                  <input type="text" value={form.num_documento} disabled className="md-input bg-[var(--md-surface-soft)] text-gray-500" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-1" style={{ color: "var(--md-text-soft)" }}>Rol</label>
-                  <input type="text" value={form.rol} disabled className="md-input" style={{ backgroundColor: "var(--md-surface-soft)", color: "var(--md-text-soft)" }} />
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Rol</label>
+                  <input type="text" value={form.rol} disabled className="md-input bg-[var(--md-surface-soft)] text-gray-500" />
                 </div>
               </div>
 

@@ -80,16 +80,6 @@ export default function Navbar({ carritoCount }) {
         )}
 
         <div className="flex items-center gap-2 sm:gap-3 ml-auto">
-          <ThemeToggle
-            className="px-3 py-2 sm:px-4 sm:py-2.5 rounded-[1.35rem] text-sm"
-            style={{
-              background: "rgba(255,255,255,0.1)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              color: "#ffffff",
-            }}
-            hideLabelOnMobile
-          />
-
           {!esAdmin() && !esEmpleado() && (
             <Link
               to="/carrito"
