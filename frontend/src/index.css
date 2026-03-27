@@ -16,6 +16,20 @@
   --md-shadow: 0 18px 40px rgba(116, 180, 149, 0.12);
 }
 
+html.theme-dark {
+  --md-bg: #0f172a;
+  --md-surface: #111827;
+  --md-surface-soft: #1f2937;
+  --md-border: #334155;
+  --md-text: #e5e7eb;
+  --md-text-soft: #94a3b8;
+  --md-sage: #475569;
+  --md-aqua: #84cc16;
+  --md-lavender: #334155;
+  --md-accent: linear-gradient(135deg, #84cc16 0%, #0f766e 100%);
+  --md-shadow: 0 20px 44px rgba(0, 0, 0, 0.34);
+}
+
 html {
   background: var(--md-bg);
   overflow-x: hidden;
@@ -83,9 +97,27 @@ body {
     width: 100%;
     border: 1px solid var(--md-border);
     background: rgba(255, 255, 255, 0.92);
+    color: var(--md-text);
     border-radius: 1rem;
     padding: 0.85rem 1rem;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  }
+
+  .md-input::placeholder {
+    color: var(--md-text-soft);
+    opacity: 0.65;
+  }
+
+  html.theme-dark .md-input {
+    background: #0f172a;
+    color: #e5e7eb;
+    border-color: #334155;
+  }
+
+  html.theme-dark .md-input:disabled {
+    background: #1f2937;
+    color: #94a3b8;
+    opacity: 1;
   }
 
   .md-input:focus {

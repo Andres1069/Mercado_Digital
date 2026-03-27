@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import BrandMark from "./BrandMark";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Navbar({ carritoCount }) {
   const { usuario, cerrarSesion, esAdmin, esEmpleado } = useAuth();

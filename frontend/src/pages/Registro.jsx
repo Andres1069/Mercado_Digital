@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import ThemeToggle from "../components/ThemeToggle";
 import { authService } from "../services/api";
 
 function validarContrasena(contrasena) {

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import { usuarioService } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 
 const VACIO = {
   num_documento: "",
@@ -22,6 +23,7 @@ const LABEL = { color: "#3C5148" };
 const SELECT_TABLE = { backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", color: "#1B2727", borderRadius: "0.5rem", padding: "0.375rem 0.75rem", fontSize: "0.75rem" };
 
 export default function AdminUsuarios() {
+  const { esOscuro } = useTheme();
   const { usuario } = useAuth();
   const [usuarios, setUsuarios] = useState([]);
   const [roles, setRoles] = useState([]);
