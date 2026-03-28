@@ -80,6 +80,16 @@ export default function Navbar({ carritoCount }) {
         )}
 
         <div className="flex items-center gap-2 sm:gap-3 ml-auto">
+          <ThemeToggle
+            className="px-3 py-2 sm:px-4 sm:py-2.5 rounded-[1.35rem] text-sm"
+            style={{
+              background: "rgba(255,255,255,0.1)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              color: "#ffffff",
+            }}
+            hideLabelOnMobile
+          />
+
           {!esAdmin() && !esEmpleado() && (
             <Link
               to="/carrito"
@@ -120,7 +130,7 @@ export default function Navbar({ carritoCount }) {
             {menuAbierto && (
               <div
                 className="absolute right-0 mt-2 w-56 sm:w-60 rounded-3xl overflow-hidden shadow-2xl border border-black/5"
-                style={{ backgroundColor: "#FFFFFF" }}
+                style={{ backgroundColor: "var(--md-surface)", borderColor: "var(--md-border)" }}
               >
                 <div className="px-5 py-4 text-white" style={{ background: "linear-gradient(135deg, #6B8E4E, #3C5148)" }}>
                   <p className="font-bold text-sm truncate">{usuario?.Nombre} {usuario?.Apellido}</p>

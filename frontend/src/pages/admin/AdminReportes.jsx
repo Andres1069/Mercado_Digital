@@ -8,7 +8,7 @@ import { useAuth } from "../../context/AuthContext";
 
 function Card({ titulo, valor, detalle }) {
   return (
-    <div className="rounded-2xl p-5" style={{ backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2", boxShadow: "0 2px 8px rgba(27,39,39,0.06)" }}>
+    <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)", boxShadow: "var(--md-shadow)" }}>
       <p className="text-xs uppercase tracking-wide font-semibold" style={{ color: "#6B8E4E" }}>{titulo}</p>
       <p className="text-3xl font-extrabold mt-2" style={{ color: "#3C5148" }}>{valor}</p>
       <p className="text-sm mt-1" style={{ color: "#3C5148" }}>{detalle}</p>
@@ -306,13 +306,13 @@ export default function AdminReportes() {
   };
 
 
-  const DARK_CARD = { backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2", boxShadow: "0 2px 8px rgba(27,39,39,0.06)" };
+  const DARK_CARD = { backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)", boxShadow: "var(--md-shadow)" };
   const ITEM_ROW  = { border: "1px solid rgba(107,142,78,0.12)", borderRadius: "0.75rem", padding: "0.75rem 1rem" };
-  const INPUT_STYLE = { backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", color: "#1B2727" };
+  const INPUT_STYLE = { backgroundColor: "var(--md-surface-soft)", border: "1px solid var(--md-border)", color: "var(--md-text)" };
 
   return (
     <>
-    <div className="flex min-h-screen" style={{ backgroundColor: "#D5DDDF" }}>
+    <div className="flex min-h-screen" style={{ backgroundColor: "var(--md-bg)" }}>
       <Sidebar />
       <div className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
 
@@ -512,7 +512,7 @@ export default function AdminReportes() {
         style={{ backgroundColor: "rgba(0,0,0,0.55)" }}
         onClick={(e) => { if (e.target === e.currentTarget) setModalExport(false); }}>
         <div className="rounded-2xl shadow-2xl w-full max-w-lg p-7"
-          style={{ backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2" }}>
+          style={{ backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)" }}>
           <h2 className="text-xl font-black mb-1" style={{ color: "#1B2727" }}>Exportar PDF por modulos</h2>
           <p className="text-sm mb-5" style={{ color: "#6B8E4E" }}>Selecciona los modulos que deseas incluir en el reporte.</p>
 

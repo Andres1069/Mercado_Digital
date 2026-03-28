@@ -17,10 +17,10 @@ const VACIO = {
   rol_id: "",
 };
 
-const CARD = { backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2", boxShadow: "0 2px 8px rgba(27,39,39,0.06)" };
-const INPUT_STYLE = { backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", color: "#1B2727" };
-const LABEL = { color: "#3C5148" };
-const SELECT_TABLE = { backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", color: "#1B2727", borderRadius: "0.5rem", padding: "0.375rem 0.75rem", fontSize: "0.75rem" };
+const CARD = { backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)", boxShadow: "var(--md-shadow)" };
+const INPUT_STYLE = { backgroundColor: "var(--md-surface-soft)", border: "1px solid var(--md-border)", color: "var(--md-text)" };
+const LABEL = { color: "var(--md-text-soft)" };
+const SELECT_TABLE = { backgroundColor: "var(--md-surface-soft)", border: "1px solid var(--md-border)", color: "var(--md-text)", borderRadius: "0.5rem", padding: "0.375rem 0.75rem", fontSize: "0.75rem" };
 
 export default function AdminUsuarios() {
   const { esOscuro } = useTheme();
@@ -191,7 +191,7 @@ export default function AdminUsuarios() {
   }, [buscar, usuarios]);
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: "#D5DDDF" }}>
+    <div className="flex min-h-screen" style={{ backgroundColor: "var(--md-bg)" }}>
       <Sidebar />
       <div className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
 
@@ -347,7 +347,7 @@ export default function AdminUsuarios() {
             style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
             onClick={(e) => { if (e.target === e.currentTarget) setModal(false); }}>
             <div className="rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-              style={{ backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2" }}>
+              style={{ backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)" }}>
               <div className="px-6 py-4 flex items-center justify-between"
                 style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
                 <h2 className="text-lg font-bold" style={{ color: "#1B2727" }}>
@@ -460,7 +460,7 @@ export default function AdminUsuarios() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
             style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
             <div className="rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center"
-              style={{ backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2" }}>
+              style={{ backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)" }}>
               <h3 className="text-lg font-bold mb-2" style={{ color: "#1B2727" }}>Eliminar usuario?</h3>
               <p className="text-sm mb-2" style={{ color: "#3C5148" }}>
                 Se eliminara a {confirmar.Nombre} {confirmar.Apellido}.

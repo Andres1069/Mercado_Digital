@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import { inventarioService, resolverImagen } from "../../services/api";
 
-const CARD = { backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2", boxShadow: "0 2px 8px rgba(27,39,39,0.06)" };
+const CARD = { backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)", boxShadow: "var(--md-shadow)" };
 const INPUT_STYLE = { backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", color: "#1B2727" };
 
 function nivelStock(stock) {
@@ -62,7 +62,7 @@ export default function AdminInventario() {
   );
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: "#D5DDDF" }}>
+    <div className="flex min-h-screen" style={{ backgroundColor: "var(--md-bg)" }}>
       <Sidebar />
       <div className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
         <div className="max-w-7xl mx-auto px-4 py-8">

@@ -3,7 +3,7 @@ import Sidebar from "../../components/Sidebar";
 import { pagoService, resolverImagen } from "../../services/api";
 
 const ESTADOS_FILTRO = ["todos", "pendiente", "aprobado", "rechazado"];
-const CARD = { backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2", boxShadow: "0 2px 8px rgba(27,39,39,0.06)" };
+const CARD = { backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)", boxShadow: "var(--md-shadow)" };
 const INPUT_STYLE = { backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", color: "#1B2727" };
 
 const BADGE = {
@@ -93,7 +93,7 @@ export default function AdminPagos() {
   });
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: "#D5DDDF" }}>
+    <div className="flex min-h-screen" style={{ backgroundColor: "var(--md-bg)" }}>
       <Sidebar />
       <div className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
 
@@ -225,7 +225,7 @@ export default function AdminPagos() {
             style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
             onClick={(e) => { if (e.target === e.currentTarget) setModal(null); }}>
             <div className="rounded-2xl shadow-2xl w-full max-w-md p-6"
-              style={{ backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2" }}>
+              style={{ backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)" }}>
               <h3 className="text-lg font-extrabold mb-1" style={{ color: "#1B2727" }}>Verificar pago #{modal.pago.Cod_Pago}</h3>
               <p className="text-sm mb-4" style={{ color: "#3C5148" }}>
                 Cliente: <strong style={{ color: "#1B2727" }}>{modal.pago.cliente_nombre} {modal.pago.cliente_apellido}</strong>

@@ -8,8 +8,8 @@ const COLORES = {
   Daviplata: { fondo: "#b45309", claro: "rgba(180,83,9,0.15)",   borde: "#f59e0b" },
 };
 
-const LABEL = { color: "#3C5148" };
-const INPUT_STYLE = { backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", color: "#1B2727" };
+const LABEL = { color: "var(--md-text-soft)" };
+const INPUT_STYLE = { backgroundColor: "var(--md-surface-soft)", border: "1px solid var(--md-border)", color: "var(--md-text)" };
 
 function TarjetaMetodo({ cfg, onActualizar }) {
   const col        = COLORES[cfg.metodo] || COLORES.Nequi;
@@ -65,7 +65,7 @@ function TarjetaMetodo({ cfg, onActualizar }) {
   }
 
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2", boxShadow: "0 2px 8px rgba(27,39,39,0.06)" }}>
+    <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)", boxShadow: "var(--md-shadow)" }}>
       {/* Header */}
       <div className="px-6 py-5 text-white" style={{ backgroundColor: col.fondo }}>
         <div className="flex items-center gap-3">
@@ -183,7 +183,7 @@ export default function AdminMetodosPago() {
   useEffect(() => { cargar(); }, []);
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: "#D5DDDF" }}>
+    <div className="flex min-h-screen" style={{ backgroundColor: "var(--md-bg)" }}>
       <Sidebar />
       <div className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
         <div className="max-w-5xl mx-auto px-4 py-8">

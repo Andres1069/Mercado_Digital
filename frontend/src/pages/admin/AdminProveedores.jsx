@@ -3,9 +3,9 @@ import Sidebar from "../../components/Sidebar";
 import { proveedorService } from "../../services/api";
 
 const VACIO = { nombre: "", telefono: "", correo: "" };
-const CARD = { backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2", boxShadow: "0 2px 8px rgba(27,39,39,0.06)" };
-const INPUT_STYLE = { backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", color: "#1B2727" };
-const LABEL = { color: "#3C5148" };
+const CARD = { backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)", boxShadow: "var(--md-shadow)" };
+const INPUT_STYLE = { backgroundColor: "var(--md-surface-soft)", border: "1px solid var(--md-border)", color: "var(--md-text)" };
+const LABEL = { color: "var(--md-text-soft)" };
 
 function Badge({ n }) {
   if (!n || Number(n) === 0) return <span className="text-xs" style={{ color: "#1B2727" }}>—</span>;
@@ -27,7 +27,7 @@ function Modal({ proveedor, onGuardar, onCerrar, guardando, error }) {
       style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
       onClick={(e) => { if (e.target === e.currentTarget) onCerrar(); }}>
       <div className="w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
-        style={{ backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2" }}>
+        style={{ backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)" }}>
         <div className="px-6 py-5 text-white" style={{ background: "linear-gradient(135deg,#4f46e5,#7c3aed)" }}>
           <p className="text-xs uppercase tracking-widest text-white/70 font-semibold">
             {proveedor ? "Editar" : "Nuevo"} proveedor
@@ -87,7 +87,7 @@ function PanelBajoStock({ proveedor, productos, onCerrar }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
       <div className="w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-        style={{ backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2" }}>
+        style={{ backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)" }}>
         <div className="px-6 py-5"
           style={{ background: "linear-gradient(135deg,rgba(239,68,68,0.3),rgba(239,68,68,0.15))", borderBottom: "1px solid rgba(239,68,68,0.2)" }}>
           <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: "#f87171" }}>Alerta de inventario</p>
@@ -223,7 +223,7 @@ export default function AdminProveedores() {
   const totalAlertas = proveedores.filter((p) => Number(p.productos_bajo_stock) > 0).length;
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: "#D5DDDF" }}>
+    <div className="flex min-h-screen" style={{ backgroundColor: "var(--md-bg)" }}>
       <Sidebar />
       <div className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
 
@@ -233,7 +233,7 @@ export default function AdminProveedores() {
         {confirmar && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
             <div className="w-full max-w-sm rounded-2xl shadow-2xl p-6"
-              style={{ backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2" }}>
+              style={{ backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)" }}>
               <h2 className="text-lg font-black mb-2" style={{ color: "#1B2727" }}>Eliminar proveedor</h2>
               <p className="text-sm mb-6" style={{ color: "#6B8E4E" }}>Esta accion no se puede deshacer. Los productos vinculados quedaran sin proveedor asignado.</p>
               <div className="flex gap-3">
@@ -303,7 +303,7 @@ export default function AdminProveedores() {
             <input value={buscar} onChange={(e) => setBuscar(e.target.value)}
               placeholder="Buscar proveedor o correo..."
               className="flex-1 min-w-[200px] px-4 py-2.5 rounded-xl text-sm focus:outline-none"
-              style={{ backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", color: "#1B2727" }} />
+              style={INPUT_STYLE} />
             <button onClick={cargar} disabled={cargando}
               className="px-5 py-2.5 rounded-xl text-sm font-semibold transition disabled:opacity-50"
               style={{ backgroundColor: "#B2C5B2", border: "1px solid #B2C5B2", color: "#1B2727" }}>
@@ -317,7 +317,7 @@ export default function AdminProveedores() {
           </div>
 
           {/* Tabla */}
-          <div className="rounded-2xl overflow-x-auto" style={{ backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2", boxShadow: "0 2px 8px rgba(27,39,39,0.06)" }}>
+          <div className="rounded-2xl overflow-x-auto" style={{ backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)", boxShadow: "var(--md-shadow)" }}>
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
