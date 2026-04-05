@@ -70,9 +70,8 @@ class AuthController {
             $this->error('El correo no tiene un formato valido.', 400);
         }
 
-        $errorPassword = $this->validarContrasena((string)$body['contrasena']);
-        if ($errorPassword !== null) {
-            $this->error($errorPassword, 400);
+        if (strlen($body['contrasena']) > 6) {
+            $this->error('La contraseña debe tener al menos 6 caracteres.', 400);
         }
 
         if ($this->model->correoExiste($body['correo'])) {

@@ -252,8 +252,8 @@ export default function Sidebar() {
     <>
       {/* Desktop */}
       <aside className="hidden md:block w-60 flex-shrink-0">
-        <div className="fixed left-0 top-0 h-screen w-60 z-30 flex flex-col">
-          <Contenido />
+        <div className="fixed top-0 left-0 w-60 h-screen z-30">
+          {Contenido()}
         </div>
       </aside>
 
@@ -275,7 +275,7 @@ export default function Sidebar() {
         <>
           <div className="md:hidden fixed inset-0 bg-black/60 z-40" onClick={cerrar} />
           <aside className="md:hidden fixed left-0 top-0 h-full w-60 z-50 flex flex-col shadow-2xl">
-            <Contenido />
+            {Contenido()}
           </aside>
         </>
       )}
