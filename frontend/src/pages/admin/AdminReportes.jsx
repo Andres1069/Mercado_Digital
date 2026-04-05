@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import {
   reporteService, pedidoService, pagoService, inventarioService,
@@ -80,7 +80,7 @@ export default function AdminReportes() {
     resumen: [],
   });
 
-  const cargarDatos = async (periodoActivo = periodo) => {
+  const cargarDatos = useCallback(async () => {
     setCargando(true);
     setError("");
 
@@ -89,7 +89,7 @@ export default function AdminReportes() {
         reporteService.ventas(),
         reporteService.productosMasVendidos(),
         reporteService.pedidosPorEstado(),
-        reporteService.ingresos(periodoActivo),
+        reporteService.ingresos(periodo),
       ];
       if (!esEmp) llamadas.push(reporteService.registros());
 
@@ -108,11 +108,11 @@ export default function AdminReportes() {
     } finally {
       setCargando(false);
     }
-  };
+  }, [esEmp, periodo]);
 
   useEffect(() => {
-    cargarDatos(periodo);
-  }, [periodo]);
+    cargarDatos();
+  }, [cargarDatos]);
 
   const totalRegistros = data.reportes.length;
   const totalTipos = data.resumen.length;

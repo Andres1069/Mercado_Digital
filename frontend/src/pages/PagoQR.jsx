@@ -58,7 +58,7 @@ export default function PagoQR() {
       })
       .catch((e) => setError(e.message))
       .finally(() => setCargando(false));
-  }, [pedidoId, metodo]);
+  }, [pedidoId, metodo, clearCart]);
 
   // ── Manejo de archivo ──────────────────────────────────────────────────
   function handleArchivo(e) {

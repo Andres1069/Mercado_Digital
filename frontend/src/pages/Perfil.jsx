@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import { useAuth } from "../context/AuthContext";
@@ -24,7 +24,7 @@ export default function Perfil() {
   const [error, setError] = useState("");
   const [mensaje, setMensaje] = useState("");
 
-  const cargarPerfil = async () => {
+  const cargarPerfil = useCallback(async () => {
     setCargando(true);
     setError("");
     try {
@@ -46,11 +46,11 @@ export default function Perfil() {
     } finally {
       setCargando(false);
     }
-  };
+  }, [actualizarUsuario]);
 
   useEffect(() => {
     cargarPerfil();
-  }, []);
+  }, [cargarPerfil]);
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));

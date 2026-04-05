@@ -1,3 +1,5 @@
+/* eslint-disable react-refresh/only-export-components */
+
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useAuth } from "./AuthContext";
 
@@ -21,6 +23,7 @@ export function CartProvider({ children }) {
   // Cuando cambia el usuario (login/logout), cargar su carrito propio
   useEffect(() => {
     if (cartKey) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setItems(parseSafe(localStorage.getItem(cartKey), []));
     } else {
       setItems([]);

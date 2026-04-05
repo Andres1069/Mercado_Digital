@@ -7,7 +7,6 @@ const BASE_URL =
 
 if (import.meta.env.DEV) {
   // Ayuda a diagnosticar problemas de CORS/URL en desarrollo.
-  // eslint-disable-next-line no-console
   console.info("[api] BASE_URL:", BASE_URL);
 }
 

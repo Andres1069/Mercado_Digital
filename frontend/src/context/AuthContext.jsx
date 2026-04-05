@@ -6,6 +6,7 @@
 //     esta pestana se sincroniza automaticamente (misma cuenta activa en todo el navegador).
 //   - Una sola sesion por cuenta entre dispositivos: el backend invalida el token anterior
 //     via SesionId. El heartbeat detecta el 401 y cierra la sesion aqui.
+/* eslint-disable react-refresh/only-export-components */
 
 import { createContext, useContext, useState, useEffect } from "react";
 import { authService } from "../services/api";

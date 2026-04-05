@@ -1,43 +1,41 @@
+/* eslint-disable react-refresh/only-export-components */
+
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 const ThemeContext = createContext(null);
-const STORAGE_KEY = "md-theme";
+
+const STORAGE_KEY = "md_theme"; // "dark" | "light"
+const DARK_CLASS = "theme-dark";
+
+function getInitialIsDark() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved === "dark") return true;
+  if (saved === "light") return false;
+  return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
+}
 
 export function ThemeProvider({ children }) {
-  const [tema, setTema] = useState(() => {
-    try {
-      const guardado = localStorage.getItem(STORAGE_KEY);
-      if (guardado === "dark" || guardado === "light") return guardado;
-    } catch {
-      // ignore
-    }
-    return "light";
-  });
+  const [esOscuro, setEsOscuro] = useState(getInitialIsDark);
 
   useEffect(() => {
-    const html = document.documentElement;
-    html.classList.toggle("theme-dark", tema === "dark");
-    html.classList.toggle("theme-light", tema === "light");
-    try {
-      localStorage.setItem(STORAGE_KEY, tema);
-    } catch {
-      // ignore
-    }
-  }, [tema]);
+    const root = document.documentElement;
+    if (esOscuro) root.classList.add(DARK_CLASS);
+    else root.classList.remove(DARK_CLASS);
+    localStorage.setItem(STORAGE_KEY, esOscuro ? "dark" : "light");
+  }, [esOscuro]);
 
-  const alternarTema = () => setTema((t) => (t === "dark" ? "light" : "dark"));
-
-  const value = useMemo(
-    () => ({ tema, esOscuro: tema === "dark", setTema, alternarTema }),
-    [tema]
-  );
+  const value = useMemo(() => ({
+    esOscuro,
+    setEsOscuro,
+    toggleTema: () => setEsOscuro((v) => !v),
+  }), [esOscuro]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
 export function useTheme() {
   const ctx = useContext(ThemeContext);
-  if (!ctx) throw new Error("useTheme debe usarse dentro de ThemeProvider");
+  if (!ctx) throw new Error("useTheme debe usarse dentro de <ThemeProvider>");
   return ctx;
 }
 

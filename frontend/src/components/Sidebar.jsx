@@ -128,7 +128,7 @@ export default function Sidebar() {
 
   const inicial = (usuario?.Nombre?.[0] || "U").toUpperCase();
 
-  function Contenido() {
+  const renderContenido = () => {
     return (
       <div className="flex flex-col h-full" style={{ backgroundColor: "#3C5148", borderRight: "1px solid rgba(107,142,78,0.2)" }}>
 
@@ -246,14 +246,14 @@ export default function Sidebar() {
         </div>
       </div>
     );
-  }
+  };
 
   return (
     <>
       {/* Desktop */}
       <aside className="hidden md:block w-60 flex-shrink-0">
         <div className="fixed left-0 top-0 h-screen w-60 z-30 flex flex-col">
-          <Contenido />
+          {renderContenido()}
         </div>
       </aside>
 
@@ -275,7 +275,7 @@ export default function Sidebar() {
         <>
           <div className="md:hidden fixed inset-0 bg-black/60 z-40" onClick={cerrar} />
           <aside className="md:hidden fixed left-0 top-0 h-full w-60 z-50 flex flex-col shadow-2xl">
-            {Contenido()}
+            {renderContenido()}
           </aside>
         </>
       )}

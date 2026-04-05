@@ -71,7 +71,9 @@ export default function Seguimiento() {
         const res = await domicilioService.seguimiento(pedidoId);
         setData(res);
         setUltimaActualizacion(new Date());
-      } catch (_) {}
+      } catch {
+        // Ignorar: se reintenta en el siguiente intervalo.
+      }
     }, 30000);
     return () => clearInterval(id);
   }, [pedidoId, esTerminal]);

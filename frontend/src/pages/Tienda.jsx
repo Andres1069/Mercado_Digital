@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import ProductoCard from "../components/ProductoCard";
@@ -23,11 +23,7 @@ export default function Tienda() {
     return () => clearTimeout(t);
   }, [buscar]);
 
-  useEffect(() => {
-    cargarDatos();
-  }, [catActiva, buscarDebounced]);
-
-  const cargarDatos = async () => {
+  const cargarDatos = useCallback(async () => {
     setCargando(true);
     try {
       const [prods, cats, ofrs] = await Promise.all([
@@ -67,7 +63,11 @@ export default function Tienda() {
     } finally {
       setCargando(false);
     }
-  };
+  }, [catActiva, buscarDebounced]);
+
+  useEffect(() => {
+    cargarDatos();
+  }, [cargarDatos]);
 
   const agregarAlCarrito = (producto) => {
     addItem(producto);
