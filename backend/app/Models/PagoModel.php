@@ -10,20 +10,33 @@ class PagoModel {
         $this->ensureColumns();
     }
 
-    // ── Agrega las columnas del módulo de comprobantes si no existen ──────
+    // ── Migración de columnas ─────────────────────────────────────────────
     private function ensureColumns(): void {
-        $columnas = [
-            'comprobante_url'    => "VARCHAR(500) DEFAULT NULL",
-            'monto_comprobante'  => "INT DEFAULT NULL",
-            'verificacion'       => "ENUM('pendiente','aprobado','rechazado') NOT NULL DEFAULT 'pendiente'",
-            'notas_verificacion' => "VARCHAR(255) DEFAULT NULL",
+        // Agregar columnas de MercadoPago si no existen
+        $nuevas = [
+            'mp_preference_id'  => "VARCHAR(100) DEFAULT NULL",
+            'mp_payment_id'     => "VARCHAR(50)  DEFAULT NULL",
+            'mp_status'         => "VARCHAR(50)  DEFAULT NULL",
+            'mp_payment_method' => "VARCHAR(50)  DEFAULT NULL",
         ];
-        foreach ($columnas as $col => $def) {
+        foreach ($nuevas as $col => $def) {
             $chk = $this->db->query("SHOW COLUMNS FROM pago LIKE '$col'");
             if ($chk->rowCount() === 0) {
                 $this->db->exec("ALTER TABLE pago ADD COLUMN `$col` $def");
             }
         }
+
+        // Eliminar columnas del sistema manual de comprobantes si aún existen
+        $viejas = ['comprobante_url', 'monto_comprobante', 'verificacion', 'notas_verificacion'];
+        foreach ($viejas as $col) {
+            $chk = $this->db->query("SHOW COLUMNS FROM pago LIKE '$col'");
+            if ($chk->rowCount() > 0) {
+                $this->db->exec("ALTER TABLE pago DROP COLUMN `$col`");
+            }
+        }
+
+        // Eliminar tabla de configuración de métodos de pago manual (ya no se usa)
+        $this->db->exec("DROP TABLE IF EXISTS `metodo_pago_config`");
     }
 
     // ── Consultas ─────────────────────────────────────────────────────────
@@ -34,8 +47,7 @@ class PagoModel {
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
-    /** Todos los pagos con datos del cliente (para el admin).
-     *  Solo muestra pagos donde el cliente ya subió el comprobante. */
+    /** Todos los pagos con datos del cliente (para el admin) */
     public function getAll(): array {
         $stmt = $this->db->query("
             SELECT
@@ -45,80 +57,42 @@ class PagoModel {
                 per.Num_Documento AS cliente_documento,
                 per.Correo        AS cliente_correo
             FROM pago p
-            INNER JOIN pedido        pd  ON pd.Cod_Pedido      = p.Cod_pedido
-            INNER JOIN usuario_pedido up ON up.Cod_pedido      = pd.Cod_Pedido
-            INNER JOIN persona        per ON per.Num_Documento = up.Num_Documento
-            WHERE p.comprobante_url IS NOT NULL
+            INNER JOIN pedido         pd  ON pd.Cod_Pedido      = p.Cod_pedido
+            INNER JOIN usuario_pedido up  ON up.Cod_pedido      = pd.Cod_Pedido
+            INNER JOIN persona        per ON per.Num_Documento  = up.Num_Documento
             ORDER BY p.Cod_Pago DESC
         ");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Guarda el comprobante, valida el monto y retorna el resultado de la verificación.
-     * - Si el monto coincide exactamente → aprobado automático.
-     * - Si no coincide → pendiente (el admin revisa manualmente).
-     */
-    public function subirComprobante(int $pedidoId, string $comprobanteUrl, int $montoComprobante): array {
-        $pago = $this->getByPedido($pedidoId);
-        if (!$pago) {
-            return ['success' => false, 'message' => 'No se encontró el registro de pago para este pedido.'];
-        }
-
-        $montoEsperado = (int)$pago['Monto_Pago'];
-
-        // Si el monto no coincide, se rechaza antes de guardar nada
-        if ($montoComprobante !== $montoEsperado) {
-            return [
-                'success'           => false,
-                'es_correcto'       => false,
-                'monto_esperado'    => $montoEsperado,
-                'monto_comprobante' => $montoComprobante,
-                'message'           => 'El monto del comprobante no coincide con el total del pedido.',
-            ];
-        }
-
-        // Monto correcto → guardar comprobante como PENDIENTE de revisión por el administrador
+    /** Guarda el ID de preferencia de MercadoPago y marca el pago como Pendiente */
+    public function guardarPreferencia(int $pedidoId, string $preferenceId): bool {
         $stmt = $this->db->prepare("
             UPDATE pago
-               SET comprobante_url    = ?,
-                   monto_comprobante  = ?,
-                   verificacion       = 'pendiente',
-                   notas_verificacion = 'Comprobante recibido. Pendiente de revisión por administrador.'
+               SET mp_preference_id = ?,
+                   Estado_Pago      = 'Pendiente'
              WHERE Cod_pedido = ?
         ");
-        $stmt->execute([$comprobanteUrl, $montoComprobante, $pedidoId]);
-
-        return [
-            'success'           => true,
-            'es_correcto'       => true,
-            'verificacion'      => 'pendiente',
-            'monto_esperado'    => $montoEsperado,
-            'monto_comprobante' => $montoComprobante,
-            'mensaje'           => 'Comprobante recibido correctamente.',
-        ];
+        return $stmt->execute([$preferenceId, $pedidoId]);
     }
 
-    /** Admin aprueba o rechaza manualmente un pago */
-    public function verificar(int $pagoId, string $estado, ?string $notas): bool {
-        $estadoPago = match($estado) {
-            'aprobado'  => 'Completado',
-            'rechazado' => 'Fallido',
-            default     => null,
+    /** Actualiza el estado del pago con la respuesta real de MercadoPago */
+    public function procesarPago(int $pedidoId, string $paymentId, string $status, string $paymentMethod): bool {
+        $estadoPago = match($status) {
+            'approved' => 'Completado',
+            'rejected' => 'Fallido',
+            default    => 'Pendiente',
         };
 
-        if ($estadoPago !== null) {
-            $stmt = $this->db->prepare("
-                UPDATE pago
-                   SET verificacion = ?, notas_verificacion = ?, Estado_Pago = ?
-                 WHERE Cod_Pago = ?
-            ");
-            return $stmt->execute([$estado, $notas, $estadoPago, $pagoId]);
-        }
-
         $stmt = $this->db->prepare("
-            UPDATE pago SET verificacion = ?, notas_verificacion = ? WHERE Cod_Pago = ?
+            UPDATE pago
+               SET mp_payment_id     = ?,
+                   mp_status         = ?,
+                   mp_payment_method = ?,
+                   Estado_Pago       = ?,
+                   Fecha_Pago        = NOW()
+             WHERE Cod_pedido = ?
         ");
-        return $stmt->execute([$estado, $notas, $pagoId]);
+        return $stmt->execute([$paymentId, $status, $paymentMethod, $estadoPago, $pedidoId]);
     }
 }

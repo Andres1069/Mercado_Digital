@@ -22,6 +22,7 @@ import Seguimiento from "./pages/Domicilio/Seguimiento";
 
 // Paginas pago
 import PagoQR from "./pages/PagoQR";
+import PagoResultado from "./pages/PagoResultado";
 
 // Paginas admin
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -33,7 +34,6 @@ import AdminPedidos from "./pages/admin/AdminPedidos";
 import AdminInventario from "./pages/admin/AdminInventario";
 import AdminDomicilios from "./pages/admin/AdminDomicilios";
 import AdminPagos from "./pages/admin/AdminPagos";
-import AdminMetodosPago from "./pages/admin/AdminMetodosPago";
 import AdminCategorias from "./pages/admin/AdminCategorias";
 import AdminProveedores from "./pages/admin/AdminProveedores";
 import RouteTitle from "./components/RouteTitle";
@@ -91,7 +91,8 @@ function AppRoutes() {
         <Route path="/perfil" element={<RutaPrivada><Perfil /></RutaPrivada>} />
 
         {/* Pago */}
-        <Route path="/pago/qr" element={<RutaPrivada><PagoQR /></RutaPrivada>} />
+        <Route path="/pago/qr"       element={<RutaPrivada><PagoQR /></RutaPrivada>} />
+        <Route path="/pago/resultado" element={<RutaPrivada><PagoResultado /></RutaPrivada>} />
 
         {/* Domicilio cliente */}
         <Route path="/domicilio/crear" element={<RutaPrivada><CrearDomicilio /></RutaPrivada>} />
@@ -108,8 +109,7 @@ function AppRoutes() {
         <Route path="/admin/reportes"    element={<RutaAdmin><AdminReportes /></RutaAdmin>} />
         <Route path="/admin/pagos"       element={<RutaAdmin><AdminPagos /></RutaAdmin>} />
         <Route path="/admin/usuarios"    element={<RutaAdmin><AdminUsuarios /></RutaAdmin>} />
-        <Route path="/admin/metodos-pago" element={<RutaAdmin><AdminMetodosPago /></RutaAdmin>} />
-        <Route path="/admin/categorias"   element={<RutaAdmin><AdminCategorias /></RutaAdmin>} />
+        <Route path="/admin/categorias"  element={<RutaAdmin><AdminCategorias /></RutaAdmin>} />
         <Route path="/admin/proveedores" element={<RutaAdmin><AdminProveedores /></RutaAdmin>} />
 
         {/* Empleado (solo Empleado) */}

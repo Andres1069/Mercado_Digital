@@ -48,8 +48,8 @@ class AuthController {
 
         $token = JWT::generate([
             'num_documento' => $usuario['Num_Documento'],
-            'rol' => $usuario['rol'],
-            'sid' => $sid,
+            'rol'           => $usuario['rol'],
+            'sid'           => $sid,
         ]);
 
         $this->ok(['token' => $token, 'usuario' => $usuario], 'Login exitoso.');
@@ -83,7 +83,7 @@ class AuthController {
             $this->error('Este numero de documento ya esta registrado.', 409);
         }
 
-        $barrio = trim((string)$body['barrio']);
+        $barrio    = trim((string)$body['barrio']);
         $direccion = trim((string)$body['direccion']);
 
         if ($direccion === '') {
@@ -95,10 +95,10 @@ class AuthController {
             $this->error('Barrio no permitido. Solo se acepta: ' . self::BARRIO_UNICO . '.', 400);
         }
 
-        $body['barrio'] = self::BARRIO_UNICO;
+        $body['barrio']    = self::BARRIO_UNICO;
         $body['direccion'] = $direccion;
 
-        $numDoc = $this->model->registrar($body);
+        $numDoc  = $this->model->registrar($body);
         $usuario = $this->model->findByDocumento($numDoc);
         unset($usuario['ContrasenaHash']);
 
@@ -110,8 +110,8 @@ class AuthController {
 
         $token = JWT::generate([
             'num_documento' => $usuario['Num_Documento'],
-            'rol' => $usuario['rol'],
-            'sid' => $sid,
+            'rol'           => $usuario['rol'],
+            'sid'           => $sid,
         ]);
 
         $this->ok(['token' => $token, 'usuario' => $usuario], 'Registro exitoso.', 201);
@@ -131,8 +131,8 @@ class AuthController {
     // PUT /auth/perfil
     public function actualizarPerfil(): void {
         $payload = AuthMiddleware::verify();
-        $doc = (int)$payload['num_documento'];
-        $body = $this->body();
+        $doc     = (int)$payload['num_documento'];
+        $body    = $this->body();
 
         $usuario = $this->model->findByDocumento($doc);
         if (!$usuario) {
@@ -155,11 +155,11 @@ class AuthController {
         }
 
         $this->model->actualizarPerfil($doc, [
-            'nombre' => trim((string)$body['nombre']),
-            'apellido' => trim((string)$body['apellido']),
-            'correo' => trim((string)$body['correo']),
-            'telefono' => trim((string)($body['telefono'] ?? '')),
-            'barrio' => trim((string)($body['barrio'] ?? '')),
+            'nombre'    => trim((string)$body['nombre']),
+            'apellido'  => trim((string)$body['apellido']),
+            'correo'    => trim((string)$body['correo']),
+            'telefono'  => trim((string)($body['telefono']  ?? '')),
+            'barrio'    => trim((string)($body['barrio']    ?? '')),
             'direccion' => trim((string)($body['direccion'] ?? '')),
         ]);
 
@@ -170,8 +170,8 @@ class AuthController {
     // POST /auth/cambiar-password
     public function cambiarPassword(): void {
         $payload = AuthMiddleware::verify();
-        $doc = (int)$payload['num_documento'];
-        $body = $this->body();
+        $doc     = (int)$payload['num_documento'];
+        $body    = $this->body();
 
         if (empty($body['actual_contrasena']) || empty($body['nueva_contrasena'])) {
             $this->error('Contrasena actual y nueva contrasena son requeridas.', 400);
@@ -201,7 +201,7 @@ class AuthController {
 
     // POST /auth/reset-request
     public function resetRequest(): void {
-        $body = $this->body();
+        $body   = $this->body();
         $correo = trim((string)($body['correo'] ?? ''));
 
         $dir = __DIR__ . '/../../storage';
@@ -211,35 +211,35 @@ class AuthController {
         @file_put_contents($dir . '/reset_tokens.log', date('c') . " RESET_REQUEST correo=$correo" . PHP_EOL, FILE_APPEND);
 
         if ($correo === '' || !filter_var($correo, FILTER_VALIDATE_EMAIL)) {
-            $this->ok([], 'Se ha envio el codigo de recuperacion.');
+            $this->ok([], 'Se ha enviado el codigo de recuperacion.');
         }
 
         $usuario = $this->model->findByCorreo($correo);
         if (!$usuario || (!empty($usuario['estado']) && $usuario['estado'] !== 'Activo')) {
-            $this->ok([], 'Se ha envio el codigo de recuperacion.');
+            $this->ok([], 'Se ha enviado el codigo de recuperacion.');
         }
 
-        $ph = hash('sha256', (string)$usuario['ContrasenaHash']);
-        $codigo = $this->generarCodigoReset();
+        $ph        = hash('sha256', (string)$usuario['ContrasenaHash']);
+        $codigo    = $this->generarCodigoReset();
         $tokenHash = hash('sha256', $codigo);
-        $exp = time() + self::RESET_TTL_SECONDS;
+        $exp       = time() + self::RESET_TTL_SECONDS;
 
         $store = $this->leerResetStore();
         while (isset($store[$tokenHash])) {
-            $codigo = $this->generarCodigoReset();
+            $codigo    = $this->generarCodigoReset();
             $tokenHash = hash('sha256', $codigo);
         }
 
         $store[$tokenHash] = [
-            'doc' => (int)$usuario['Num_Documento'],
-            'correo' => (string)$usuario['Correo'],
-            'ph' => $ph,
-            'exp' => $exp,
-            'used' => false,
+            'doc'     => (int)$usuario['Num_Documento'],
+            'correo'  => (string)$usuario['Correo'],
+            'ph'      => $ph,
+            'exp'     => $exp,
+            'used'    => false,
             'created' => time(),
         ];
 
-        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+        $origin  = $_SERVER['HTTP_ORIGIN'] ?? '';
         $enviado = $this->enviarCorreoReset($usuario['Correo'], $codigo, $origin);
         if (!$enviado) {
             $this->error('No fue posible enviar el codigo al correo configurado. Verifica SMTP e intenta de nuevo.', 500);
@@ -248,12 +248,12 @@ class AuthController {
         $this->limpiarResetStore($store);
         $this->guardarResetStore($store);
 
-        $this->ok([], 'Se ha envio el codigo de recuperacion.');
+        $this->ok([], 'Se ha enviado el codigo de recuperacion.');
     }
 
     // POST /auth/reset-confirm
     public function resetConfirm(): void {
-        $body = $this->body();
+        $body  = $this->body();
         $token = trim((string)($body['token'] ?? ''));
         $nueva = (string)($body['nueva_contrasena'] ?? '');
 
@@ -272,9 +272,9 @@ class AuthController {
                 $this->error('Token invalido o expirado.', 401);
             }
 
-            $doc = (int)($payload['num_documento'] ?? 0);
+            $doc    = (int)($payload['num_documento'] ?? 0);
             $correo = (string)($payload['correo'] ?? '');
-            $ph = (string)($payload['ph'] ?? '');
+            $ph     = (string)($payload['ph'] ?? '');
             if ($doc <= 0 || $correo === '' || $ph === '') {
                 $this->error('Token invalido o expirado.', 401);
             }
@@ -292,7 +292,7 @@ class AuthController {
             $this->model->cambiarPassword($doc, $nueva);
         } else {
             $tokenHash = hash('sha256', strtoupper($token));
-            $store = $this->leerResetStore();
+            $store     = $this->leerResetStore();
             $this->limpiarResetStore($store);
 
             $entry = $store[$tokenHash] ?? null;
@@ -301,9 +301,9 @@ class AuthController {
                 $this->error('Token invalido o expirado.', 401);
             }
 
-            $doc = (int)($entry['doc'] ?? 0);
+            $doc    = (int)($entry['doc']    ?? 0);
             $correo = (string)($entry['correo'] ?? '');
-            $ph = (string)($entry['ph'] ?? '');
+            $ph     = (string)($entry['ph']     ?? '');
             if ($doc <= 0 || $correo === '' || $ph === '') {
                 unset($store[$tokenHash]);
                 $this->guardarResetStore($store);
@@ -325,7 +325,7 @@ class AuthController {
             }
 
             $this->model->cambiarPassword($doc, $nueva);
-            $store[$tokenHash]['used'] = true;
+            $store[$tokenHash]['used']    = true;
             $store[$tokenHash]['used_at'] = time();
             $this->guardarResetStore($store);
         }
@@ -336,6 +336,8 @@ class AuthController {
 
         $this->ok([], 'Contrasena actualizada correctamente.');
     }
+
+    // ── Métodos privados ──────────────────────────────────────────────────
 
     private function body(): array {
         return json_decode(file_get_contents('php://input'), true) ?? [];
@@ -360,10 +362,10 @@ class AuthController {
     private function normalizarTexto(string $texto): string {
         $t = strtolower(trim($texto));
         $t = strtr($t, [
-            'Ã¡' => 'a', 'Ã©' => 'e', 'Ã­' => 'i', 'Ã³' => 'o', 'Ãº' => 'u',
-            'Ã ' => 'a', 'Ã¨' => 'e', 'Ã¬' => 'i', 'Ã²' => 'o', 'Ã¹' => 'u',
-            'Ã¤' => 'a', 'Ã«' => 'e', 'Ã¯' => 'i', 'Ã¶' => 'o', 'Ã¼' => 'u',
-            'Ã±' => 'n',
+            'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u',
+            'à' => 'a', 'è' => 'e', 'ì' => 'i', 'ò' => 'o', 'ù' => 'u',
+            'ä' => 'a', 'ë' => 'e', 'ï' => 'i', 'ö' => 'o', 'ü' => 'u',
+            'ñ' => 'n',
         ]);
         $t = preg_replace('/\s+/', ' ', $t) ?? $t;
         return $t;
@@ -371,7 +373,7 @@ class AuthController {
 
     private function enviarCorreoReset(string $correo, string $codigo, string $origin): bool {
         $subject = 'Codigo para restablecer tu contrasena - Mercado Digital';
-        $link = $origin ? rtrim($origin, '/') . '/login?token=' . urlencode($codigo) : '';
+        $link    = $origin ? rtrim($origin, '/') . '/login?token=' . urlencode($codigo) : '';
 
         $body  = "Hola,\n\n";
         $body .= "Recibimos una solicitud para restablecer la contrasena de tu cuenta en Mercado Digital.\n\n";
@@ -384,14 +386,13 @@ class AuthController {
         $body .= "Si no solicitaste este cambio, ignora este correo. Tu contrasena no sera modificada.\n\n";
         $body .= "- Equipo Mercado Digital\n";
 
-        $correoHtml = htmlspecialchars($correo, ENT_QUOTES, 'UTF-8');
-        $codigoHtml = htmlspecialchars($codigo, ENT_QUOTES, 'UTF-8');
-        $linkHtml = htmlspecialchars($link !== '' ? $link : '#', ENT_QUOTES, 'UTF-8');
-        $contactoMail = 'mercado.digital.bog@gmail.com';
-        $contactoMailHref = 'mailto:' . $contactoMail;
-        $contactoTelefono = '+57 300 000 0000';
+        $correoHtml          = htmlspecialchars($correo, ENT_QUOTES, 'UTF-8');
+        $codigoHtml          = htmlspecialchars($codigo, ENT_QUOTES, 'UTF-8');
+        $contactoMail        = 'mercado.digital.bog@gmail.com';
+        $contactoMailHref    = 'mailto:' . $contactoMail;
+        $contactoTelefono    = '+57 300 000 0000';
         $contactoTelefonoHref = 'tel:+573000000000';
-        $socialHref = htmlspecialchars($origin !== '' ? rtrim($origin, '/') : '#', ENT_QUOTES, 'UTF-8');
+        $socialHref          = htmlspecialchars($origin !== '' ? rtrim($origin, '/') : '#', ENT_QUOTES, 'UTF-8');
 
         $bodyHtml = <<<HTML
 <!DOCTYPE html>
@@ -399,7 +400,7 @@ class AuthController {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Restablecer Contraseña - Mercado Digital</title>
+  <title>Restablecer Contrasena - Mercado Digital</title>
   <style>
     body { margin:0; padding:32px 12px; background:#eceee9; font-family:Arial, sans-serif; color:#24352c; }
     .wrapper { max-width:600px; margin:0 auto; background:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 8px 36px rgba(0,0,0,0.08); }
@@ -509,7 +510,7 @@ class AuthController {
 </html>
 HTML;
 
-        $dir = __DIR__ . '/../../storage';
+        $dir  = __DIR__ . '/../../storage';
         if (!is_dir($dir)) {
             @mkdir($dir, 0775, true);
         }
@@ -541,7 +542,7 @@ HTML;
         if (!file_exists($file)) {
             return [];
         }
-        $raw = @file_get_contents($file);
+        $raw  = @file_get_contents($file);
         $data = $raw ? json_decode($raw, true) : null;
         return is_array($data) ? $data : [];
     }
@@ -557,7 +558,7 @@ HTML;
     private function limpiarResetStore(array &$data): void {
         $now = time();
         foreach ($data as $k => $v) {
-            $exp = (int)($v['exp'] ?? 0);
+            $exp  = (int)($v['exp']  ?? 0);
             $used = (bool)($v['used'] ?? false);
             if ($exp > 0 && $exp < $now) {
                 unset($data[$k]);

@@ -42,8 +42,8 @@ require_once __DIR__ . '/../app/Models/PedidoModel.php';
 require_once __DIR__ . '/../app/Models/ReporteModel.php';
 require_once __DIR__ . '/../app/Models/CarritoModel.php';
 require_once __DIR__ . '/../app/Models/InventarioModel.php';
+require_once __DIR__ . '/../config/mercadopago.php';
 require_once __DIR__ . '/../app/Models/PagoModel.php';
-require_once __DIR__ . '/../app/Models/MetodoPagoConfigModel.php';
 require_once __DIR__ . '/../app/Controllers/AuthController.php';
 require_once __DIR__ . '/../app/Controllers/ProductoController.php';
 require_once __DIR__ . '/../app/Controllers/OfertaController.php';
@@ -56,7 +56,6 @@ require_once __DIR__ . '/../app/Controllers/InventarioController.php';
 require_once __DIR__ . '/../app/Models/CategoriaModel.php';
 require_once __DIR__ . '/../app/Controllers/CategoriaController.php';
 require_once __DIR__ . '/../app/Controllers/PagoController.php';
-require_once __DIR__ . '/../app/Controllers/MetodoPagoConfigController.php';
 require_once __DIR__ . '/../app/Models/ProveedorModel.php';
 require_once __DIR__ . '/../app/Controllers/ProveedorController.php';
 
@@ -212,7 +211,7 @@ switch ($modulo) {
         $ctrl = new PagoController();
         match(true) {
             $metodo === 'GET'  && $accion === ''                                                       => $ctrl->todos(),
-            $metodo === 'POST' && $accion === 'webhook'                                                => $ctrl->webhook(),
+            in_array($metodo, ['POST','GET']) && $accion === 'webhook'                                  => $ctrl->webhook(),
             $metodo === 'GET'  && is_numeric($accion) && ($partes[2] ?? '') === ''                     => $ctrl->obtener((int)$accion),
             $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'preferencia'          => $ctrl->crearPreferencia((int)$accion),
             $metodo === 'GET'  && is_numeric($accion) && ($partes[2] ?? '') === 'verificar-mp'         => $ctrl->verificarMP((int)$accion),

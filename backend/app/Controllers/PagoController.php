@@ -27,79 +27,206 @@ class PagoController {
         echo json_encode(['success' => true, 'pagos' => $this->model->getAll()]);
     }
 
-    // POST /pago/{pedido}/comprobante  — usuario sube su comprobante (multipart/form-data)
-    public function subirComprobante(int $pedidoId): void {
+    // POST /pago/{pedido}/preferencia  — crea preferencia en MercadoPago y retorna init_point
+    public function crearPreferencia(int $pedidoId): void {
         AuthMiddleware::verify();
 
-        // Verificar que llegó el archivo
-        if (!isset($_FILES['comprobante']) || $_FILES['comprobante']['error'] !== UPLOAD_ERR_OK) {
-            http_response_code(400);
-            $code = $_FILES['comprobante']['error'] ?? -1;
-            echo json_encode(['success' => false, 'message' => "No se recibió el comprobante. Código PHP: $code"]);
+        $pago = $this->model->getByPedido($pedidoId);
+        if (!$pago) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'Pedido no encontrado.']);
             return;
         }
 
-        // Verificar que llegó el monto
-        if (!isset($_POST['monto_comprobante']) || !is_numeric($_POST['monto_comprobante'])) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'El monto del comprobante es requerido y debe ser numérico.']);
+        // Si ya fue aprobado, no crear nueva preferencia
+        if (($pago['mp_status'] ?? '') === 'approved') {
+            echo json_encode(['success' => false, 'message' => 'Este pago ya fue completado.']);
             return;
         }
 
-        $file = $_FILES['comprobante'];
-        $ext  = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $body        = json_decode(file_get_contents('php://input'), true) ?? [];
+        $frontendUrl = rtrim($body['frontend_url'] ?? MP_FRONTEND_URL, '/');
+        $monto       = (float)$pago['Monto_Pago'];
 
-        // Validar tipo real del archivo con finfo
-        $finfo       = new finfo(FILEINFO_MIME_TYPE);
-        $mime        = $finfo->file($file['tmp_name']);
-        $mimesOK     = ['image/png', 'image/jpeg', 'application/pdf'];
-        $extensionesOK = ['png', 'jpg', 'jpeg', 'pdf'];
+        $preferenceData = [
+            'items' => [
+                [
+                    'id'          => "pedido-{$pedidoId}",
+                    'title'       => "Pedido #{$pedidoId} - Mercado Digital",
+                    'quantity'    => 1,
+                    'unit_price'  => $monto,
+                    'currency_id' => 'COP',
+                ]
+            ],
+            'back_urls' => [
+                'success' => "{$frontendUrl}/pago/resultado?pedido={$pedidoId}&status=approved",
+                'failure' => "{$frontendUrl}/pago/resultado?pedido={$pedidoId}&status=rejected",
+                'pending' => "{$frontendUrl}/pago/resultado?pedido={$pedidoId}&status=pending",
+            ],
+            'external_reference' => (string)$pedidoId,
+            'notification_url'   => MP_WEBHOOK_URL . '/pago/webhook',
+            'payment_methods'    => [
+                'excluded_payment_methods' => [],
+                'excluded_payment_types'   => [],
+                'installments'             => 1,
+            ],
+        ];
 
-        if (!in_array($mime, $mimesOK, true) || !in_array($ext, $extensionesOK, true)) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Solo se permiten comprobantes en PNG, JPG, JPEG o PDF.']);
-            return;
-        }
+        $ch = curl_init('https://api.mercadopago.com/checkout/preferences');
+        curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER     => [
+                'Authorization: Bearer ' . MP_ACCESS_TOKEN,
+                'Content-Type: application/json',
+                'X-Idempotency-Key: pref-pedido-' . $pedidoId . '-' . time(),
+            ],
+            CURLOPT_POSTFIELDS     => json_encode($preferenceData),
+            CURLOPT_SSL_VERIFYPEER => false,
+        ]);
+        $resp = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
 
-        // Crear directorio de destino si no existe
-        $uploadDir = __DIR__ . '/../../public/uploads/comprobantes/';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
-
-        $nombre  = 'comprobante_' . $pedidoId . '_' . time() . '.' . $ext;
-        $destino = $uploadDir . $nombre;
-
-        if (!move_uploaded_file($file['tmp_name'], $destino)) {
+        if ($code !== 201) {
+            $err = json_decode($resp, true);
             http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'No se pudo guardar el comprobante en el servidor.']);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error al crear preferencia en MercadoPago.',
+                'detail'  => $err['message'] ?? $resp,
+            ]);
             return;
         }
 
-        $comprobanteUrl   = 'uploads/comprobantes/' . $nombre;
-        $montoComprobante = (int)$_POST['monto_comprobante'];
+        $preference = json_decode($resp, true);
+        $this->model->guardarPreferencia($pedidoId, $preference['id']);
 
-        $resultado = $this->model->subirComprobante($pedidoId, $comprobanteUrl, $montoComprobante);
-        echo json_encode($resultado);
+        echo json_encode([
+            'success'            => true,
+            'init_point'         => $preference['init_point'],
+            'sandbox_init_point' => $preference['sandbox_init_point'],
+            'preference_id'      => $preference['id'],
+        ]);
     }
 
-    // PUT /pago/{id}/verificar  — solo admin: aprueba o rechaza manualmente
-    public function verificar(int $pagoId): void {
-        AuthMiddleware::requireRole(['Administrador']);
-        $body   = json_decode(file_get_contents('php://input'), true) ?? [];
-        $estado = trim($body['estado'] ?? '');
-        $notas  = isset($body['notas']) ? trim($body['notas']) : null;
+    // POST /pago/webhook  — recibe notificaciones automáticas de MercadoPago (IPN)
+    public function webhook(): void {
+        $body = json_decode(file_get_contents('php://input'), true) ?? [];
 
-        if (!in_array($estado, ['aprobado', 'rechazado', 'pendiente'], true)) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Estado inválido. Use: aprobado, rechazado o pendiente.']);
+        // MP puede enviar notificaciones tipo "payment" o via query params (?topic=payment&id=XXX)
+        $tipo      = $body['type']          ?? ($_GET['topic'] ?? '');
+        $paymentId = $body['data']['id']    ?? ($_GET['id']    ?? null);
+
+        if ($tipo !== 'payment' || !$paymentId) {
+            http_response_code(200);
+            echo json_encode(['success' => true]);
             return;
         }
 
-        $ok = $this->model->verificar($pagoId, $estado, $notas ?: null);
-        echo json_encode([
-            'success' => $ok,
-            'message' => $ok ? 'Estado de verificación actualizado.' : 'Error al actualizar el estado.',
+        $paymentData = $this->consultarPagoMP((int)$paymentId);
+        if (!$paymentData) {
+            http_response_code(200);
+            echo json_encode(['success' => true]);
+            return;
+        }
+
+        $pedidoId      = (int)($paymentData['external_reference'] ?? 0);
+        $status        = $paymentData['status']            ?? 'pending';
+        $paymentMethod = $paymentData['payment_method_id'] ?? '';
+        $mpPaymentId   = (string)($paymentData['id']       ?? '');
+
+        if ($pedidoId > 0 && $mpPaymentId !== '') {
+            $this->model->procesarPago($pedidoId, $mpPaymentId, $status, $paymentMethod);
+        }
+
+        http_response_code(200);
+        echo json_encode(['success' => true]);
+    }
+
+    // GET /pago/{pedido}/verificar-mp?payment_id=XXX  — verifica pago tras redirect de MP
+    public function verificarMP(int $pedidoId): void {
+        AuthMiddleware::verify();
+
+        $paymentId = $_GET['payment_id'] ?? null;
+
+        // 1. Si tenemos payment_id explícito, intentar con ese primero
+        $paymentData = null;
+        if ($paymentId) {
+            $paymentData = $this->consultarPagoMP((int)$paymentId);
+        }
+
+        // 2. Si no tenemos datos o el estado sigue pendiente, buscar por external_reference
+        //    Esto cubre el caso en que el usuario cerró la pestaña de MP sin volver.
+        $statusActual = $paymentData['status'] ?? '';
+        if (!$paymentData || in_array($statusActual, ['pending', 'in_process', ''], true)) {
+            $mejorPago = $this->buscarMejorPagoPorPedido($pedidoId);
+            if ($mejorPago) {
+                $paymentData = $mejorPago;
+            }
+        }
+
+        if ($paymentData) {
+            $mpStatus      = $paymentData['status']            ?? 'pending';
+            $paymentMethod = $paymentData['payment_method_id'] ?? '';
+            $mpPaymentId   = (string)($paymentData['id']       ?? '');
+
+            if ($mpPaymentId !== '') {
+                $this->model->procesarPago($pedidoId, $mpPaymentId, $mpStatus, $paymentMethod);
+            }
+        }
+
+        $pago = $this->model->getByPedido($pedidoId);
+        echo json_encode(['success' => true, 'pago' => $pago]);
+    }
+
+    /**
+     * Busca todos los pagos de MP asociados al pedido por external_reference
+     * y devuelve el mejor: primero approved, luego in_process, luego pending.
+     */
+    private function buscarMejorPagoPorPedido(int $pedidoId): ?array {
+        $ch = curl_init(
+            "https://api.mercadopago.com/v1/payments/search" .
+            "?external_reference={$pedidoId}&sort=date_created&criteria=desc&limit=10"
+        );
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER     => ['Authorization: Bearer ' . MP_ACCESS_TOKEN],
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_TIMEOUT        => 10,
         ]);
+        $resp = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($code !== 200) return null;
+        $data = json_decode($resp, true);
+        $pagos = $data['results'] ?? [];
+
+        // Prioridad: approved > in_process > pending
+        $prioridad = ['approved' => 0, 'in_process' => 1, 'pending' => 2];
+        usort($pagos, fn($a, $b) =>
+            ($prioridad[$a['status']] ?? 99) <=> ($prioridad[$b['status']] ?? 99)
+        );
+
+        return !empty($pagos) ? $pagos[0] : null;
+    }
+
+    // ── Helper privado ────────────────────────────────────────────────────
+
+    private function consultarPagoMP(int $paymentId): ?array {
+        $ch = curl_init("https://api.mercadopago.com/v1/payments/{$paymentId}");
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER     => ['Authorization: Bearer ' . MP_ACCESS_TOKEN],
+            CURLOPT_SSL_VERIFYPEER => false,
+        ]);
+        $resp = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($code !== 200) return null;
+        $data = json_decode($resp, true);
+        return is_array($data) ? $data : null;
     }
 }

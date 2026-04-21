@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -91,16 +92,15 @@ const Ico = {
 };
 
 const LINKS_ADMIN = [
-  { to: "/admin/dashboard",    label: "Dashboard",     iconClass: "fa-solid fa-chart-line",    color: "#6B8E4E" },
-  { to: "/admin/productos",    label: "Productos",     iconClass: "fa-solid fa-box-open",      color: "#6B8E4E" },
-  { to: "/admin/ofertas",      label: "Ofertas",       iconClass: "fa-solid fa-tags",          color: "#D5DDDF" },
-  { to: "/admin/pedidos",      label: "Pedidos",       iconClass: "fa-solid fa-bag-shopping",  color: "#6B8E4E" },
-  { to: "/admin/pagos",        label: "Pagos",         iconClass: "fa-solid fa-credit-card",   color: "#6B8E4E" },
-  { to: "/admin/inventario",   label: "Inventario",    iconClass: "fa-solid fa-warehouse",     color: "#D5DDDF" },
-  { to: "/admin/domicilios",   label: "Domicilios",    iconClass: "fa-solid fa-truck",         color: "#B2C5B2" },
-  { to: "/admin/reportes",     label: "Reportes",      iconClass: "fa-solid fa-chart-pie",     color: "#B2C5B2" },
-  { to: "/admin/usuarios",     label: "Usuarios",      iconClass: "fa-solid fa-users",         color: "#B2C5B2" },
-  { to: "/admin/metodos-pago", label: "Configuración", iconClass: "fa-solid fa-gear",          color: "#B2C5B2" },
+  { to: "/admin/dashboard",    label: "Dashboard",     icon: Ico.dashboard,   color: "#6B8E4E" },
+  { to: "/admin/productos",    label: "Productos",     icon: Ico.productos,   color: "#6B8E4E" },
+  { to: "/admin/ofertas",      label: "Ofertas",       icon: Ico.ofertas,     color: "#D5DDDF" },
+  { to: "/admin/pedidos",      label: "Pedidos",       icon: Ico.pedidos,     color: "#6B8E4E" },
+  { to: "/admin/pagos",        label: "Pagos",         icon: Ico.pagos,       color: "#6B8E4E" },
+  { to: "/admin/inventario",   label: "Inventario",    icon: Ico.inventario,  color: "#D5DDDF" },
+  { to: "/admin/domicilios",   label: "Domicilios",    icon: Ico.domicilios,  color: "#B2C5B2" },
+  { to: "/admin/reportes",     label: "Reportes",      icon: Ico.reportes,    color: "#B2C5B2" },
+  { to: "/admin/usuarios",     label: "Usuarios",      icon: Ico.usuarios,    color: "#B2C5B2" },
   { to: "/admin/categorias",   label: "Categorias",    icon: Ico.categorias,  color: "#6B8E4E" },
   { to: "/admin/proveedores",  label: "Proveedores",   icon: Ico.proveedores, color: "#B2C5B2" },
 ];
@@ -128,7 +128,7 @@ export default function Sidebar() {
 
   const inicial = (usuario?.Nombre?.[0] || "U").toUpperCase();
 
-  function Contenido() {
+  const renderContenido = () => {
     return (
       <div className="flex flex-col h-full" style={{ backgroundColor: "#3C5148", borderRight: "1px solid rgba(107,142,78,0.2)" }}>
 
@@ -183,7 +183,7 @@ export default function Sidebar() {
           className="flex-1 px-3 overflow-y-auto space-y-0.5 pb-2"
           style={{ scrollbarWidth: "none" }}
         >
-          {links.map(({ to, label, icon, iconClass, color }) => {
+          {links.map(({ to, label, icon, color }) => {
             const activo = location.pathname === to;
             return (
               <Link
@@ -199,12 +199,7 @@ export default function Sidebar() {
                 onMouseEnter={(e) => { if (!activo) e.currentTarget.style.backgroundColor = "rgba(107,142,78,0.1)"; e.currentTarget.style.color = "#fff"; }}
                 onMouseLeave={(e) => { if (!activo) { e.currentTarget.style.backgroundColor = ""; e.currentTarget.style.color = "rgba(213,221,223,0.65)"; }}}
               >
-                <span
-                  className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0"
-                  style={{ color: activo ? color : "inherit" }}
-                >
-                  {iconClass ? <i className={iconClass} aria-hidden="true" /> : icon}
-                </span>
+                <span style={{ color: activo ? color : "inherit" }}>{icon}</span>
                 <span className="flex-1 truncate">{label}</span>
                 {activo && (
                   <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
@@ -220,9 +215,12 @@ export default function Sidebar() {
         {/* Footer */}
         <div className="p-3 space-y-0.5">
           <ThemeToggle
-            hideLabelOnMobile
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-semibold transition text-left"
-            style={{ color: "rgba(213,221,223,0.65)" }}
+            className="w-full justify-start px-3 py-2.5 rounded-xl text-sm"
+            style={{
+              backgroundColor: "rgba(107,142,78,0.08)",
+              border: "1px solid rgba(107,142,78,0.16)",
+              color: "#D5DDDF",
+            }}
           />
           <Link
             to="/perfil"
@@ -248,14 +246,15 @@ export default function Sidebar() {
         </div>
       </div>
     );
-  }
+  };
 
   return (
     <>
       {/* Desktop */}
-      <div className="hidden md:block w-60 flex-shrink-0" aria-hidden="true" />
-      <aside className="hidden md:flex fixed left-0 top-0 w-60 h-screen z-30 flex-col">
-        <Contenido />
+      <aside className="hidden md:block w-60 flex-shrink-0">
+        <div className="fixed left-0 top-0 h-screen w-60 z-30 flex flex-col">
+          {renderContenido()}
+        </div>
       </aside>
 
       {/* Mobile: botón hamburguesa */}
@@ -276,7 +275,7 @@ export default function Sidebar() {
         <>
           <div className="md:hidden fixed inset-0 bg-black/60 z-40" onClick={cerrar} />
           <aside className="md:hidden fixed left-0 top-0 h-full w-60 z-50 flex flex-col shadow-2xl">
-            <Contenido />
+            {renderContenido()}
           </aside>
         </>
       )}

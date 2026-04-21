@@ -11,7 +11,6 @@ class PedidoModel {
     }
 
     public function getMisPedidos(int $numDocumento): array {
-        // Solo muestra pedidos donde el cliente ya subió el comprobante de pago.
         $sql = "SELECT
                     p.Cod_Pedido,
                     p.Fecha_Pedido,
@@ -21,7 +20,8 @@ class PedidoModel {
                     pa.Metodo_Pago,
                     pa.Estado_Pago,
                     pa.Monto_Pago,
-                    pa.verificacion,
+                    pa.mp_payment_id,
+                    pa.mp_status,
                     d.Estado AS Estado_Domicilio,
                     d.Fecha  AS Fecha_Domicilio
                 FROM pedido p
@@ -30,7 +30,6 @@ class PedidoModel {
                 INNER JOIN pago pa ON pa.Cod_pedido = p.Cod_Pedido
                 LEFT JOIN domicilio d ON d.Cod_Usuario_Pedido = up.Cod_usuario_pedido
                 WHERE up.Num_Documento = :doc
-                  AND pa.comprobante_url IS NOT NULL
                 ORDER BY p.Fecha_Pedido DESC";
 
         $stmt = $this->db->prepare($sql);
@@ -39,8 +38,6 @@ class PedidoModel {
     }
 
     public function getAll(): array {
-        // Solo se muestran pedidos donde el cliente ya subió el comprobante de pago.
-        // Pedidos sin comprobante (pago incompleto) no aparecen en el módulo de administrador.
         $sql = "SELECT
                     p.Cod_Pedido,
                     p.Fecha_Pedido,
@@ -50,7 +47,8 @@ class PedidoModel {
                     pa.Metodo_Pago,
                     pa.Estado_Pago,
                     pa.Monto_Pago,
-                    pa.verificacion,
+                    pa.mp_payment_id,
+                    pa.mp_status,
                     per.Nombre,
                     per.Apellido,
                     per.Num_Documento,
@@ -61,7 +59,6 @@ class PedidoModel {
                 INNER JOIN persona per ON per.Num_Documento = up.Num_Documento
                 INNER JOIN pago pa ON pa.Cod_pedido = p.Cod_Pedido
                 LEFT JOIN domicilio d ON d.Cod_Usuario_Pedido = up.Cod_usuario_pedido
-                WHERE pa.comprobante_url IS NOT NULL
                 ORDER BY p.Fecha_Pedido DESC";
 
         $stmt = $this->db->prepare($sql);

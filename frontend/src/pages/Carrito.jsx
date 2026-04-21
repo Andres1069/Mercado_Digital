@@ -4,14 +4,10 @@ import Navbar from "../components/Navbar";
 import { resolverImagen, pedidoService } from "../services/api";
 import { useCart } from "../context/CartContext";
 
-const METODOS_PAGO = ["Nequi", "Daviplata"];
-
 export default function Carrito() {
   const { items, updateQty, removeItem, clearCart, itemsCount, subtotal } = useCart();
   const navigate = useNavigate();
 
-  const [mostrarModal, setMostrarModal] = useState(false);
-  const [metodoPago, setMetodoPago] = useState("");
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState("");
 
@@ -20,22 +16,16 @@ export default function Carrito() {
 
   async function handleFinalizarCompra() {
     setError("");
-    if (!metodoPago) {
-      setError("Debes seleccionar un método de pago para continuar.");
-      return;
-    }
     setProcesando(true);
     try {
       const res = await pedidoService.crear({
         items: items.map((it) => ({ id: it.id, nombre: it.nombre, precio: it.precio, cantidad: it.cantidad })),
-        metodo_pago: metodoPago,
+        metodo_pago: "MercadoPago",
         monto_total: total,
       });
-      setMostrarModal(false);
-      navigate(`/pago/qr?pedido=${res.cod_pedido}&metodo=${metodoPago}`);
+      navigate(`/pago/qr?pedido=${res.cod_pedido}`);
     } catch (e) {
       setError(e.message || "No se pudo procesar el pedido.");
-    } finally {
       setProcesando(false);
     }
   }
@@ -161,12 +151,19 @@ export default function Carrito() {
                 </div>
               </div>
 
+              {error && (
+                <div className="mt-4 px-3 py-2 rounded-xl text-xs border"
+                  style={{ backgroundColor: "#fee2e2", borderColor: "#fca5a5", color: "#991b1b" }}>
+                  {error}
+                </div>
+              )}
               <button
-                onClick={() => setMostrarModal(true)}
-                className="w-full mt-5 text-white font-bold py-3 rounded-xl hover:opacity-90 transition"
+                onClick={handleFinalizarCompra}
+                disabled={procesando}
+                className="w-full mt-5 text-white font-bold py-3 rounded-xl hover:opacity-90 transition disabled:opacity-50"
                 style={{ background: "linear-gradient(135deg,#6B8E4E,#3C5148)" }}
               >
-                Finalizar compra
+                {procesando ? "Procesando..." : "Finalizar compra →"}
               </button>
               <Link
                 to="/tienda"
@@ -179,70 +176,6 @@ export default function Carrito() {
         )}
       </div>
 
-      {/* Modal de metodo de pago */}
-      {mostrarModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-            <h2 className="text-lg font-extrabold text-gray-800 mb-1">Confirmar pedido</h2>
-            <p className="text-sm text-gray-500 mb-4">Selecciona el metodo de pago</p>
-
-            {error && (
-              <div className="mb-3 px-3 py-2 rounded-xl text-xs border" style={{ backgroundColor: "#fee2e2", borderColor: "#fca5a5", color: "#991b1b" }}>
-                {error}
-              </div>
-            )}
-
-            <div className="space-y-2 mb-5">
-              {METODOS_PAGO.map((m) => (
-                <label
-                  key={m}
-                  className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border transition"
-                  style={metodoPago === m
-                    ? { borderColor: "#6B8E4E", backgroundColor: "rgba(107,142,78,0.1)" }
-                    : { borderColor: "#f1f5f9", backgroundColor: "white" }
-                  }
-                >
-                  <input
-                    type="radio"
-                    name="metodo_pago"
-                    value={m}
-                    checked={metodoPago === m}
-                    onChange={() => setMetodoPago(m)}
-                    className="accent-green-500"
-                  />
-                  <div className="flex-1">
-                    <span className="text-sm font-semibold text-gray-700">{m}</span>
-                    <span className="ml-2 text-xs text-indigo-600 font-semibold">Pago con QR</span>
-                  </div>
-                </label>
-              ))}
-            </div>
-
-            <div className="flex items-center justify-between text-sm font-bold text-gray-800 mb-5">
-              <span>Total a pagar</span>
-              <span>${Number(total).toLocaleString("es-CO")}</span>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => { setMostrarModal(false); setError(""); }}
-                disabled={procesando}
-                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleFinalizarCompra}
-                disabled={procesando}
-                className="flex-1 py-2.5 rounded-xl text-white font-bold text-sm hover:opacity-90 transition disabled:opacity-50"
-                style={{ background: "linear-gradient(135deg,#6B8E4E,#3C5148)" }}
-              >
-                {procesando ? "Procesando..." : "Confirmar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

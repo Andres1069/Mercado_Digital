@@ -19,7 +19,7 @@ export function resolverImagen(url) {
 }
 
 async function request(ruta, opciones = {}) {
-  const token = localStorage.getItem("md_token");
+  const token = sessionStorage.getItem("md_token");
   const config = {
     headers: {
       "Content-Type": "application/json",
@@ -63,8 +63,8 @@ async function request(ruta, opciones = {}) {
       msg.includes("token requerido");
 
     if (debeCerrarSesion) {
-      localStorage.removeItem("md_token");
-      localStorage.removeItem("md_usuario");
+      sessionStorage.removeItem("md_token");
+      sessionStorage.removeItem("md_usuario");
       if (!window.location.pathname.startsWith("/login")) {
         window.location.assign("/login?reason=session");
       }
@@ -199,7 +199,7 @@ export const domicilioService = {
 
 // ── Helper para subir archivos (multipart/form-data) ──────
 async function uploadFile(ruta, formData) {
-  const token = localStorage.getItem("md_token");
+  const token = sessionStorage.getItem("md_token");
   const url   = `${BASE_URL}/${ruta}`;
   let res;
   try {
@@ -227,16 +227,8 @@ async function uploadFile(ruta, formData) {
 
 // ── Pago ──────────────────────────────────────────────────
 export const pagoService = {
-  obtener:          (pedidoId)                  => get(`pago/${pedidoId}`),
-  todos:            ()                           => get("pago"),
-  subirComprobante: (pedidoId, formData)         => uploadFile(`pago/${pedidoId}/comprobante`, formData),
-  verificar:        (pagoId, estado, notas = "") => put(`pago/${pagoId}/verificar`, { estado, notas }),
-};
-
-// ── Configuración de métodos de pago (QR + número) ────────
-export const metodoPagoConfigService = {
-  listar:    ()             => get("metodos-pago"),
-  obtener:   (metodo)       => get(`metodos-pago/${metodo}`),
-  actualizar:(id, datos)    => put(`metodos-pago/${id}`, datos),
-  uploadQR:  (id, formData) => uploadFile(`metodos-pago/${id}/upload-qr`, formData),
+  obtener:          (pedidoId)              => get(`pago/${pedidoId}`),
+  todos:            ()                      => get("pago"),
+  crearPreferencia: (pedidoId, frontendUrl) => post(`pago/${pedidoId}/preferencia`, { frontend_url: frontendUrl }),
+  verificarMP:      (pedidoId, paymentId)   => get(`pago/${pedidoId}/verificar-mp${paymentId ? `?payment_id=${paymentId}` : ""}`),
 };
