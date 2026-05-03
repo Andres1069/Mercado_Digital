@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 17-03-2026 a las 01:12:17
+-- Tiempo de generación: 04-05-2026 a las 01:49:58
 -- Versión del servidor: 10.4.32-MariaDB
--- Versión de PHP: 8.0.30
+-- Versión de PHP: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -52,7 +52,7 @@ INSERT INTO `carrito` (`Cod_Carrito`, `Fecha_creacion`, `Fecha_modificacion`, `C
 (9, '2025-11-23 14:02:15', '2025-11-23 14:41:27', 2, 8100, 1058965213),
 (10, '2025-11-23 14:02:15', '2025-11-23 14:41:27', 1, 5200, 1023654781),
 (11, '2026-03-03 12:42:52', '2026-03-03 12:42:52', 0, 0, 1069582666),
-(12, '2026-03-11 18:51:37', '2026-03-16 17:22:43', 0, 0, 1000349255),
+(12, '2026-03-11 18:51:37', '2026-05-03 18:43:59', 2, 14300, 1000349255),
 (13, '2026-03-16 09:45:07', '2026-03-16 09:45:07', 0, 0, 1000349256);
 
 --
@@ -112,7 +112,9 @@ INSERT INTO `carrito_item` (`Cod_carrito_item`, `Cantidad`, `Precio`, `Cod_produ
 (17, 1, 5400, 7, 8),
 (18, 1, 3200, 7, 9),
 (19, 1, 4900, 3, 9),
-(20, 1, 5200, 10, 10);
+(20, 1, 5200, 10, 10),
+(58, 1, 10500, 4, 12),
+(59, 1, 3800, 1, 12);
 
 --
 -- Disparadores `carrito_item`
@@ -231,7 +233,28 @@ INSERT INTO `detalle_pedido` (`Id_Detalle_Pedido`, `Cantidad`, `Precio_unitario`
 (51, 1, 10500, 10500, 42, 4),
 (52, 1, 3800, 3800, 42, 1),
 (53, 1, 11500, 11500, 42, 6),
-(54, 1, 6200, 6200, 42, 2);
+(54, 1, 6200, 6200, 42, 2),
+(55, 1, 8900, 8900, 43, 9),
+(56, 1, 8000, 8000, 44, 11),
+(57, 1, 8000, 8000, 45, 11),
+(58, 1, 8000, 8000, 46, 11),
+(59, 1, 8000, 8000, 47, 11),
+(60, 1, 10500, 10500, 47, 4),
+(61, 1, 8900, 8900, 47, 9),
+(62, 1, 8000, 8000, 48, 11),
+(63, 1, 10500, 10500, 48, 4),
+(64, 1, 8900, 8900, 48, 9),
+(65, 1, 8000, 8000, 49, 11),
+(66, 1, 10500, 10500, 49, 4),
+(67, 1, 8900, 8900, 49, 9),
+(68, 1, 8000, 8000, 50, 11),
+(69, 1, 10500, 10500, 50, 4),
+(70, 1, 8900, 8900, 50, 9),
+(71, 1, 10500, 10500, 51, 4),
+(72, 1, 10500, 10500, 52, 4),
+(73, 1, 10500, 10500, 53, 4),
+(74, 1, 10500, 10500, 54, 4),
+(75, 1, 3800, 3800, 54, 1);
 
 --
 -- Disparadores `detalle_pedido`
@@ -385,19 +408,6 @@ INSERT INTO `domicilio` (`Cod_Domicilio`, `Fecha`, `Estado`, `Cod_Usuario_Pedido
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `historial_estado_pedido`
---
-
-CREATE TABLE `historial_estado_pedido` (
-  `Id_historial` int(11) NOT NULL,
-  `Estado` varchar(50) DEFAULT NULL,
-  `Fecha` datetime DEFAULT NULL,
-  `Cod_pedido` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
 -- Estructura de tabla para la tabla `inventario`
 --
 
@@ -416,15 +426,15 @@ CREATE TABLE `inventario` (
 --
 
 INSERT INTO `inventario` (`Cod_Inventario`, `Stock`, `Registrar_Entradas`, `Registrar_Salidas`, `Fecha_Actualizacion`, `Novedades`, `Cod_Producto`) VALUES
-(1, 148, 50, 12, '2026-03-16 17:22:43', 'Actualizado', 1),
+(1, 147, 50, 13, '2026-05-03 18:43:59', 'Actualizado', 1),
 (2, 199, 40, 16, '2026-03-16 17:22:43', 'Alta rotación', 2),
 (3, 299, 60, 21, '2026-03-16 17:22:03', 'Revisión', 3),
-(4, 178, 30, 12, '2026-03-16 17:22:43', 'Reposición', 4),
+(4, 170, 30, 20, '2026-05-03 18:43:59', 'Reposición', 4),
 (5, 120, 25, 5, '2025-11-23 14:02:15', 'Normal', 5),
 (6, 89, 15, 13, '2026-03-16 17:22:43', 'Control cereal', 6),
 (7, 246, 35, 24, '2026-03-16 17:21:39', 'Entrada yogurt', 7),
 (8, 209, 28, 10, '2026-03-16 17:22:03', 'Actualización', 8),
-(9, 159, 18, 11, '2026-03-16 17:22:03', 'Stock alto', 9),
+(9, 154, 18, 16, '2026-04-05 14:22:21', 'Stock alto', 9),
 (10, 140, 22, 8, '2025-11-23 14:02:15', 'Estable', 10);
 
 -- --------------------------------------------------------
@@ -457,37 +467,53 @@ CREATE TABLE `pago` (
   `Fecha_Pago` datetime NOT NULL,
   `Monto_Pago` int(11) NOT NULL,
   `Cod_pedido` int(11) DEFAULT NULL,
-  `Estado_Pago` enum('Pendiente','Completado','Fallido') DEFAULT NULL
+  `Estado_Pago` enum('Pendiente','Completado','Fallido') DEFAULT NULL,
+  `mp_preference_id` varchar(100) DEFAULT NULL,
+  `mp_payment_id` varchar(50) DEFAULT NULL,
+  `mp_status` varchar(50) DEFAULT NULL,
+  `mp_payment_method` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `pago`
 --
 
-INSERT INTO `pago` (`Cod_Pago`, `Metodo_Pago`, `Fecha_Pago`, `Monto_Pago`, `Cod_pedido`, `Estado_Pago`) VALUES
-(16, 'Efectivo', '2025-11-24 10:20:00', 7600, 16, 'Completado'),
-(17, 'Nequi', '2025-11-25 14:25:00', 7600, 17, 'Pendiente'),
-(18, 'Tarjeta', '2025-11-24 09:45:00', 14800, 18, 'Completado'),
-(19, 'Efectivo', '2025-11-25 12:15:00', 14800, 19, 'Pendiente'),
-(20, 'Tarjeta', '2025-11-24 12:00:00', 10500, 20, 'Completado'),
-(21, 'Nequi', '2025-11-25 15:50:00', 10500, 21, 'Completado'),
-(22, 'Efectivo', '2025-11-24 08:35:00', 10000, 22, 'Fallido'),
-(23, 'Tarjeta', '2025-11-25 17:25:00', 10000, 23, 'Completado'),
-(24, 'Nequi', '2025-11-24 13:15:00', 23900, 24, 'Pendiente'),
-(25, 'Efectivo', '2025-11-25 19:10:00', 23900, 25, 'Completado'),
-(26, 'Tarjeta', '2025-11-24 10:05:00', 7600, 26, 'Completado'),
-(27, 'Daviplata', '2025-11-25 16:35:00', 7600, 27, 'Pendiente'),
-(28, 'Efectivo', '2025-11-24 11:15:00', 11500, 28, 'Completado'),
-(29, 'Nequi', '2025-11-25 15:05:00', 11500, 29, 'Completado'),
-(30, 'Tarjeta', '2025-11-24 09:55:00', 14900, 30, 'Fallido'),
-(31, 'Efectivo', '2025-11-25 18:45:00', 14900, 31, 'Completado'),
-(32, 'Nequi', '2025-11-24 07:30:00', 8100, 32, 'Completado'),
-(33, 'Tarjeta', '2025-11-25 13:55:00', 8100, 33, 'Pendiente'),
-(34, 'Efectivo', '2025-11-24 16:15:00', 5200, 34, 'Completado'),
-(35, 'Nequi', '2025-11-25 20:35:00', 5200, 35, 'Completado'),
-(36, 'Efectivo', '2026-03-16 17:21:39', 16600, 40, 'Completado'),
-(37, 'Efectivo', '2026-03-16 17:22:03', 28500, 41, 'Completado'),
-(38, 'Efectivo', '2026-03-16 17:22:43', 32000, 42, 'Completado');
+INSERT INTO `pago` (`Cod_Pago`, `Metodo_Pago`, `Fecha_Pago`, `Monto_Pago`, `Cod_pedido`, `Estado_Pago`, `mp_preference_id`, `mp_payment_id`, `mp_status`, `mp_payment_method`) VALUES
+(16, 'Efectivo', '2025-11-24 10:20:00', 7600, 16, 'Completado', NULL, NULL, NULL, NULL),
+(17, 'Nequi', '2025-11-25 14:25:00', 7600, 17, 'Pendiente', NULL, NULL, NULL, NULL),
+(18, 'Tarjeta', '2025-11-24 09:45:00', 14800, 18, 'Completado', NULL, NULL, NULL, NULL),
+(19, 'Efectivo', '2025-11-25 12:15:00', 14800, 19, 'Pendiente', NULL, NULL, NULL, NULL),
+(20, 'Tarjeta', '2025-11-24 12:00:00', 10500, 20, 'Completado', NULL, NULL, NULL, NULL),
+(21, 'Nequi', '2025-11-25 15:50:00', 10500, 21, 'Completado', NULL, NULL, NULL, NULL),
+(22, 'Efectivo', '2025-11-24 08:35:00', 10000, 22, 'Fallido', NULL, NULL, NULL, NULL),
+(23, 'Tarjeta', '2025-11-25 17:25:00', 10000, 23, 'Completado', NULL, NULL, NULL, NULL),
+(24, 'Nequi', '2025-11-24 13:15:00', 23900, 24, 'Pendiente', NULL, NULL, NULL, NULL),
+(25, 'Efectivo', '2025-11-25 19:10:00', 23900, 25, 'Completado', NULL, NULL, NULL, NULL),
+(26, 'Tarjeta', '2025-11-24 10:05:00', 7600, 26, 'Completado', NULL, NULL, NULL, NULL),
+(27, 'Daviplata', '2025-11-25 16:35:00', 7600, 27, 'Pendiente', NULL, NULL, NULL, NULL),
+(28, 'Efectivo', '2025-11-24 11:15:00', 11500, 28, 'Completado', NULL, NULL, NULL, NULL),
+(29, 'Nequi', '2025-11-25 15:05:00', 11500, 29, 'Completado', NULL, NULL, NULL, NULL),
+(30, 'Tarjeta', '2025-11-24 09:55:00', 14900, 30, 'Fallido', NULL, NULL, NULL, NULL),
+(31, 'Efectivo', '2025-11-25 18:45:00', 14900, 31, 'Completado', NULL, NULL, NULL, NULL),
+(32, 'Nequi', '2025-11-24 07:30:00', 8100, 32, 'Completado', NULL, NULL, NULL, NULL),
+(33, 'Tarjeta', '2025-11-25 13:55:00', 8100, 33, 'Pendiente', NULL, NULL, NULL, NULL),
+(34, 'Efectivo', '2025-11-24 16:15:00', 5200, 34, 'Completado', NULL, NULL, NULL, NULL),
+(35, 'Nequi', '2025-11-25 20:35:00', 5200, 35, 'Completado', NULL, NULL, NULL, NULL),
+(36, 'Efectivo', '2026-03-16 17:21:39', 16600, 40, 'Completado', NULL, NULL, NULL, NULL),
+(37, 'Efectivo', '2026-03-16 17:22:03', 28500, 41, 'Completado', NULL, NULL, NULL, NULL),
+(38, 'Efectivo', '2026-03-16 17:22:43', 32000, 42, 'Completado', NULL, NULL, NULL, NULL),
+(39, 'Daviplata', '0000-00-00 00:00:00', 16800, 43, '', NULL, NULL, NULL, NULL),
+(40, 'Daviplata', '0000-00-00 00:00:00', 15900, 44, '', NULL, NULL, NULL, NULL),
+(41, 'MercadoPago', '0000-00-00 00:00:00', 15900, 45, '', NULL, NULL, NULL, NULL),
+(42, 'MercadoPago', '2026-04-05 14:11:19', 15900, 46, 'Completado', '3314217814-fe8629a6-5714-44a5-bf8d-233665686402', '153380492132', 'approved', 'master'),
+(43, 'MercadoPago', '2026-04-05 14:11:19', 35300, 47, 'Pendiente', '3314217814-bc7a988c-3e4d-47f6-a86a-e8d5bc6aac1c', '152639989537', 'pending', 'pse'),
+(44, 'MercadoPago', '0000-00-00 00:00:00', 35300, 48, 'Pendiente', '3314217814-a211410e-5936-49f0-ae01-5f41a51ffd72', NULL, NULL, NULL),
+(45, 'MercadoPago', '2026-04-05 14:11:18', 35300, 49, 'Completado', '3314217814-30f7bd64-060d-4a9c-a9ea-2b26333b2b25', '153387381006', 'approved', 'master'),
+(46, 'Daviplata', '0000-00-00 00:00:00', 35300, 50, '', NULL, NULL, NULL, NULL),
+(47, 'MercadoPago', '0000-00-00 00:00:00', 18400, 51, '', NULL, NULL, NULL, NULL),
+(48, 'MercadoPago', '0000-00-00 00:00:00', 18400, 52, 'Pendiente', '3314217814-21ae9c60-f065-4951-a596-d0c0f82d18de', NULL, NULL, NULL),
+(49, 'MercadoPago', '0000-00-00 00:00:00', 18400, 53, 'Pendiente', '3314217814-90c31837-bb68-4cb5-88a2-9ed61dbbae7f', NULL, NULL, NULL),
+(50, 'MercadoPago', '0000-00-00 00:00:00', 22200, 54, 'Pendiente', '3314217814-baf08e7f-a8fb-452f-9100-f1b52a9d1398', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -529,7 +555,19 @@ INSERT INTO `pedido` (`Cod_Pedido`, `Fecha_Pedido`, `Estado_Pedido`, `Cod_Carrit
 (35, '2025-11-25 20:30:00', 'Entregado', 10),
 (40, '2026-03-16 17:21:37', 'Confirmado', 12),
 (41, '2026-03-16 17:22:03', 'Confirmado', 12),
-(42, '2026-03-16 17:22:42', 'Confirmado', 12);
+(42, '2026-03-16 17:22:42', 'Confirmado', 12),
+(43, '2026-03-25 12:00:05', 'Pendiente', 12),
+(44, '2026-03-25 19:13:22', 'Pendiente', 12),
+(45, '2026-04-05 11:28:37', 'Pendiente', 12),
+(46, '2026-04-05 12:22:53', 'Pendiente', 12),
+(47, '2026-04-05 12:54:06', 'Pendiente', 12),
+(48, '2026-04-05 13:47:47', 'Pendiente', 12),
+(49, '2026-04-05 14:01:35', 'Pendiente', 12),
+(50, '2026-04-05 14:22:21', 'Pendiente', 12),
+(51, '2026-05-03 17:39:09', 'Pendiente', 12),
+(52, '2026-05-03 17:44:51', 'Pendiente', 12),
+(53, '2026-05-03 18:38:18', 'Pendiente', 12),
+(54, '2026-05-03 18:43:59', 'Pendiente', 12);
 
 -- --------------------------------------------------------
 
@@ -595,15 +633,15 @@ CREATE TABLE `producto` (
 --
 
 INSERT INTO `producto` (`Cod_Producto`, `Nombre`, `Precio`, `Cantidad`, `Fecha_vencimiento`, `Descripcion`, `Imagen_url`, `Cod_Categoria`, `Cod_Proveedor`, `Imagen_zoom`, `Imagen_pos_x`, `Imagen_pos_y`) VALUES
-(1, 'Leche Alquería 1L', 3800, 150, '2026-02-15', 'Leche entera 1L', 'https://s3.amazonaws.com/coreecommerce.imagenes/uploads/html/81931_h1.jpg', 2, 1, 1.00, 50.00, 50.00),
+(1, 'Leche Alquería 1L', 3800, 147, '2026-02-15', 'Leche entera 1L', 'https://s3.amazonaws.com/coreecommerce.imagenes/uploads/html/81931_h1.jpg', 2, 1, 1.00, 50.00, 50.00),
 (2, 'Pan Tajado Bimbo', 6200, 200, '2025-12-20', 'Pan tajado familiar', 'https://exitocol.vteximg.com.br/arquivos/ids/25464115/Pan-tajado-Actidefensis-BIMBO-730-gr-3107865_a.jpg?v=638666269327730000', 3, 3, 1.00, 50.00, 50.00),
 (3, 'Galletas Festival', 4800, 300, '2026-03-10', 'Galletas dulces', 'https://mercasur.com.co/rails/active_storage/blobs/proxy/eyJfcmFpbHMiOnsiZGF0YSI6NTAxMjYxLCJwdXIiOiJibG9iX2lkIn19--a59e7e3f4e559f3a7184e2e6242e72afbca2ee09/7702025103744-1.jpg?locale=es', 6, 4, 1.00, 50.00, 50.00),
-(4, 'Aceite Premier 1L', 10500, 180, '2026-01-05', 'Aceite vegetal', 'https://gldosas.com/wp-content/uploads/2024/03/Aceite-Vegetal-de-Soya-Orlandesa-1000-ml.jpeg', 8, 5, 1.00, 0.00, 0.00),
+(4, 'Aceite Premier 1L', 10500, 170, '2026-01-05', 'Aceite vegetal', 'https://gldosas.com/wp-content/uploads/2024/03/Aceite-Vegetal-de-Soya-Orlandesa-1000-ml.jpeg', 8, 5, 1.00, 0.00, 0.00),
 (5, 'Harina Pan 1Kg', 5200, 120, '2026-04-01', 'Harina de trigo', 'https://olimpica.vtexassets.com/arquivos/ids/685195/7702084137520.jpg?v=637684581490100000', 5, 7, 1.00, 50.00, 50.00),
 (6, 'Zucaritas 300g', 11500, 90, '2026-05-12', 'Cereal zucaritas', 'https://arteli.vtexassets.com/arquivos/ids/244532/7501008042946_00.jpg?v=638635767517130000', 7, 6, 1.00, 50.00, 50.00),
 (7, 'Yogurt Alquería Fresa', 3200, 250, '2025-12-15', 'Yogurt sabor fresa', 'https://www.fonalcanzar.com/wp-content/uploads/2022/07/yogurt-fresa-.png', 2, 1, 1.00, 50.00, 50.00),
 (8, 'Gaseosa Manzana 1.5L', 4300, 210, '2026-02-10', 'Manzana Postobón', 'https://infonutricional.tomatelavida.com.co/wp-content/uploads/2023/06/MANZANA_postobon_250ML-ret-2.png', 4, 2, 1.00, 50.00, 50.00),
-(9, 'Chocolate Corona', 8900, 160, '2026-04-30', 'Chocolate en polvo', 'https://vaquitaexpress.com.co/media/catalog/product/cache/e89ece728e3939ca368b457071d3c0be/7/7/7702007083354.jpg', 9, 8, 1.00, 50.00, 50.00),
+(9, 'Chocolate Corona', 8900, 154, '2026-04-30', 'Chocolate en polvo', 'https://vaquitaexpress.com.co/media/catalog/product/cache/e89ece728e3939ca368b457071d3c0be/7/7/7702007083354.jpg', 9, 8, 1.00, 50.00, 50.00),
 (10, 'Margarina La Fina 500g', 5200, 140, '2025-12-28', 'Margarina de mesa', 'https://web.superboom.net/web/image/product.product/35639/image_1024/%5B002436%5D%20Margarina%20Barra%20La%20Fina%20500Gr?unique=b509d77', 8, 5, 1.00, 50.00, 50.00),
 (11, 'Galletas ', 8000, 1, '2025-06-09', 'Galletas jajaj', 'https://exitocol.vtexassets.com/arquivos/ids/29101190/Galleta-Dedito-647090_a.jpg?v=638881159129900000', 8, 5, 1.00, 50.00, 50.00);
 
@@ -725,7 +763,7 @@ CREATE TABLE `usuario` (
 --
 
 INSERT INTO `usuario` (`Id_usuario`, `Id_Rol`, `Estado`, `SesionId`) VALUES
-(1, 1, 'Activo', 'e8f0da9815a62ae526f80090708199882e8209b2d2ec3f78'),
+(1, 1, 'Activo', '62504956eacf132a82c62b8adaf585b8578079f3a1729ccd'),
 (2, 2, 'Activo', NULL),
 (3, 2, 'Activo', NULL),
 (4, 2, 'Activo', NULL),
@@ -736,7 +774,7 @@ INSERT INTO `usuario` (`Id_usuario`, `Id_Rol`, `Estado`, `SesionId`) VALUES
 (9, 4, 'Activo', NULL),
 (10, 4, 'Activo', NULL),
 (11, 4, 'Activo', '59fb1e79ccebffa98ecd606f416e09045eeedbdba62cb45c'),
-(12, 2, 'Activo', 'e5fe21e7f8a912cd7cdf6397a8b404a624df9fea85ed2045'),
+(12, 2, 'Activo', '03a6ef8888746ac6eef281fe40cb1b7794c8039c8a98089f'),
 (13, 2, 'Activo', 'a676a8bd408dc0bba9fe5f23cfd7b481916790ee330aa394');
 
 -- --------------------------------------------------------
@@ -778,7 +816,19 @@ INSERT INTO `usuario_pedido` (`Cod_usuario_pedido`, `Num_Documento`, `Cod_pedido
 (35, 1023654781, 35),
 (40, 1000349255, 40),
 (41, 1000349255, 41),
-(42, 1000349255, 42);
+(42, 1000349255, 42),
+(43, 1000349255, 43),
+(44, 1000349255, 44),
+(45, 1000349255, 45),
+(46, 1000349255, 46),
+(47, 1000349255, 47),
+(48, 1000349255, 48),
+(49, 1000349255, 49),
+(50, 1000349255, 50),
+(51, 1000349255, 51),
+(52, 1000349255, 52),
+(53, 1000349255, 53),
+(54, 1000349255, 54);
 
 -- --------------------------------------------------------
 
@@ -903,13 +953,6 @@ ALTER TABLE `domicilio`
   ADD KEY `Cod_Usuario_Pedido` (`Cod_Usuario_Pedido`);
 
 --
--- Indices de la tabla `historial_estado_pedido`
---
-ALTER TABLE `historial_estado_pedido`
-  ADD PRIMARY KEY (`Id_historial`),
-  ADD KEY `Cod_pedido` (`Cod_pedido`);
-
---
 -- Indices de la tabla `inventario`
 --
 ALTER TABLE `inventario`
@@ -1001,7 +1044,7 @@ ALTER TABLE `carrito`
 -- AUTO_INCREMENT de la tabla `carrito_item`
 --
 ALTER TABLE `carrito_item`
-  MODIFY `Cod_carrito_item` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+  MODIFY `Cod_carrito_item` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
 
 --
 -- AUTO_INCREMENT de la tabla `categoria`
@@ -1013,7 +1056,7 @@ ALTER TABLE `categoria`
 -- AUTO_INCREMENT de la tabla `detalle_pedido`
 --
 ALTER TABLE `detalle_pedido`
-  MODIFY `Id_Detalle_Pedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+  MODIFY `Id_Detalle_Pedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=76;
 
 --
 -- AUTO_INCREMENT de la tabla `detalle_reporte`
@@ -1026,12 +1069,6 @@ ALTER TABLE `detalle_reporte`
 --
 ALTER TABLE `domicilio`
   MODIFY `Cod_Domicilio` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
-
---
--- AUTO_INCREMENT de la tabla `historial_estado_pedido`
---
-ALTER TABLE `historial_estado_pedido`
-  MODIFY `Id_historial` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `inventario`
@@ -1049,13 +1086,13 @@ ALTER TABLE `oferta`
 -- AUTO_INCREMENT de la tabla `pago`
 --
 ALTER TABLE `pago`
-  MODIFY `Cod_Pago` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+  MODIFY `Cod_Pago` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
 
 --
 -- AUTO_INCREMENT de la tabla `pedido`
 --
 ALTER TABLE `pedido`
-  MODIFY `Cod_Pedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `Cod_Pedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- AUTO_INCREMENT de la tabla `producto`
@@ -1091,7 +1128,7 @@ ALTER TABLE `usuario`
 -- AUTO_INCREMENT de la tabla `usuario_pedido`
 --
 ALTER TABLE `usuario_pedido`
-  MODIFY `Cod_usuario_pedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `Cod_usuario_pedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- Restricciones para tablas volcadas
@@ -1128,12 +1165,6 @@ ALTER TABLE `detalle_reporte`
 --
 ALTER TABLE `domicilio`
   ADD CONSTRAINT `domicilio_ibfk_1` FOREIGN KEY (`Cod_Usuario_Pedido`) REFERENCES `usuario_pedido` (`Cod_usuario_pedido`) ON DELETE SET NULL ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `historial_estado_pedido`
---
-ALTER TABLE `historial_estado_pedido`
-  ADD CONSTRAINT `historial_estado_pedido_ibfk_1` FOREIGN KEY (`Cod_pedido`) REFERENCES `pedido` (`Cod_Pedido`);
 
 --
 -- Filtros para la tabla `inventario`

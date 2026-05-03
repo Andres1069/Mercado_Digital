@@ -212,9 +212,12 @@ switch ($modulo) {
         $ctrl = new PagoController();
         match(true) {
             $metodo === 'GET'  && $accion === ''                                              => $ctrl->todos(),
-            $metodo === 'GET'  && is_numeric($accion)                                         => $ctrl->obtener((int)$accion),
+            in_array($metodo, ['POST','GET']) && $accion === 'webhook'                         => $ctrl->webhook(),
+            $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'preferencia'  => $ctrl->crearPreferencia((int)$accion),
+            $metodo === 'GET'  && is_numeric($accion) && ($partes[2] ?? '') === 'verificar-mp' => $ctrl->verificarMP((int)$accion),
             $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'comprobante' => $ctrl->subirComprobante((int)$accion),
             $metodo === 'PUT'  && is_numeric($accion) && ($partes[2] ?? '') === 'verificar'   => $ctrl->verificar((int)$accion),
+            $metodo === 'GET'  && is_numeric($accion)                                         => $ctrl->obtener((int)$accion),
             default => ruta404()
         };
         break;
