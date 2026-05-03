@@ -211,24 +211,11 @@ switch ($modulo) {
     case 'pago':
         $ctrl = new PagoController();
         match(true) {
-            $metodo === 'GET'  && $accion === ''                                              => $ctrl->todos(),
-            in_array($metodo, ['POST','GET']) && $accion === 'webhook'                         => $ctrl->webhook(),
-            $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'preferencia'  => $ctrl->crearPreferencia((int)$accion),
-            $metodo === 'GET'  && is_numeric($accion) && ($partes[2] ?? '') === 'verificar-mp' => $ctrl->verificarMP((int)$accion),
-            $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'comprobante' => $ctrl->subirComprobante((int)$accion),
-            $metodo === 'PUT'  && is_numeric($accion) && ($partes[2] ?? '') === 'verificar'   => $ctrl->verificar((int)$accion),
-            $metodo === 'GET'  && is_numeric($accion)                                         => $ctrl->obtener((int)$accion),
-            default => ruta404()
-        };
-        break;
-
-    case 'metodos-pago':
-        $ctrl = new MetodoPagoConfigController();
-        match(true) {
-            $metodo === 'GET'  && $accion === ''                                              => $ctrl->listar(),
-            $metodo === 'GET'  && !is_numeric($accion) && $accion !== ''                      => $ctrl->obtenerPorMetodo($accion),
-            $metodo === 'PUT'  && is_numeric($accion)                                         => $ctrl->actualizar((int)$accion),
-            $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'upload-qr'   => $ctrl->uploadQR((int)$accion),
+            $metodo === 'GET'  && $accion === ''                                                       => $ctrl->todos(),
+            $metodo === 'POST' && $accion === 'webhook'                                                => $ctrl->webhook(),
+            $metodo === 'GET'  && is_numeric($accion) && ($partes[2] ?? '') === ''                     => $ctrl->obtener((int)$accion),
+            $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'preferencia'          => $ctrl->crearPreferencia((int)$accion),
+            $metodo === 'GET'  && is_numeric($accion) && ($partes[2] ?? '') === 'verificar-mp'         => $ctrl->verificarMP((int)$accion),
             default => ruta404()
         };
         break;
