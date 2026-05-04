@@ -82,7 +82,7 @@ function ProductoCard({ producto }) {
   );
 }
 
-function CategoriaCard({ cat, index }) {
+function CategoriaCard({ cat, productosCat }) {
   const colores = [
     { bg: "rgba(168,200,152,0.15)", accent: "#6B8E4E" },
     { bg: "rgba(135,127,215,0.12)", accent: "#3C5148" },
@@ -93,18 +93,32 @@ function CategoriaCard({ cat, index }) {
     { bg: "rgba(99,102,241,0.1)",   accent: "#6B8E4E" },
     { bg: "rgba(16,185,129,0.1)",   accent: "#6B8E4E" },
   ];
-  const c = colores[index % colores.length];
-  const iconos = ["🧴","🥛","🍞","🥤","🌾","🍿","🥣","🫙","🧃","🍫","🥚","🧹"];
+  const c = colores[cat.Cod_Categoria % colores.length];
+  const imagenRep = productosCat?.[0]?.Imagen_url || productosCat?.[0]?.imagen_url || "";
 
   return (
     <Link to="/login"
-      className="rounded-2xl border border-gray-100 shadow-sm hover:-translate-y-1 hover:shadow-md transition overflow-hidden flex flex-col"
-      style={{ backgroundColor: "white" }}>
-      <div className="h-24 flex items-center justify-center text-4xl" style={{ backgroundColor: c.bg }}>
-        {iconos[index % iconos.length]}
+      className="rounded-2xl border border-gray-100 shadow-sm hover:-translate-y-1 hover:shadow-md transition overflow-hidden flex flex-col">
+      <div className="h-24 relative overflow-hidden" style={{ backgroundColor: c.bg }}>
+        {imagenRep ? (
+          <>
+            <img
+              src={imagenRep}
+              alt={cat.Nombre}
+              className="w-full h-full object-cover opacity-80"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+            <p className="absolute bottom-2 left-3 font-black text-white text-lg drop-shadow-lg">
+              {cat.Nombre}
+            </p>
+          </>
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <p className="font-bold text-sm" style={{ color: c.accent }}>{cat.Nombre}</p>
+          </div>
+        )}
       </div>
       <div className="p-3">
-        <p className="font-bold text-sm text-gray-800">{cat.Nombre}</p>
         <p className="text-xs mt-0.5" style={{ color: c.accent }}>
           +{cat.total_productos || "varios"} <span className="text-gray-400">productos</span>
         </p>
@@ -156,6 +170,11 @@ export default function Landing() {
   const productosDestacados = productos.slice(0, 4);
   const productosEnOferta   = productos.filter((p) => Number(p.Porcentaje_Descuento || 0) > 0).slice(0, 4);
   const maxDescuento        = ofertas.length ? Math.max(...ofertas.map((o) => Number(o.Porcentaje_Descuento || 0))) : 0;
+
+  const productosPorCategoria = categorias.reduce((acc, cat) => {
+    acc[cat.Cod_Categoria] = productos.filter((p) => Number(p.Cod_Categoria) === Number(cat.Cod_Categoria));
+    return acc;
+  }, {});
 
   return (
     <div className="landing-page min-h-screen bg-white text-slate-900">
@@ -362,14 +381,14 @@ export default function Landing() {
             </div>
             {categorias.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {categorias.map((cat, i) => (
-                  <CategoriaCard key={cat.Cod_Categoria} cat={cat} index={i} />
+                {categorias.map((cat) => (
+                  <CategoriaCard key={cat.Cod_Categoria} cat={cat} productosCat={productosPorCategoria[cat.Cod_Categoria] || []} />
                 ))}
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {[...Array(8)].map((_, i) => (
-                  <div key={i} className="rounded-2xl h-40 animate-pulse bg-gray-100" />
+                  <div key={i} className="rounded-2xl h-44 animate-pulse bg-gray-100" />
                 ))}
               </div>
             )}
