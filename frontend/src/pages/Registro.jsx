@@ -12,6 +12,15 @@ function validarContrasena(contrasena) {
   return "";
 }
 
+function checkRequisitos(pw) {
+  return [
+    { cumple: pw.length >= 8, texto: "Minimo 8 caracteres" },
+    { cumple: /[A-Z]/.test(pw), texto: "Al menos 1 letra mayuscula" },
+    { cumple: /[a-z]/.test(pw), texto: "Al menos 1 letra minuscula" },
+    { cumple: /\d/.test(pw), texto: "Al menos 1 numero" },
+  ];
+}
+
 function OjoIcon({ abierto }) {
   if (abierto) return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
@@ -161,15 +170,52 @@ export default function Registro() {
               </div>
             </div>
 
-            <div className="rounded-[0.85rem] border px-4 py-3 text-sm lg:px-4 lg:py-2.5" style={{ borderColor: "#B2C5B2", backgroundColor: "#F8FAF9", color: "#3C5148" }}>
-              <p className="font-semibold text-slate-800 mb-1 lg:mb-0.5">Requisitos de la contrasena</p>
-              <div className="space-y-0.5 lg:text-[13px]">
-                <p>Minimo 8 caracteres.</p>
-                <p>Debe incluir al menos 1 letra mayuscula.</p>
-                <p>Debe incluir al menos 1 letra minuscula.</p>
-                <p>Debe incluir al menos 1 numero.</p>
+            {form.contrasena.length > 0 && (
+              <div className="rounded-[0.85rem] border px-4 py-3 text-sm lg:px-4 lg:py-2.5"
+                style={{
+                  borderColor: form.contrasena.length >= 8 && /[A-Z]/.test(form.contrasena) && /[a-z]/.test(form.contrasena) && /\d/.test(form.contrasena) ? "#6B8E4E" : "#B2C5B2",
+                  backgroundColor: "#F8FAF9",
+                }}>
+                <p className="font-semibold text-slate-800 mb-2 lg:mb-1">Requisitos de la contrasena</p>
+                <div className="space-y-1 lg:text-[13px]">
+                  {checkRequisitos(form.contrasena).map((r) => (
+                    <div key={r.texto} className="flex items-center gap-2">
+                      <span
+                        className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-white transition"
+                        style={{ backgroundColor: r.cumple ? "#6B8E4E" : "#ef4444" }}>
+                        {r.cumple ? "✓" : "✕"}
+                      </span>
+                      <span style={{ color: r.cumple ? "#6B8E4E" : "#ef4444", fontWeight: r.cumple ? 500 : 600 }}>
+                        {r.texto}
+                      </span>
+                    </div>
+                  ))}
+                  <div className="flex items-center gap-2 mt-1.5 pt-1.5"
+                    style={{ borderTop: "1px solid rgba(107,142,78,0.12)" }}>
+                    <span
+                      className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-white transition"
+                      style={{ backgroundColor: form.confirmar === form.contrasena && form.contrasena.length > 0 ? "#6B8E4E" : "#ef4444" }}>
+                      {form.confirmar === form.contrasena && form.contrasena.length > 0 ? "✓" : "✕"}
+                    </span>
+                    <span style={{ color: form.confirmar === form.contrasena && form.contrasena.length > 0 ? "#6B8E4E" : "#ef4444", fontWeight: form.confirmar === form.contrasena ? 500 : 600 }}>
+                      {form.confirmar.length === 0 ? "Confirma tu contrasena" : "Las contrasenas coinciden"}
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+            {form.contrasena.length === 0 && (
+              <div className="rounded-[0.85rem] border px-4 py-3 text-sm lg:px-4 lg:py-2.5"
+                style={{ borderColor: "#B2C5B2", backgroundColor: "#F8FAF9", color: "#3C5148" }}>
+                <p className="font-semibold text-slate-800 mb-1 lg:mb-0.5">Requisitos de la contrasena</p>
+                <div className="space-y-0.5 lg:text-[13px]">
+                  <p>Minimo 8 caracteres.</p>
+                  <p>Debe incluir al menos 1 letra mayuscula.</p>
+                  <p>Debe incluir al menos 1 letra minuscula.</p>
+                  <p>Debe incluir al menos 1 numero.</p>
+                </div>
+              </div>
+            )}
 
             <button type="submit" disabled={cargando} className="w-full md-btn-primary font-semibold py-3 lg:py-3.5 rounded-[0.85rem] transition disabled:opacity-60">
               {cargando ? "Creando cuenta..." : "Registrarme"}
