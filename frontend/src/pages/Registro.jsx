@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import ThemeToggle from "../components/ThemeToggle";
 import { authService } from "../services/api";
 
@@ -40,6 +41,7 @@ function OjoIcon({ abierto }) {
 
 export default function Registro() {
   const { iniciarSesion } = useAuth();
+  const { esOscuro } = useTheme();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
@@ -173,10 +175,10 @@ export default function Registro() {
             {form.contrasena.length > 0 && (
               <div className="rounded-[0.85rem] border px-4 py-3 text-sm lg:px-4 lg:py-2.5"
                 style={{
-                  borderColor: form.contrasena.length >= 8 && /[A-Z]/.test(form.contrasena) && /[a-z]/.test(form.contrasena) && /\d/.test(form.contrasena) ? "#6B8E4E" : "#B2C5B2",
-                  backgroundColor: "#F8FAF9",
+                  borderColor: form.contrasena.length >= 8 && /[A-Z]/.test(form.contrasena) && /[a-z]/.test(form.contrasena) && /\d/.test(form.contrasena) ? "#6B8E4E" : esOscuro ? "#4a5568" : "#B2C5B2",
+                  backgroundColor: esOscuro ? "#1f2937" : "#F8FAF9",
                 }}>
-                <p className="font-semibold text-slate-800 mb-2 lg:mb-1">Requisitos de la contrasena</p>
+                <p className="font-semibold mb-2 lg:mb-1" style={{ color: esOscuro ? "#f1f5f9" : "#1e293b" }}>Requisitos de la contrasena</p>
                 <div className="space-y-1 lg:text-[13px]">
                   {checkRequisitos(form.contrasena).map((r) => (
                     <div key={r.texto} className="flex items-center gap-2">
@@ -191,7 +193,7 @@ export default function Registro() {
                     </div>
                   ))}
                   <div className="flex items-center gap-2 mt-1.5 pt-1.5"
-                    style={{ borderTop: "1px solid rgba(107,142,78,0.12)" }}>
+                    style={{ borderTop: `1px solid ${esOscuro ? "rgba(107,142,78,0.2)" : "rgba(107,142,78,0.12)"}` }}>
                     <span
                       className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-white transition"
                       style={{ backgroundColor: form.confirmar === form.contrasena && form.contrasena.length > 0 ? "#6B8E4E" : "#ef4444" }}>
@@ -206,9 +208,9 @@ export default function Registro() {
             )}
             {form.contrasena.length === 0 && (
               <div className="rounded-[0.85rem] border px-4 py-3 text-sm lg:px-4 lg:py-2.5"
-                style={{ borderColor: "#B2C5B2", backgroundColor: "#F8FAF9", color: "#3C5148" }}>
-                <p className="font-semibold text-slate-800 mb-1 lg:mb-0.5">Requisitos de la contrasena</p>
-                <div className="space-y-0.5 lg:text-[13px]">
+                style={{ borderColor: esOscuro ? "#4a5568" : "#B2C5B2", backgroundColor: esOscuro ? "#1f2937" : "#F8FAF9" }}>
+                <p className="font-semibold mb-1 lg:mb-0.5" style={{ color: esOscuro ? "#f1f5f9" : "#1e293b" }}>Requisitos de la contrasena</p>
+                <div className="space-y-0.5 lg:text-[13px]" style={{ color: esOscuro ? "#cbd5e1" : "#3C5148" }}>
                   <p>Minimo 8 caracteres.</p>
                   <p>Debe incluir al menos 1 letra mayuscula.</p>
                   <p>Debe incluir al menos 1 letra minuscula.</p>
