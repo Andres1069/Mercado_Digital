@@ -1,0 +1,8 @@
+Options -Indexes
+
+RewriteEngine On
+
+# Redirigir todo al index.php pasando la ruta como parámetro ?ruta=...
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?ruta=$1 [QSA,L]

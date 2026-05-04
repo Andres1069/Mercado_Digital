@@ -1,0 +1,12 @@
+# Backend runtime artifacts (do not commit secrets)
+backend/storage/reset_tokens.log
+backend/storage/reset_codes.json
+backend/storage/*.log
+backend/storage/*.json
+
+# Common
+node_modules/
+dist/
+*.local
+.DS_Store
+
