@@ -1,26 +1,8 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useTheme } from "../context/ThemeContext";
-import ThemeToggle from "../components/ThemeToggle";
 import { authService } from "../services/api";
-
-function validarContrasena(contrasena) {
-  if (contrasena.length < 8) return "La contrasena debe tener minimo 8 caracteres.";
-  if (!/[A-Z]/.test(contrasena)) return "La contrasena debe incluir al menos 1 letra mayuscula.";
-  if (!/[a-z]/.test(contrasena)) return "La contrasena debe incluir al menos 1 letra minuscula.";
-  if (!/\d/.test(contrasena)) return "La contrasena debe incluir al menos 1 numero.";
-  return "";
-}
-
-function checkRequisitos(pw) {
-  return [
-    { cumple: pw.length >= 8, texto: "Minimo 8 caracteres" },
-    { cumple: /[A-Z]/.test(pw), texto: "Al menos 1 letra mayuscula" },
-    { cumple: /[a-z]/.test(pw), texto: "Al menos 1 letra minuscula" },
-    { cumple: /\d/.test(pw), texto: "Al menos 1 numero" },
-  ];
-}
+import PasswordRequirements from "../components/PasswordRequirements";
 
 function OjoIcon({ abierto }) {
   if (abierto) return (
@@ -41,7 +23,6 @@ function OjoIcon({ abierto }) {
 
 export default function Registro() {
   const { iniciarSesion } = useAuth();
-  const { esOscuro } = useTheme();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
@@ -59,15 +40,40 @@ export default function Registro() {
   const [cargando, setCargando] = useState(false);
   const [verContrasena, setVerContrasena] = useState(false);
   const [verConfirmar, setVerConfirmar] = useState(false);
+  const [mostrarRequisitos, setMostrarRequisitos] = useState(false);
+  const [coinciden, setCoinciden] = useState(null);
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    const updated = { ...form, [e.target.name]: e.target.value };
+    setForm(updated);
+    
+    // Validar coincidencia de contraseñas en tiempo real
+    if (e.target.name === "confirmar" || e.target.name === "contrasena") {
+      if (updated.confirmar && updated.contrasena) {
+        setCoinciden(updated.contrasena === updated.confirmar);
+      } else {
+        setCoinciden(null);
+      }
+    }
+  };
+
+  const validarContrasena = (contrasena) => {
+    const requisitos = [
+      { texto: "Minimo 8 caracteres.", cumple: (valor) => valor.length >= 8 },
+      { texto: "Debe incluir al menos 1 letra mayuscula.", cumple: (valor) => /[A-Z]/.test(valor) },
+      { texto: "Debe incluir al menos 1 letra minuscula.", cumple: (valor) => /[a-z]/.test(valor) },
+      { texto: "Debe incluir al menos 1 numero.", cumple: (valor) => /\d/.test(valor) },
+    ];
+    const pendiente = requisitos.find((item) => !item.cumple(contrasena));
+    return pendiente ? `La contraseña debe cumplir: ${pendiente.texto}` : "";
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
     if (form.contrasena !== form.confirmar) {
-      setError("Las contrasenas no coinciden.");
+      setError("Las contraseñas no coinciden.");
       return;
     }
     const errorPassword = validarContrasena(form.contrasena);
@@ -112,29 +118,7 @@ export default function Registro() {
             </p>
           </div>
 
-          <div className="hidden lg:block mt-8 space-y-3">
-            <div className="rounded-[0.9rem] border border-white/20 bg-white/12 backdrop-blur-sm p-4">
-              <p className="text-xs uppercase tracking-[0.25em] text-white/65 font-semibold">Lo que necesitas</p>
-              <div className="mt-3 space-y-2 text-sm text-white/90">
-                <p>Tu correo sera usado para iniciar sesion y recuperar la contrasena.</p>
-                <p>Debes registrar una direccion valida dentro del barrio habilitado.</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-[0.85rem] bg-white/10 px-4 py-3 border border-white/15">
-                <p className="text-white/65 text-[11px] uppercase tracking-[0.18em]">Minimo</p>
-                <p className="mt-2 text-lg font-bold">8 chars</p>
-              </div>
-              <div className="rounded-[0.85rem] bg-white/10 px-4 py-3 border border-white/15">
-                <p className="text-white/65 text-[11px] uppercase tracking-[0.18em]">Incluye</p>
-                <p className="mt-2 text-lg font-bold">Aa</p>
-              </div>
-              <div className="rounded-[0.85rem] bg-white/10 px-4 py-3 border border-white/15">
-                <p className="text-white/65 text-[11px] uppercase tracking-[0.18em]">Incluye</p>
-                <p className="mt-2 text-lg font-bold">123</p>
-              </div>
-            </div>
-          </div>
+
         </div>
 
         <div className="p-7 lg:p-9 xl:p-10">
@@ -159,65 +143,71 @@ export default function Registro() {
 
             <div className="grid sm:grid-cols-2 gap-4 lg:gap-3">
               <div className="relative">
-                <input type={verContrasena ? "text" : "password"} name="contrasena" value={form.contrasena} onChange={handleChange} required placeholder="Contrasena" className="md-input pr-12" />
+                <input 
+                  type={verContrasena ? "text" : "password"} 
+                  name="contrasena" 
+                  value={form.contrasena} 
+                  onChange={handleChange} 
+                  onFocus={() => setMostrarRequisitos(true)}
+                  onBlur={() => setTimeout(() => setMostrarRequisitos(false), 200)}
+                  required 
+                  placeholder="Contraseña" 
+                  className="md-input pr-12" 
+                  aria-describedby="requisitos-contrasena-registro" 
+                />
                 <button type="button" onClick={() => setVerContrasena((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition p-1" tabIndex={-1} aria-label={verContrasena ? "Ocultar" : "Ver"}>
                   <OjoIcon abierto={verContrasena} />
                 </button>
               </div>
               <div className="relative">
-                <input type={verConfirmar ? "text" : "password"} name="confirmar" value={form.confirmar} onChange={handleChange} required placeholder="Confirmar contrasena" className="md-input pr-12" />
-                <button type="button" onClick={() => setVerConfirmar((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition p-1" tabIndex={-1} aria-label={verConfirmar ? "Ocultar" : "Ver"}>
-                  <OjoIcon abierto={verConfirmar} />
-                </button>
+                <input 
+                  type={verConfirmar ? "text" : "password"} 
+                  name="confirmar" 
+                  value={form.confirmar} 
+                  onChange={handleChange} 
+                  required 
+                  placeholder="Confirmar contraseña" 
+                  className={`md-input pr-12 transition-all ${
+                    coinciden === true 
+                      ? 'border-emerald-500' 
+                      : coinciden === false 
+                      ? 'border-rose-500' 
+                      : ''
+                  }`} 
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                  {coinciden === true && (
+                    <span className="text-emerald-500 text-xl animate-pulse">✓</span>
+                  )}
+                  {coinciden === false && (
+                    <span className="text-rose-500 text-xl animate-bounce" style={{animationDuration: '0.5s'}}>✕</span>
+                  )}
+                  <button type="button" onClick={() => setVerConfirmar((v) => !v)} className="text-slate-400 hover:text-slate-600 transition p-1" tabIndex={-1} aria-label={verConfirmar ? "Ocultar" : "Ver"}>
+                    <OjoIcon abierto={verConfirmar} />
+                  </button>
+                </div>
               </div>
             </div>
+            
+            {form.confirmar && (
+              <div className={`text-xs font-semibold transition-all ${
+                coinciden === true 
+                  ? 'text-emerald-600' 
+                  : 'text-rose-600'
+              }`}>
+                {coinciden === true ? (
+                  <span className="flex items-center gap-1">
+                    <span className="text-lg">✓</span> Las contraseñas coinciden perfectamente
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1">
+                    <span className="text-lg">⚠</span> Las contraseñas no coinciden
+                  </span>
+                )}
+              </div>
+            )}
 
-            {form.contrasena.length > 0 && (
-              <div className="rounded-[0.85rem] border px-4 py-3 text-sm lg:px-4 lg:py-2.5"
-                style={{
-                  borderColor: form.contrasena.length >= 8 && /[A-Z]/.test(form.contrasena) && /[a-z]/.test(form.contrasena) && /\d/.test(form.contrasena) ? "#6B8E4E" : esOscuro ? "#4a5568" : "#B2C5B2",
-                  backgroundColor: esOscuro ? "#1f2937" : "#F8FAF9",
-                }}>
-                <p className="font-semibold mb-2 lg:mb-1" style={{ color: esOscuro ? "#f1f5f9" : "#1e293b" }}>Requisitos de la contrasena</p>
-                <div className="space-y-1 lg:text-[13px]">
-                  {checkRequisitos(form.contrasena).map((r) => (
-                    <div key={r.texto} className="flex items-center gap-2">
-                      <span
-                        className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-white transition"
-                        style={{ backgroundColor: r.cumple ? "#6B8E4E" : "#ef4444" }}>
-                        {r.cumple ? "✓" : "✕"}
-                      </span>
-                      <span style={{ color: r.cumple ? "#6B8E4E" : "#ef4444", fontWeight: r.cumple ? 500 : 600 }}>
-                        {r.texto}
-                      </span>
-                    </div>
-                  ))}
-                  <div className="flex items-center gap-2 mt-1.5 pt-1.5"
-                    style={{ borderTop: `1px solid ${esOscuro ? "rgba(107,142,78,0.2)" : "rgba(107,142,78,0.12)"}` }}>
-                    <span
-                      className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-white transition"
-                      style={{ backgroundColor: form.confirmar === form.contrasena && form.contrasena.length > 0 ? "#6B8E4E" : "#ef4444" }}>
-                      {form.confirmar === form.contrasena && form.contrasena.length > 0 ? "✓" : "✕"}
-                    </span>
-                    <span style={{ color: form.confirmar === form.contrasena && form.contrasena.length > 0 ? "#6B8E4E" : "#ef4444", fontWeight: form.confirmar === form.contrasena ? 500 : 600 }}>
-                      {form.confirmar.length === 0 ? "Confirma tu contrasena" : "Las contrasenas coinciden"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-            {form.contrasena.length === 0 && (
-              <div className="rounded-[0.85rem] border px-4 py-3 text-sm lg:px-4 lg:py-2.5"
-                style={{ borderColor: esOscuro ? "#4a5568" : "#B2C5B2", backgroundColor: esOscuro ? "#1f2937" : "#F8FAF9" }}>
-                <p className="font-semibold mb-1 lg:mb-0.5" style={{ color: esOscuro ? "#f1f5f9" : "#1e293b" }}>Requisitos de la contrasena</p>
-                <div className="space-y-0.5 lg:text-[13px]" style={{ color: esOscuro ? "#cbd5e1" : "#3C5148" }}>
-                  <p>Minimo 8 caracteres.</p>
-                  <p>Debe incluir al menos 1 letra mayuscula.</p>
-                  <p>Debe incluir al menos 1 letra minuscula.</p>
-                  <p>Debe incluir al menos 1 numero.</p>
-                </div>
-              </div>
-            )}
+            <div id="requisitos-contrasena-registro" role="alert" className="hidden" />
 
             <button type="submit" disabled={cargando} className="w-full md-btn-primary font-semibold py-3 lg:py-3.5 rounded-[0.85rem] transition disabled:opacity-60">
               {cargando ? "Creando cuenta..." : "Registrarme"}
@@ -230,7 +220,7 @@ export default function Registro() {
               className="w-full flex items-center justify-center gap-2 py-3 rounded-[0.85rem] border-2 text-sm font-bold transition hover:opacity-90"
               style={{ borderColor: "#3C5148", color: "#3C5148", backgroundColor: "rgba(107,142,78,0.08)" }}
             >
-              Ya tienes cuenta? Inicia sesion
+              ¿Ya tienes cuenta? Inicia sesión
             </Link>
             <Link
               to="/"
@@ -242,6 +232,12 @@ export default function Registro() {
           </div>
         </div>
       </div>
+
+      <PasswordRequirements 
+        contrasena={form.contrasena} 
+        mostrar={mostrarRequisitos} 
+        onClose={() => setMostrarRequisitos(false)} 
+      />
     </div>
   );
 }
