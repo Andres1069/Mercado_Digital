@@ -1,12 +1,12 @@
 import { useTheme } from "../context/ThemeContext";
 
 export default function ThemeToggle({ className = "", style = {} }) {
-  const { esOscuro, toggleTema } = useTheme();
+  const { esOscuro, alternarTema } = useTheme();
 
   return (
     <button
       type="button"
-      onClick={toggleTema}
+      onClick={alternarTema}
       className={className}
       style={style}
     >
