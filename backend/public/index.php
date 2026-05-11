@@ -58,6 +58,7 @@ require_once __DIR__ . '/../app/Controllers/CategoriaController.php';
 require_once __DIR__ . '/../app/Controllers/PagoController.php';
 require_once __DIR__ . '/../app/Models/ProveedorModel.php';
 require_once __DIR__ . '/../app/Controllers/ProveedorController.php';
+require_once __DIR__ . '/../app/Controllers/ContactoController.php';
 
 $ruta   = $_GET['ruta'] ?? '';
 $metodo = $_SERVER['REQUEST_METHOD'];
@@ -66,6 +67,16 @@ $modulo = $partes[0] ?? '';
 $accion = $partes[1] ?? '';
 
 switch ($modulo) {
+        case 'contacto':
+        $ctrl = new ContactoController();
+
+        match(true) {
+            $metodo === 'POST' && $accion === '' => $ctrl->enviar(),
+            default => ruta404()
+        };
+
+        break;
+
     case 'auth':
         $ctrl = new AuthController();
         match(true) {
@@ -74,6 +85,7 @@ switch ($modulo) {
             $metodo === 'POST' && $accion === 'cambiar-password' => $ctrl->cambiarPassword(),
             $metodo === 'POST' && $accion === 'reset-request' => $ctrl->resetRequest(),
             $metodo === 'POST' && $accion === 'reset-confirm' => $ctrl->resetConfirm(),
+            $metodo === 'POST' && $accion === 'logout'   => $ctrl->logout(),
             $metodo === 'GET'  && $accion === 'me'       => $ctrl->me(),
             $metodo === 'PUT'  && $accion === 'perfil'   => $ctrl->actualizarPerfil(),
             default => ruta404()
@@ -200,7 +212,7 @@ switch ($modulo) {
             $metodo === 'GET'  && $accion === 'usuario'                           => $ctrl->usuario(),
             $metodo === 'GET'  && $accion === 'todos'                             => $ctrl->todos(),
             $metodo === 'GET'  && $accion === 'detalle'                           => $ctrl->detalle(),
-            $metodo === 'GET'  && $accion === 'cancelar'                          => $ctrl->cancelar(),
+            $metodo === 'POST' && $accion === 'cancelar'                          => $ctrl->cancelar(),
             $metodo === 'GET'  && $accion === 'seguimiento'                       => $ctrl->seguimiento(),
             $metodo === 'PUT'  && is_numeric($accion) && $subAccion === 'estado'  => $ctrl->actualizarEstado((int)$accion),
             default => ruta404()

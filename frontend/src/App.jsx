@@ -38,6 +38,7 @@ import AdminCategorias from "./pages/admin/AdminCategorias";
 import AdminProveedores from "./pages/admin/AdminProveedores";
 import RouteTitle from "./components/RouteTitle";
 import Footer from "./components/Footer";
+import WhatsAppButton from "./components/WhatsAppButton";
 
 function RutaPrivada({ children }) {
   const { estaLogueado, cargando } = useAuth();
@@ -147,6 +148,7 @@ function AppContent() {
         <AppRoutes />
       </div>
       {location.pathname === "/" && <Footer />}
+      <WhatsAppButton />
     </div>
   );
 }

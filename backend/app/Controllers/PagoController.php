@@ -60,8 +60,8 @@ class PagoController {
             ],
             'back_urls' => [
                 'success' => "{$frontendUrl}/pago/resultado?pedido={$pedidoId}&status=approved",
-                'failure' => "{$frontendUrl}/pago/resultado?pedido={$pedidoId}&status=rejected",
-                'pending' => "{$frontendUrl}/pago/resultado?pedido={$pedidoId}&status=pending",
+                'failure' => "{$frontendUrl}/carrito",
+                'pending' => "{$frontendUrl}/carrito",
             ],
             'external_reference' => (string)$pedidoId,
             'notification_url'   => MP_WEBHOOK_URL . '/pago/webhook',
