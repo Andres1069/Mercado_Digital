@@ -99,6 +99,7 @@ export const authService = {
   resetConfirm: (token, nueva_contrasena) => post("auth/reset-confirm", { token, nueva_contrasena }),
   me:       ()                   => get("auth/me"),
   actualizarPerfil: (datos)      => put("auth/perfil", datos),
+  logout:   ()                   => post("auth/logout", {}),
 };
 
 // ── Productos ─────────────────────────────────────────────
@@ -191,14 +192,14 @@ export const domicilioService = {
   crear:           (datos)          => post("domicilio/crear", datos),
   misEnvios:       ()               => get("domicilio/usuario"),
   detalle:         (pedido)         => get(`domicilio/detalle?pedido=${pedido}`),
-  cancelar:        (pedido)         => get(`domicilio/cancelar?pedido=${pedido}`),
+  cancelar:        (pedido)         => post("domicilio/cancelar", { pedido }),
   seguimiento:     (pedido)         => get(`domicilio/seguimiento?pedido=${pedido}`),
   todos:           ()               => get("domicilio/todos"),
   actualizarEstado:(id, estado)     => put(`domicilio/${id}/estado`, { estado }),
 };
 
 // ── Helper para subir archivos (multipart/form-data) ──────
-async function uploadFile(ruta, formData) {
+export async function uploadFile(ruta, formData) {
   const token = sessionStorage.getItem("md_token");
   const url   = `${BASE_URL}/${ruta}`;
   let res;

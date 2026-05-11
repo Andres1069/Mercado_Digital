@@ -165,13 +165,22 @@ export default function PagoResultado() {
           )}
 
           {rechazado && (
-            <button
-              onClick={() => navigate(`/pago/qr?pedido=${pedidoId}`)}
-              className="w-full py-3.5 rounded-2xl text-white font-extrabold text-base transition"
-              style={{ background: "linear-gradient(135deg,#009EE3,#00BCFF)" }}
-            >
-              Intentar de nuevo
-            </button>
+            <div className="space-y-3">
+              <button
+                onClick={() => navigate(`/pago/qr?pedido=${pedidoId}`)}
+                className="w-full py-3.5 rounded-2xl text-white font-extrabold text-base transition"
+                style={{ background: "linear-gradient(135deg,#009EE3,#00BCFF)" }}
+              >
+                Intentar de nuevo
+              </button>
+              <button
+                onClick={() => navigate("/carrito")}
+                className="w-full py-3 rounded-2xl text-sm font-bold border transition"
+                style={{ borderColor: "#fecaca", color: "#991b1b" }}
+              >
+                Cancelar y volver al carrito
+              </button>
+            </div>
           )}
 
           {pendiente && (
@@ -185,6 +194,13 @@ export default function PagoResultado() {
                 style={{ borderColor: "#fcd34d", color: "#92400e" }}
               >
                 Ver mis pedidos
+              </button>
+              <button
+                onClick={() => navigate("/carrito")}
+                className="w-full py-3 rounded-2xl text-sm font-bold border transition"
+                style={{ borderColor: "#cbd5e1", color: "#475569" }}
+              >
+                Volver al carrito
               </button>
             </div>
           )}

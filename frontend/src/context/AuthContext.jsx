@@ -91,12 +91,27 @@ export function AuthProvider({ children }) {
     sessionStorage.setItem("md_usuario", JSON.stringify(nuevoUsuario));
   };
 
-  // Cerrar sesion: limpia estado y sessionStorage solo de esta pestana.
-  const cerrarSesion = () => {
-    setToken(null);
-    setUsuario(null);
-    sessionStorage.removeItem("md_token");
-    sessionStorage.removeItem("md_usuario");
+  // Cerrar sesion: notifica al backend y limpia estado local
+  const cerrarSesion = async () => {
+    try {
+      // Intenta notificar al backend sobre el logout
+      await authService.logout();
+    } catch {
+      // Continúa con el logout local incluso si hay error
+    } finally {
+      // Siempre limpia el estado local
+      setToken(null);
+      setUsuario(null);
+      sessionStorage.removeItem("md_token");
+      sessionStorage.removeItem("md_usuario");
+      
+      // Destruir cookies de la aplicación
+      const deleteCookie = (name) => {
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+      };
+      deleteCookie("md_token");
+      deleteCookie("md_usuario");
+    }
   };
 
   // Helpers de rol

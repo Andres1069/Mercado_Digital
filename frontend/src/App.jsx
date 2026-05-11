@@ -1,5 +1,5 @@
 // frontend/src/App.jsx
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -37,6 +37,7 @@ import AdminPagos from "./pages/admin/AdminPagos";
 import AdminCategorias from "./pages/admin/AdminCategorias";
 import AdminProveedores from "./pages/admin/AdminProveedores";
 import RouteTitle from "./components/RouteTitle";
+import Footer from "./components/Footer";
 
 function RutaPrivada({ children }) {
   const { estaLogueado, cargando } = useAuth();
@@ -138,13 +139,25 @@ function AppRoutes() {
   );
 }
 
+function AppContent() {
+  const location = useLocation();
+  return (
+    <div className="min-h-screen flex flex-col">
+      <div className="flex-grow">
+        <AppRoutes />
+      </div>
+      {location.pathname === "/" && <Footer />}
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
           <CartProvider>
-            <AppRoutes />
+            <AppContent />
           </CartProvider>
         </AuthProvider>
       </ThemeProvider>

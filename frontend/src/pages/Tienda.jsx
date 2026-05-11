@@ -69,9 +69,9 @@ export default function Tienda() {
     }
   };
 
-  const agregarAlCarrito = (producto) => {
-    addItem(producto);
-    setNotif("Producto agregado: " + producto.Nombre);
+  const agregarAlCarrito = (producto, cantidad = 1) => {
+    addItem(producto, cantidad);
+    setNotif(`${cantidad} agregado${cantidad > 1 ? "s" : ""}: ${producto.Nombre}`);
     setTimeout(() => setNotif(""), 2200);
   };
 

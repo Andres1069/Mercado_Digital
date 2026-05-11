@@ -34,16 +34,17 @@ export function CartProvider({ children }) {
     }
   }, [items, cartKey]);
 
-  const addItem = (producto) => {
+  const addItem = (producto, cantidad = 1) => {
     const id = Number(producto.Cod_Producto);
     const precio = Number(producto.precio_oferta || producto.Precio || 0);
     const stock = Number(producto.Cantidad || 0);
+    const cantidadAgregar = Math.max(1, Number(cantidad) || 1);
 
     setItems((prev) => {
       const idx = prev.findIndex((x) => x.id === id);
       if (idx >= 0) {
         const next = [...prev];
-        const nuevaCantidad = Math.min(next[idx].cantidad + 1, stock || 9999);
+        const nuevaCantidad = Math.min(next[idx].cantidad + cantidadAgregar, stock || 9999);
         next[idx] = { ...next[idx], cantidad: nuevaCantidad, precio };
         return next;
       }
@@ -57,7 +58,7 @@ export function CartProvider({ children }) {
           imagen: producto.imagen_url || producto.Imagen_url || "",
           categoria: producto.categoria || "",
           stock,
-          cantidad: 1,
+          cantidad: Math.min(cantidadAgregar, stock || 9999),
         },
       ];
     });

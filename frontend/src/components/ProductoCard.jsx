@@ -1,15 +1,29 @@
 // frontend/src/components/ProductoCard.jsx
+import { useState } from "react";
 import { resolverImagen } from "../services/api";
 
 export default function ProductoCard({ producto, onAgregar }) {
   const tieneOferta  = !!producto.Porcentaje_Descuento;
   const precioFinal  = tieneOferta ? producto.precio_oferta : producto.Precio;
-  const sinStock     = Number(producto.Cantidad ?? producto.Stock ?? 0) <= 0;
+  const stock        = Number(producto.Cantidad ?? producto.Stock ?? 0);
+  const sinStock     = stock <= 0;
   const tieneBanner  = tieneOferta && !!producto.oferta_banner;
   const imagen       = resolverImagen(tieneBanner ? producto.oferta_banner : (producto.imagen_url || producto.Imagen_url));
   const imagenZoom   = tieneBanner ? 1 : Number(producto.imagen_zoom ?? producto.Imagen_zoom ?? 1);
   const imagenPosX   = tieneBanner ? 50 : Number(producto.imagen_pos_x ?? producto.Imagen_pos_x ?? 50);
   const imagenPosY   = tieneBanner ? 50 : Number(producto.imagen_pos_y ?? producto.Imagen_pos_y ?? 50);
+  const [cantidad, setCantidad] = useState(1);
+
+  const cambiarCantidad = (valor) => {
+    const numero = Number(valor);
+    if (!Number.isFinite(numero)) return;
+    setCantidad(Math.max(1, Math.min(numero, stock || 9999)));
+  };
+
+  const agregar = () => {
+    if (sinStock) return;
+    onAgregar?.(producto, cantidad);
+  };
 
   const emojiCategoria = {
     "Aseo Personal":"🧴","Lacteos":"🥛","Panaderia":"🍞","Bebidas":"🥤",
@@ -78,10 +92,43 @@ export default function ProductoCard({ producto, onAgregar }) {
               <span className="text-xs text-gray-400 line-through">${Number(producto.Precio).toLocaleString("es-CO")}</span>
             )}
           </div>
-          <button onClick={() => onAgregar && onAgregar(producto)} disabled={sinStock}
+
+          {!sinStock && (
+            <div className="flex items-center justify-between gap-2 mb-3 rounded-xl border border-gray-200 bg-gray-50 p-1.5">
+              <button
+                type="button"
+                onClick={() => cambiarCantidad(cantidad - 1)}
+                disabled={cantidad <= 1}
+                className="w-8 h-8 rounded-lg bg-white border border-gray-200 text-gray-700 font-bold disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label="Disminuir cantidad"
+              >
+                -
+              </button>
+              <input
+                type="number"
+                min="1"
+                max={stock || undefined}
+                value={cantidad}
+                onChange={(e) => cambiarCantidad(e.target.value)}
+                className="w-14 bg-transparent text-center text-sm font-bold text-gray-800 outline-none"
+                aria-label="Cantidad"
+              />
+              <button
+                type="button"
+                onClick={() => cambiarCantidad(cantidad + 1)}
+                disabled={stock > 0 && cantidad >= stock}
+                className="w-8 h-8 rounded-lg bg-white border border-gray-200 text-gray-700 font-bold disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label="Aumentar cantidad"
+              >
+                +
+              </button>
+            </div>
+          )}
+
+          <button onClick={agregar} disabled={sinStock}
             className="w-full text-white font-semibold py-2.5 rounded-xl transition text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 active:scale-95"
             style={{ background: sinStock ? "#d1d5db" : "linear-gradient(135deg,#6B8E4E,#3C5148)" }}>
-            {sinStock ? "Sin stock" : "+ Agregar al carrito"}
+            {sinStock ? "Sin stock" : `Agregar ${cantidad} al carrito`}
           </button>
         </div>
       </div>

@@ -116,6 +116,7 @@ export default function PagoQR() {
               "Elige tu método de pago: Nequi, Daviplata, tarjeta débito/crédito u otros.",
               `Confirma el pago de ${fmt(pago?.Monto_Pago)}.`,
               "Serás redirigido de vuelta automáticamente con la confirmación.",
+              "Si cancelas en MercadoPago, serás redirigido al carrito para continuar.",
             ].map((texto, i) => (
               <li key={i} className="flex gap-3">
                 <span className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0
@@ -130,14 +131,26 @@ export default function PagoQR() {
         </div>
 
         {/* Botón pagar */}
-        <button
-          onClick={handlePagar}
-          disabled={redirigiendo || !pago}
-          className="w-full py-4 rounded-2xl text-white font-extrabold text-base disabled:opacity-50 transition"
-          style={{ background: "linear-gradient(135deg,#009EE3,#00BCFF)" }}
-        >
-          {redirigiendo ? "Redirigiendo a MercadoPago..." : `Pagar ${fmt(pago?.Monto_Pago)} con MercadoPago`}
-        </button>
+        <div className="space-y-3">
+          <button
+            onClick={handlePagar}
+            disabled={redirigiendo || !pago}
+            className="w-full py-4 rounded-2xl text-white font-extrabold text-base disabled:opacity-50 transition"
+            style={{ background: "linear-gradient(135deg,#009EE3,#00BCFF)" }}
+          >
+            {redirigiendo ? "Redirigiendo a MercadoPago..." : `Pagar ${fmt(pago?.Monto_Pago)} con MercadoPago`}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate("/carrito")}
+            disabled={redirigiendo}
+            className="w-full py-3 rounded-2xl text-sm font-bold border transition disabled:opacity-50"
+            style={{ borderColor: "#cbd5e1", color: "#475569", backgroundColor: "rgba(255,255,255,0.6)" }}
+          >
+            Cancelar y volver al carrito
+          </button>
+        </div>
 
         <p className="text-center text-xs text-slate-400 mt-3">
           Pago seguro procesado por MercadoPago · SSL 256-bit
