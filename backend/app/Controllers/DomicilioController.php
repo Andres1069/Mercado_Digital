@@ -75,7 +75,7 @@ class DomicilioController {
         $this->ok(['detalle' => $detalle]);
     }
 
-    // GET /domicilio/cancelar?pedido=123
+    // POST /domicilio/cancelar
     public function cancelar(): void {
         $payload = AuthMiddleware::verify();
         $doc = (int)($payload['num_documento'] ?? 0);
@@ -83,9 +83,10 @@ class DomicilioController {
             $this->error('No se pudo identificar el usuario.', 401);
         }
 
-        $pedidoId = (int)($_GET['pedido'] ?? 0);
+        $body = json_decode(file_get_contents('php://input'), true) ?? [];
+        $pedidoId = (int)($body['pedido'] ?? 0);
         if ($pedidoId <= 0) {
-            $this->error('Parametro pedido requerido.', 400);
+            $this->error('El parametro pedido es requerido.', 400);
         }
 
         $ok = $this->model->cancelarPedido($doc, $pedidoId);

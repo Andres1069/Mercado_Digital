@@ -337,6 +337,40 @@ class AuthController {
         $this->ok([], 'Contrasena actualizada correctamente.');
     }
 
+    // POST /auth/logout
+    public function logout(): void {
+        $payload = AuthMiddleware::verify();
+        $doc     = (int)$payload['num_documento'];
+
+        // Invalidar la sesión actual en la BD
+        if ($this->model->soportaSesionId()) {
+            $this->model->actualizarSesionId($doc, null);
+        }
+
+        // Destruir todas las cookies de la aplicación (múltiples formas)
+        foreach (['md_token', 'md_usuario', 'PHPSESSID'] as $cookieName) {
+            // Método 1: setcookie estándar
+            setcookie($cookieName, '', time() - 3600, '/');
+            setcookie($cookieName, '', time() - 3600, '/', $_SERVER['HTTP_HOST'] ?? '');
+            
+            // Método 2: opciones modernas (PHP 7.3+)
+            setcookie($cookieName, '', [
+                'expires' => 1,
+                'path' => '/',
+                'secure' => isset($_SERVER['HTTPS']),
+                'httponly' => true,
+                'samesite' => 'Lax',
+            ]);
+        }
+
+        // Destruir la sesión PHP si existe
+        if (session_id()) {
+            session_destroy();
+        }
+
+        $this->ok([], 'Sesion cerrada correctamente. Las cookies han sido destruidas.');
+    }
+
     // ── Métodos privados ──────────────────────────────────────────────────
 
     private function body(): array {
