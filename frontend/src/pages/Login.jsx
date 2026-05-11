@@ -140,9 +140,9 @@ export default function Login() {
 
   return (
     <div className="min-h-screen md-app-bg flex items-center justify-center p-4 md:p-6">
-      <div className="w-full max-w-sm md:max-w-5xl bg-white rounded-[2rem] shadow-lg border border-gray-100 overflow-hidden md:grid md:grid-cols-[0.9fr,1.1fr]">
+      <div className="w-full max-w-lg md:max-w-5xl bg-white rounded-[2rem] shadow-lg border border-gray-100 overflow-hidden md:grid md:grid-cols-[0.9fr,1.1fr]">
         <div
-          className="px-7 py-8 text-white md:px-10 md:py-12 flex flex-col justify-between"
+          className="px-6 py-8 text-white md:px-10 md:py-12 flex flex-col justify-between"
           style={{ background: "linear-gradient(145deg, #1B2727 0%, #3C5148 52%, #6B8E4E 100%)" }}
         >
           <div className="max-w-md">
@@ -153,26 +153,13 @@ export default function Login() {
             </p>
           </div>
 
-          <div className="hidden md:flex mt-10">
-            <div className="relative w-full min-h-[360px] rounded-[2rem] overflow-hidden border border-white/12 bg-[linear-gradient(160deg,rgba(255,255,255,0.14),rgba(255,255,255,0.04))] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-              <div className="absolute -top-10 -left-8 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
-              <div className="absolute -bottom-12 -right-8 w-44 h-44 rounded-full bg-[#B9D39D]/20 blur-2xl" />
-
-              <div className="relative h-full p-7 flex items-center justify-center">
-                <div className="relative w-full max-w-[360px]">
-                  <div className="absolute -inset-4 rounded-[2rem] border border-white/10 bg-black/10 blur-sm" />
-                  <div className="absolute -top-4 -left-4 w-20 h-20 rounded-[1.5rem] bg-white/12 backdrop-blur-md border border-white/10" />
-                  <div className="absolute -bottom-5 -right-5 w-24 h-24 rounded-full bg-[#DCE8CC]/15 border border-white/10" />
-
-                  <div className="relative overflow-hidden rounded-[2rem] border border-white/15 bg-[#F2F0EA] shadow-[0_30px_60px_rgba(0,0,0,0.24)]">
-                    <img
-                      src={LOGIN_ARTWORK}
-                      alt="Ilustración de acceso"
-                      className="w-full h-[330px] object-cover object-center"
-                    />
-                  </div>
-                </div>
-              </div>
+          <div className="hidden md:flex mt-8 justify-center">
+            <div className="relative w-full max-w-[420px] min-h-[260px] sm:min-h-[320px] md:min-h-[360px] overflow-hidden rounded-[2rem] border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.18)] bg-slate-900">
+              <img
+                src="/chicasofa.png"
+                alt="Ilustración de acceso"
+                className="w-full h-full object-cover object-center"
+              />
             </div>
           </div>
         </div>
@@ -191,8 +178,8 @@ export default function Login() {
           )}
 
           {!mostrarReset && (
-            <div className="max-w-md mx-auto w-full">
-              <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="max-w-xl mx-auto w-full">
+              <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="text-center mb-6">
                   <h2 className="text-2xl font-black text-slate-800">Iniciar sesion</h2>
                   <p className="text-sm text-slate-500 mt-2">Accede con tu correo y contrasena.</p>
