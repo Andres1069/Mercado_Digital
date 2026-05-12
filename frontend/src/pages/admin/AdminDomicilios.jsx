@@ -3,30 +3,30 @@ import Sidebar from "../../components/Sidebar";
 import { domicilioService } from "../../services/api";
 
 const ESTADOS = ["Pendiente", "En preparacion", "En camino", "Entregado", "Cancelado"];
-const CARD = { backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2", boxShadow: "0 2px 8px rgba(27,39,39,0.06)" };
-const INPUT_STYLE = { backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", color: "#1B2727" };
+const CARD = { backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)", boxShadow: "var(--md-shadow)" };
+const INPUT_STYLE = { backgroundColor: "var(--md-surface-soft)", border: "1px solid var(--md-border)", color: "var(--md-text)" };
 
 function badgeEstado(estado) {
   const e = String(estado || "").toLowerCase();
-  if (e.includes("entregado"))   return { bg: "rgba(107,142,78,0.2)",  text: "#6B8E4E",  icon: "✅" };
-  if (e.includes("camino"))      return { bg: "rgba(107,142,78,0.18)",   text: "#3C5148",  icon: "🛵" };
-  if (e.includes("preparacion")) return { bg: "rgba(178,197,178,0.2)", text: "#3C5148",  icon: "📦" };
+  if (e.includes("entregado"))   return { bg: "rgba(107,142,78,0.2)",  text: "var(--md-aqua)",  icon: "✅" };
+  if (e.includes("camino"))      return { bg: "rgba(107,142,78,0.18)",   text: "var(--md-text-soft)",  icon: "🛵" };
+  if (e.includes("preparacion")) return { bg: "rgba(178,197,178,0.2)", text: "var(--md-text-soft)",  icon: "📦" };
   if (e.includes("cancel"))      return { bg: "rgba(239,68,68,0.15)",   text: "#f87171",  icon: "❌" };
   return                                { bg: "rgba(245,158,11,0.15)",  text: "#fbbf24",  icon: "⏳" };
 }
 
 const RESUMEN_CONFIG = [
   { label: "Pendiente",      icon: "⏳", bg: "rgba(245,158,11,0.15)",  border: "rgba(245,158,11,0.4)",  text: "#fbbf24" },
-  { label: "En preparacion", icon: "📦", bg: "rgba(178,197,178,0.2)", border: "rgba(178,197,178,0.4)", text: "#3C5148" },
-  { label: "En camino",      icon: "🛵", bg: "rgba(107,142,78,0.18)",  border: "rgba(107,142,78,0.4)",  text: "#3C5148" },
-  { label: "Entregado",      icon: "✅", bg: "rgba(107,142,78,0.2)",  border: "rgba(107,142,78,0.4)",  text: "#6B8E4E" },
+  { label: "En preparacion", icon: "📦", bg: "rgba(178,197,178,0.2)", border: "rgba(178,197,178,0.4)", text: "var(--md-text-soft)" },
+  { label: "En camino",      icon: "🛵", bg: "rgba(107,142,78,0.18)",  border: "rgba(107,142,78,0.4)",  text: "var(--md-text-soft)" },
+  { label: "Entregado",      icon: "✅", bg: "rgba(107,142,78,0.2)",  border: "rgba(107,142,78,0.4)",  text: "var(--md-aqua)" },
 ];
 
 const RESUMEN_CONFIG_FA = [
   { label: "Pendiente",      iconClass: "fa-solid fa-hourglass-half", bg: "rgba(245,158,11,0.15)",  border: "rgba(245,158,11,0.4)",  text: "#fbbf24" },
-  { label: "En preparacion", iconClass: "fa-solid fa-box-open",       bg: "rgba(178,197,178,0.2)", border: "rgba(178,197,178,0.4)", text: "#3C5148" },
-  { label: "En camino",      iconClass: "fa-solid fa-truck-fast",     bg: "rgba(107,142,78,0.18)",  border: "rgba(107,142,78,0.4)",  text: "#3C5148" },
-  { label: "Entregado",      iconClass: "fa-solid fa-circle-check",   bg: "rgba(107,142,78,0.2)",  border: "rgba(107,142,78,0.4)",  text: "#6B8E4E" },
+  { label: "En preparacion", iconClass: "fa-solid fa-box-open",       bg: "rgba(178,197,178,0.2)", border: "rgba(178,197,178,0.4)", text: "var(--md-text-soft)" },
+  { label: "En camino",      iconClass: "fa-solid fa-truck-fast",     bg: "rgba(107,142,78,0.18)",  border: "rgba(107,142,78,0.4)",  text: "var(--md-text-soft)" },
+  { label: "Entregado",      iconClass: "fa-solid fa-circle-check",   bg: "rgba(107,142,78,0.2)",  border: "rgba(107,142,78,0.4)",  text: "var(--md-aqua)" },
 ];
 
 function formatFecha(v) {
@@ -91,18 +91,18 @@ export default function AdminDomicilios() {
   const countPorEstado = (e) => domicilios.filter((d) => d.Estado_Domicilio === e).length;
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: "#D5DDDF" }}>
+    <div className="flex min-h-screen" style={{ backgroundColor: "var(--md-bg)" }}>
       <Sidebar />
       <div className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3 mb-6">
             <div>
-              <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Gestion de Domicilios</h1>
-              <p className="text-sm mt-1" style={{ color: "#3C5148" }}>{domicilios.length} domicilios registrados</p>
+              <h1 className="text-2xl font-extrabold" style={{ color: "var(--md-text)" }}>Gestion de Domicilios</h1>
+              <p className="text-sm mt-1" style={{ color: "var(--md-text-soft)" }}>{domicilios.length} domicilios registrados</p>
             </div>
             <button onClick={cargar}
               className="px-4 py-2 rounded-xl text-sm font-semibold transition"
-              style={{ backgroundColor: "#B2C5B2", border: "1px solid #B2C5B2", color: "#1B2727" }}>
+              style={{ backgroundColor: "var(--md-border)", border: "1px solid var(--md-border)", color: "var(--md-text)" }}>
               Actualizar
             </button>
           </div>
@@ -123,7 +123,7 @@ export default function AdminDomicilios() {
                     <i className={iconClass} aria-hidden="true" />
                   </p>
                   <p className="text-2xl font-extrabold" style={{ color: text }}>{countPorEstado(label)}</p>
-                  <p className="text-xs font-semibold mt-0.5" style={{ color: "#6B8E4E" }}>{label}</p>
+                  <p className="text-xs font-semibold mt-0.5" style={{ color: "var(--md-aqua)" }}>{label}</p>
                 </button>
               );
             })}
@@ -157,7 +157,7 @@ export default function AdminDomicilios() {
                   {["Pedido", "Cliente", "Direccion", "Pago", "Estado", "Cambiar estado"].map((h, i) => (
                     <th key={h}
                       className={`px-4 py-3 text-xs font-bold uppercase tracking-wider ${i === 1 ? "hidden md:table-cell text-left" : ""} ${i === 2 ? "hidden lg:table-cell text-left" : ""} ${i === 3 ? "hidden md:table-cell text-center" : ""} ${i === 4 || i === 5 ? "text-center" : ""} ${i === 0 ? "text-left" : ""}`}
-                      style={{ color: "#6B8E4E" }}>
+                      style={{ color: "var(--md-aqua)" }}>
                       {h}
                     </th>
                   ))}
@@ -174,7 +174,7 @@ export default function AdminDomicilios() {
                   ))
                 ) : filtrados.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-12 text-center" style={{ color: "#6B8E4E" }}>
+                    <td colSpan={6} className="px-4 py-12 text-center" style={{ color: "var(--md-aqua)" }}>
                       No hay domicilios que coincidan.
                     </td>
                   </tr>
@@ -187,28 +187,28 @@ export default function AdminDomicilios() {
                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(107,142,78,0.06)"}
                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ""}>
                         <td className="px-4 py-3">
-                          <p className="font-bold" style={{ color: "#1B2727" }}>#{d.Cod_Pedido}</p>
-                          <p className="text-xs" style={{ color: "#6B8E4E" }}>{formatFecha(d.Fecha_Domicilio)}</p>
+                          <p className="font-bold" style={{ color: "var(--md-text)" }}>#{d.Cod_Pedido}</p>
+                          <p className="text-xs" style={{ color: "var(--md-aqua)" }}>{formatFecha(d.Fecha_Domicilio)}</p>
                         </td>
                         <td className="px-4 py-3 hidden md:table-cell">
-                          <p className="font-medium" style={{ color: "#3C5148" }}>{d.Nombre} {d.Apellido}</p>
-                          <p className="text-xs" style={{ color: "#6B8E4E" }}>
+                          <p className="font-medium" style={{ color: "var(--md-text-soft)" }}>{d.Nombre} {d.Apellido}</p>
+                          <p className="text-xs" style={{ color: "var(--md-aqua)" }}>
                             {d.Telefono_entrega || d.Telefono_cliente || d.Num_Documento}
                           </p>
                         </td>
                         <td className="px-4 py-3 hidden lg:table-cell">
-                          <p className="text-xs max-w-52 truncate" style={{ color: "#3C5148" }}>
-                            {d.Direccion_entrega || <span style={{ color: "#1B2727", fontStyle: "italic" }}>Sin direccion</span>}
+                          <p className="text-xs max-w-52 truncate" style={{ color: "var(--md-text-soft)" }}>
+                            {d.Direccion_entrega || <span style={{ color: "var(--md-text)", fontStyle: "italic" }}>Sin direccion</span>}
                           </p>
                           {d.Notas && (
-                            <p className="text-xs mt-0.5 max-w-52 truncate" style={{ color: "#6B8E4E" }} title={d.Notas}>
+                            <p className="text-xs mt-0.5 max-w-52 truncate" style={{ color: "var(--md-text-soft)" }} title={d.Notas}>
                               {d.Notas}
                             </p>
                           )}
                         </td>
                         <td className="px-4 py-3 hidden md:table-cell text-center">
-                          <p className="text-xs" style={{ color: "#6B8E4E" }}>{d.Metodo_Pago || "-"}</p>
-                          <p className="text-xs font-semibold" style={{ color: d.verificacion === "aprobado" ? "#6B8E4E" : "#fbbf24" }}>
+                            <p className="text-xs" style={{ color: "var(--md-aqua)" }}>{d.Metodo_Pago || "-"}</p>
+                          <p className="text-xs font-semibold" style={{ color: d.verificacion === "aprobado" ? "var(--md-aqua)" : "#fbbf24" }}>
                             {d.verificacion || "pendiente"}
                           </p>
                         </td>

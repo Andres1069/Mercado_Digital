@@ -10,7 +10,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import ThemeToggle from "../../components/ThemeToggle";
 
-const CARD = { backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2", boxShadow: "0 2px 8px rgba(27,39,39,0.06)" };
+const CARD = { backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)", boxShadow: "var(--md-shadow)" };
 const MESES = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 
 function fmt(n) {
@@ -27,9 +27,9 @@ function fmtFull(n) {
 
 function badgePedido(estado) {
   const e = String(estado || "").toLowerCase();
-  if (e.includes("entregado"))                     return { bg: "rgba(107,142,78,0.2)",  color: "#6B8E4E" };
-  if (e.includes("camino"))                        return { bg: "rgba(107,142,78,0.18)",   color: "#3C5148" };
-  if (e.includes("prepar") || e.includes("confirmado")) return { bg: "rgba(178,197,178,0.2)", color: "#3C5148" };
+  if (e.includes("entregado"))                     return { bg: "rgba(107,142,78,0.2)",  color: "var(--md-aqua)" };
+  if (e.includes("camino"))                        return { bg: "rgba(107,142,78,0.18)",   color: "var(--md-text-soft)" };
+  if (e.includes("prepar") || e.includes("confirmado")) return { bg: "rgba(178,197,178,0.2)", color: "var(--md-text-soft)" };
   if (e.includes("cancel"))                        return { bg: "rgba(239,68,68,0.15)",   color: "#f87171" };
   return                                                  { bg: "rgba(245,158,11,0.15)",  color: "#fbbf24" };
 }
@@ -37,7 +37,7 @@ function badgePedido(estado) {
 /* ── Gráfica de barras SVG ─────────────────────────── */
 function BarChart({ data }) {
   if (!data.length) return (
-    <div className="h-[300px] flex items-center justify-center" style={{ color: "#1B2727" }}>
+    <div className="h-[300px] flex items-center justify-center" style={{ color: "var(--md-text)" }}>
       Sin datos suficientes
     </div>
   );
@@ -63,34 +63,34 @@ function BarChart({ data }) {
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: "300px" }} role="img" aria-label="Ventas por dia">
       <defs>
         <linearGradient id="ventasAreaGradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="5%" stopColor="#16a34a" stopOpacity="0.36" />
-          <stop offset="95%" stopColor="#16a34a" stopOpacity="0" />
+          <stop offset="5%" stopColor="var(--md-aqua)" stopOpacity="0.36" />
+          <stop offset="95%" stopColor="var(--md-aqua)" stopOpacity="0" />
         </linearGradient>
         <filter id="ventasLineShadow" x="-10%" y="-10%" width="120%" height="130%">
-          <feDropShadow dx="0" dy="8" stdDeviation="8" floodColor="#16a34a" floodOpacity="0.16" />
+          <feDropShadow dx="0" dy="8" stdDeviation="8" floodColor="var(--md-aqua)" floodOpacity="0.16" />
         </filter>
       </defs>
 
       {grid.map((g) => (
         <g key={g.y}>
           <line x1={pad.left} y1={g.y} x2={W - pad.right} y2={g.y}
-            stroke="#f1f5f9" strokeWidth="1" strokeDasharray="5 5" />
-          <text x={pad.left - 12} y={g.y + 4} textAnchor="end" fontSize="12" fill="#64748b">
+            stroke="var(--md-text-soft)" strokeWidth="1" strokeDasharray="5 5" />
+          <text x={pad.left - 12} y={g.y + 4} textAnchor="end" fontSize="12" fill="var(--md-text-soft)">
             {fmt(g.value)}
           </text>
         </g>
       ))}
 
       <path d={areaPath} fill="url(#ventasAreaGradient)" />
-      <path d={linePath} fill="none" stroke="#16a34a" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" filter="url(#ventasLineShadow)" />
+      <path d={linePath} fill="none" stroke="var(--md-aqua)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" filter="url(#ventasLineShadow)" />
 
       {points.map((p) => (
         <g key={`${p.label}-${p.x}`}>
-          <line x1={p.x} y1={pad.top + innerH} x2={p.x} y2={pad.top + innerH + 6} stroke="#e2e8f0" />
-          <text x={p.x} y={H - 12} textAnchor="middle" fontSize="12" fill="#64748b">
+          <line x1={p.x} y1={pad.top + innerH} x2={p.x} y2={pad.top + innerH + 6} stroke="var(--md-text-soft)" />
+          <text x={p.x} y={H - 12} textAnchor="middle" fontSize="12" fill="var(--md-text-soft)">
             {p.label}
           </text>
-          <circle cx={p.x} cy={p.y} r="5" fill="#ffffff" stroke="#16a34a" strokeWidth="3">
+          <circle cx={p.x} cy={p.y} r="5" fill="#ffffff" stroke="var(--md-aqua)" strokeWidth="3">
             <title>{`${p.label}: ${fmtFull(p.value)}`}</title>
           </circle>
         </g>
@@ -181,7 +181,7 @@ export default function AdminDashboard() {
       iconClass: "fa-solid fa-clipboard-check",
       value: cargando ? "—" : pedidosHoy,
       icon: "📋",
-      color: "#3C5148",
+      color: "var(--md-text-soft)",
       bg: "rgba(107,142,78,0.18)",
       to: `${base}/pedidos`,
     },
@@ -190,7 +190,7 @@ export default function AdminDashboard() {
       iconClass: "fa-solid fa-sack-dollar",
       value: cargando ? "—" : fmt(totalVentas),
       icon: "💰",
-      color: "#6B8E4E",
+      color: "var(--md-aqua)",
       bg: "rgba(107,142,78,0.2)",
       to: `${base}/reportes`,
     },
@@ -199,7 +199,7 @@ export default function AdminDashboard() {
       iconClass: "fa-solid fa-boxes-stacked",
       value: cargando ? "—" : productos.length,
       icon: "📦",
-      color: "#3C5148",
+      color: "var(--md-text-soft)",
       bg: "rgba(178,197,178,0.2)",
       to: `${base}/productos`,
     },
@@ -208,30 +208,30 @@ export default function AdminDashboard() {
       iconClass: "fa-solid fa-triangle-exclamation",
       value: cargando ? "—" : bajoStock,
       icon: "⚠️",
-      color: bajoStock > 0 ? "#f87171" : "#6B8E4E",
+      color: bajoStock > 0 ? "#f87171" : "var(--md-aqua)",
       bg: bajoStock > 0 ? "rgba(239,68,68,0.15)" : "rgba(107,142,78,0.2)",
       to: `${base}/inventario`,
     },
   ];
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: "#D5DDDF" }}>
+    <div className="flex min-h-screen" style={{ backgroundColor: "var(--md-bg)" }}>
       <Sidebar />
 
       <div className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
         <div className="max-w-6xl mx-auto px-4 py-8">
 
           {/* ── Header ── */}
-          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Dashboard</h1>
-              <p className="text-sm mt-0.5" style={{ color: "#3C5148" }}>
+              <h1 className="text-2xl font-extrabold" style={{ color: "var(--md-text)" }}>Dashboard</h1>
+              <p className="text-sm mt-0.5" style={{ color: "var(--md-text-soft)" }}>
                 Bienvenido, {usuario?.Nombre || "usuario"}
               </p>
             </div>
             <button onClick={cargar} disabled={cargando}
               className="px-4 py-2 rounded-xl text-sm font-semibold transition disabled:opacity-50"
-              style={{ ...CARD, color: "#3C5148" }}>
+                style={{ ...CARD, color: "var(--md-text-soft)" }}>
               {cargando ? "Cargando..." : "↻ Actualizar"}
             </button>
           </div>
@@ -248,7 +248,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-[11px] font-bold uppercase tracking-wider leading-none"
-                    style={{ color: "#6B8E4E" }}>{label}</p>
+                    style={{ color: "var(--md-aqua)" }}>{label}</p>
                   <p className="text-2xl font-black mt-1.5 leading-none" style={{ color }}>{value}</p>
                 </div>
               </Link>
@@ -262,20 +262,20 @@ export default function AdminDashboard() {
             <div className="rounded-2xl p-6" style={CARD}>
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
                 <div>
-                  <h2 className="text-xl font-semibold" style={{ color: "#1B2727" }}>Ventas por Dia</h2>
-                  <p className="text-sm mt-1" style={{ color: "#64748b" }}>
+                  <h2 className="text-xl font-semibold" style={{ color: "var(--md-text)" }}>Ventas por Dia</h2>
+                  <p className="text-sm mt-1" style={{ color: "var(--md-text-soft)" }}>
                     {chartData.length ? `Total periodo: ${fmt(ventasGrafica)}` : "Cargando datos de ventas..."}
                   </p>
                 </div>
                 <span className="text-sm px-3 py-1 rounded-full font-semibold self-start"
                   style={{
                     backgroundColor: cambioVentas >= 0 ? "rgba(22,163,74,0.12)" : "rgba(239,68,68,0.12)",
-                    color: cambioVentas >= 0 ? "#15803d" : "#dc2626",
+                    color: cambioVentas >= 0 ? "var(--md-aqua)" : "#dc2626",
                   }}>
                   {cambioVentas >= 0 ? "+" : ""}{cambioVentas.toFixed(0)}% este periodo
                 </span>
               </div>
-              <p className="sr-only" style={{ color: "#6B8E4E" }}>
+              <p className="sr-only" style={{ color: "var(--md-aqua)" }}>
                 {chartData.length
                   ? `${chartData.length} periodos registrados · pico ${fmt(Math.max(...chartData.map((d) => d.value)))}`
                   : "Cargando datos de ventas..."}
@@ -291,10 +291,10 @@ export default function AdminDashboard() {
             {/* Pedidos recientes */}
             <div className="rounded-2xl p-6 flex flex-col" style={CARD}>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base font-bold" style={{ color: "#1B2727" }}>Pedidos Recientes</h2>
+                <h2 className="text-base font-bold" style={{ color: "var(--md-text)" }}>Pedidos Recientes</h2>
                 <Link to={`${base}/pedidos`}
                   className="text-xs font-semibold transition hover:opacity-70"
-                  style={{ color: "#6B8E4E" }}>
+                  style={{ color: "var(--md-aqua)" }}>
                   Ver todos →
                 </Link>
               </div>
@@ -306,7 +306,7 @@ export default function AdminDashboard() {
                       style={{ backgroundColor: "rgba(107,142,78,0.1)" }} />
                   ))
                 ) : recentPedidos.length === 0 ? (
-                  <p className="text-sm text-center py-10" style={{ color: "#6B8E4E" }}>
+                  <p className="text-sm text-center py-10" style={{ color: "var(--md-aqua)" }}>
                     Sin pedidos aún
                   </p>
                 ) : (
@@ -318,17 +318,17 @@ export default function AdminDashboard() {
                         <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 text-4xl"
                           style={{
                             background: "linear-gradient(135deg, rgba(107,142,78,0.12), rgba(178,197,178,0.22))",
-                            color: "#6B8E4E",
+                            color: "var(--md-aqua)",
                             fontSize: 0,
                           }}>
                           <i className="fa-regular fa-clipboard" style={{ fontSize: 42 }} aria-hidden="true" />
                           📋
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold truncate" style={{ color: "#1B2727" }}>
+                          <p className="text-xs font-semibold truncate" style={{ color: "var(--md-text)" }}>
                             #{p.Cod_Pedido} · {nombre}
                           </p>
-                          <p className="text-[11px]" style={{ color: "#6B8E4E" }}>
+                          <p className="text-[11px]" style={{ color: "var(--md-aqua)" }}>
                             {fmtFull(p.Total)}
                           </p>
                         </div>
@@ -348,10 +348,10 @@ export default function AdminDashboard() {
           <div className="rounded-2xl overflow-x-auto" style={CARD}>
             <div className="px-6 py-4 flex items-center justify-between"
               style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
-              <h2 className="text-base font-bold" style={{ color: "#1B2727" }}>Gestion de Productos</h2>
+              <h2 className="text-base font-bold" style={{ color: "var(--md-text)" }}>Gestion de Productos</h2>
               <Link to={`${base}/productos`}
                 className="text-xs font-semibold px-3 py-1.5 rounded-lg transition hover:opacity-80"
-                style={{ backgroundColor: "rgba(107,142,78,0.18)", color: "#3C5148" }}>
+                style={{ backgroundColor: "rgba(107,142,78,0.18)", color: "var(--md-text-soft)" }}>
                 Ver todos
               </Link>
             </div>
@@ -365,7 +365,7 @@ export default function AdminDashboard() {
                         ${i === 0 ? "text-left" : ""}
                         ${i === 1 ? "text-left hidden sm:table-cell" : ""}
                         ${i >= 2 ? "text-center" : ""}`}
-                      style={{ color: "#6B8E4E" }}>
+                      style={{ color: "var(--md-aqua)" }}>
                       {h}
                     </th>
                   ))}
@@ -377,13 +377,13 @@ export default function AdminDashboard() {
                     <tr key={i} style={{ borderTop: "1px solid rgba(107,142,78,0.08)" }}>
                       <td colSpan={5} className="px-5 py-3">
                         <div className="h-4 rounded animate-pulse"
-                          style={{ backgroundColor: "rgba(107,142,78,0.1)" }} />
+                            style={{ backgroundColor: "rgba(107,142,78,0.1)" }} />
                       </td>
                     </tr>
                   ))
                 ) : recentProductos.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-5 py-10 text-center" style={{ color: "#6B8E4E" }}>
+                    <td colSpan={5} className="px-5 py-10 text-center" style={{ color: "var(--md-aqua)" }}>
                       Sin productos registrados
                     </td>
                   </tr>
@@ -391,7 +391,7 @@ export default function AdminDashboard() {
                   recentProductos.map((prod) => {
                     const stock  = Number(prod.Cantidad || 0);
                     const activo = String(prod.Estado || "").toLowerCase() === "activo" || stock > 0;
-                    const stockColor = stock <= 5 ? "#f87171" : stock <= 20 ? "#fbbf24" : "#6B8E4E";
+                    const stockColor = stock <= 5 ? "#f87171" : stock <= 20 ? "#fbbf24" : "var(--md-aqua)";
                     const imagenProducto = prod.Imagen_url || prod.imagen_url || prod.Imagen || prod.Foto || "";
                     return (
                       <tr key={prod.Cod_Producto}
@@ -412,7 +412,7 @@ export default function AdminDashboard() {
                               )}
                             </div>
                             <p className="font-semibold truncate max-w-[150px]"
-                              style={{ color: "#1B2727" }}>
+                              style={{ color: "var(--md-text)" }}>
                               {prod.Nombre}
                             </p>
                           </div>
@@ -421,14 +421,14 @@ export default function AdminDashboard() {
                         {/* Categoria */}
                         <td className="px-5 py-3 hidden sm:table-cell">
                           <span className="text-xs px-2 py-1 rounded-lg"
-                            style={{ backgroundColor: "rgba(107,142,78,0.12)", color: "#3C5148" }}>
+                            style={{ backgroundColor: "rgba(107,142,78,0.12)", color: "var(--md-text-soft)" }}>
                             {prod.Categoria || prod.categoria || "—"}
                           </span>
                         </td>
 
                         {/* Precio */}
                         <td className="px-5 py-3 text-center">
-                          <p className="font-bold" style={{ color: "#1B2727" }}>
+                          <p className="font-bold" style={{ color: "var(--md-text)" }}>
                             {fmtFull(prod.Precio)}
                           </p>
                         </td>
@@ -445,7 +445,7 @@ export default function AdminDashboard() {
                           <span className="px-2.5 py-1 rounded-full text-xs font-bold"
                             style={{
                               backgroundColor: activo ? "rgba(107,142,78,0.2)" : "rgba(239,68,68,0.15)",
-                              color: activo ? "#6B8E4E" : "#f87171",
+                              color: activo ? "var(--md-aqua)" : "#f87171",
                             }}>
                             {activo ? "Activo" : "Inactivo"}
                           </span>

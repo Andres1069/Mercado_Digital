@@ -16,9 +16,9 @@ const VACIO = {
   activo: 1,
 };
 
-const CARD = { backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2", boxShadow: "0 2px 8px rgba(27,39,39,0.06)" };
-const INPUT_STYLE = { backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", color: "#1B2727" };
-const LABEL = { color: "#3C5148" };
+const CARD = { backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)", boxShadow: "var(--md-shadow)" };
+const INPUT_STYLE = { backgroundColor: "var(--md-surface-soft)", border: "1px solid var(--md-border)", color: "var(--md-text)" };
+const LABEL = { color: "var(--md-text-soft)" };
 
 function formatDateTime(value) {
   if (!value) return "-";
@@ -227,13 +227,13 @@ export default function AdminOfertas() {
   }, [ofertas, buscar]);
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: "#D5DDDF" }}>
+    <div className="flex min-h-screen" style={{ backgroundColor: "var(--md-bg)" }}>
       <Sidebar />
       <div className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
 
         {notif && (
           <div className="fixed bottom-6 right-6 text-white px-5 py-3 rounded-2xl shadow-xl z-50 text-sm font-semibold"
-            style={{ backgroundColor: "#6B8E4E" }}>
+            style={{ backgroundColor: "var(--md-aqua)" }}>
             {notif}
           </div>
         )}
@@ -241,13 +241,13 @@ export default function AdminOfertas() {
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
             <div>
-              <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Gestion de Ofertas</h1>
-              <p className="text-sm mt-1" style={{ color: "#3C5148" }}>{ofertas.length} ofertas registradas</p>
+              <h1 className="text-2xl font-extrabold" style={{ color: "var(--md-text)" }}>Gestion de Ofertas</h1>
+              <p className="text-sm mt-1" style={{ color: "var(--md-text-soft)" }}>{ofertas.length} ofertas registradas</p>
             </div>
             {esAdmin() && (
               <button onClick={abrirCrear}
                 className="text-white font-semibold px-5 py-2.5 rounded-xl hover:opacity-90 transition text-sm"
-                style={{ backgroundColor: "#6B8E4E" }}>
+                style={{ backgroundColor: "var(--md-aqua)" }}>
                 + Nueva oferta
               </button>
             )}
@@ -271,12 +271,12 @@ export default function AdminOfertas() {
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider" style={{ color: "#6B8E4E" }}>Oferta</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider hidden md:table-cell" style={{ color: "#6B8E4E" }}>Producto</th>
-                  <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider" style={{ color: "#6B8E4E" }}>Descuento</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider hidden md:table-cell" style={{ color: "#6B8E4E" }}>Vigencia</th>
-                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider" style={{ color: "#6B8E4E" }}>Estado</th>
-                  {esAdmin() && <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider" style={{ color: "#6B8E4E" }}>Acciones</th>}
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider" style={{ color: "var(--md-aqua)" }}>Oferta</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider hidden md:table-cell" style={{ color: "var(--md-aqua)" }}>Producto</th>
+                  <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider" style={{ color: "var(--md-aqua)" }}>Descuento</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider hidden md:table-cell" style={{ color: "var(--md-aqua)" }}>Vigencia</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider" style={{ color: "var(--md-aqua)" }}>Estado</th>
+                  {esAdmin() && <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider" style={{ color: "var(--md-aqua)" }}>Acciones</th>}
                 </tr>
               </thead>
               <tbody>
@@ -290,7 +290,7 @@ export default function AdminOfertas() {
                   ))
                 ) : ofertasFiltradas.length === 0 ? (
                   <tr>
-                    <td colSpan={esAdmin() ? 6 : 5} className="px-4 py-12 text-center" style={{ color: "#6B8E4E" }}>
+                    <td colSpan={esAdmin() ? 6 : 5} className="px-4 py-12 text-center" style={{ color: "var(--md-aqua)" }}>
                       No hay ofertas para mostrar
                     </td>
                   </tr>
@@ -304,27 +304,27 @@ export default function AdminOfertas() {
                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(107,142,78,0.06)"}
                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ""}>
                         <td className="px-4 py-3">
-                          <p className="font-semibold" style={{ color: "#1B2727" }}>{o.Titulo}</p>
-                          {o.Descripcion && <p className="text-xs" style={{ color: "#6B8E4E" }}>{o.Descripcion}</p>}
+                          <p className="font-semibold" style={{ color: "var(--md-text)" }}>{o.Titulo}</p>
+                          {o.Descripcion && <p className="text-xs" style={{ color: "var(--md-aqua)" }}>{o.Descripcion}</p>}
                         </td>
-                        <td className="px-4 py-3 hidden md:table-cell text-sm" style={{ color: "#3C5148" }}>
+                        <td className="px-4 py-3 hidden md:table-cell text-sm" style={{ color: "var(--md-text-soft)" }}>
                           {o.nombre_producto || "Sin producto"}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <span className="font-bold" style={{ color: "#6B8E4E" }}>{Number(o.Porcentaje_Descuento || 0)}%</span>
+                          <span className="font-bold" style={{ color: "var(--md-aqua)" }}>{Number(o.Porcentaje_Descuento || 0)}%</span>
                           {o.precio_oferta != null && o.precio_original != null && (
                             <div className="text-xs mt-0.5">
-                              <span className="line-through" style={{ color: "#6B8E4E" }}>${Number(o.precio_original).toLocaleString("es-CO")}</span>
-                              {" → "}
-                              <span className="font-semibold" style={{ color: "#6B8E4E" }}>${Number(o.precio_oferta).toLocaleString("es-CO")}</span>
-                            </div>
+                                  <span className="line-through" style={{ color: "var(--md-aqua)" }}>${Number(o.precio_original).toLocaleString("es-CO")}</span>
+                                  {" → "}
+                                  <span className="font-semibold" style={{ color: "var(--md-aqua)" }}>${Number(o.precio_oferta).toLocaleString("es-CO")}</span>
+                                </div>
                           )}
                         </td>
-                        <td className="px-4 py-3 hidden md:table-cell text-xs" style={{ color: "#6B8E4E" }}>
+                          <td className="px-4 py-3 hidden md:table-cell text-xs" style={{ color: "var(--md-aqua)" }}>
                           <div>Inicio: {formatDateTime(o.Fecha_Inicio)}</div>
                           <div>Fin: {formatDateTime(o.Fecha_Fin)}</div>
                         </td>
-                        <td className="px-4 py-3 text-center">
+                          <td className="px-4 py-3 text-center">
                           <span className="px-2.5 py-1 rounded-full text-xs font-bold"
                             style={{ backgroundColor: color.bg, color: color.text }}>
                             {estado}
@@ -335,7 +335,7 @@ export default function AdminOfertas() {
                             <div className="flex items-center justify-center gap-2">
                               <button onClick={() => abrirEditar(o)}
                                 className="px-3 py-1.5 rounded-lg text-xs font-semibold transition"
-                                style={{ border: "1px solid rgba(107,142,78,0.4)", color: "#3C5148" }}>
+                                style={{ border: "1px solid rgba(107,142,78,0.4)", color: "var(--md-text-soft)" }}>
                                 Editar
                               </button>
                               <button onClick={() => setConfirmar(o.Cod_Oferta)}

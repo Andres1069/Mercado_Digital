@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import { inventarioService, resolverImagen } from "../../services/api";
 
-const CARD = { backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2", boxShadow: "0 2px 8px rgba(27,39,39,0.06)" };
-const INPUT_STYLE = { backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", color: "#1B2727" };
+const CARD = { backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)", boxShadow: "var(--md-shadow)" };
+const INPUT_STYLE = { backgroundColor: "var(--md-surface-soft)", border: "1px solid var(--md-border)", color: "var(--md-text)" };
 
 function nivelStock(stock) {
   if (stock <= 0)  return { label: "Sin stock",    bg: "rgba(239,68,68,0.15)",   text: "#f87171" };
   if (stock <= 5)  return { label: "Stock bajo",   bg: "rgba(245,158,11,0.15)",  text: "#fbbf24" };
-  if (stock <= 20) return { label: "Stock normal", bg: "rgba(107,142,78,0.18)",  text: "#3C5148" };
-  return             { label: "Stock alto",    bg: "rgba(107,142,78,0.2)", text: "#6B8E4E" };
+  if (stock <= 20) return { label: "Stock normal", bg: "rgba(107,142,78,0.18)",  text: "var(--md-text-soft)" };
+  return             { label: "Stock alto",    bg: "rgba(107,142,78,0.2)", text: "var(--md-aqua)" };
 }
 
 export default function AdminInventario() {
@@ -62,18 +62,18 @@ export default function AdminInventario() {
   );
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: "#D5DDDF" }}>
+    <div className="flex min-h-screen" style={{ backgroundColor: "var(--md-bg)" }}>
       <Sidebar />
       <div className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
         <div className="max-w-7xl mx-auto px-4 py-8">
 
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3 mb-6">
             <div>
-              <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Inventario</h1>
-              <p className="text-sm mt-1" style={{ color: "#3C5148" }}>{inventario.length} productos en inventario</p>
+              <h1 className="text-2xl font-extrabold" style={{ color: "var(--md-text)" }}>Inventario</h1>
+              <p className="text-sm mt-1" style={{ color: "var(--md-text-soft)" }}>{inventario.length} productos en inventario</p>
             </div>
             <button onClick={cargar} className="px-4 py-2 rounded-xl text-sm font-semibold transition"
-              style={{ backgroundColor: "#B2C5B2", border: "1px solid #B2C5B2", color: "#1B2727" }}>
+              style={{ backgroundColor: "var(--md-border)", border: "1px solid var(--md-border)", color: "var(--md-text)" }}>
               Actualizar
             </button>
           </div>
@@ -85,7 +85,7 @@ export default function AdminInventario() {
               </p>
               <div className="flex flex-wrap gap-2">
                 {alertas.sin_stock.map((p) => (
-                  <span key={p.Cod_Producto} className="px-3 py-1 rounded-full text-xs font-semibold"
+                    <span key={p.Cod_Producto} className="px-3 py-1 rounded-full text-xs font-semibold"
                     style={{ backgroundColor: "rgba(239,68,68,0.2)", color: "#f87171" }}>
                     {p.Producto} · 0 uds
                   </span>
@@ -130,7 +130,7 @@ export default function AdminInventario() {
                   {["Producto","Categoria","Precio","Stock","Nivel","Accion"].map((h, i) => (
                     <th key={h}
                       className={`px-4 py-3 text-xs font-bold uppercase tracking-wider ${i === 1 ? "hidden md:table-cell" : ""} ${i === 2 ? "hidden lg:table-cell text-right" : ""} ${i === 3 || i === 4 || i === 5 ? "text-center" : ""}`}
-                      style={{ color: "#6B8E4E" }}>
+                      style={{ color: "var(--md-aqua)" }}>
                       {h}
                     </th>
                   ))}
@@ -147,10 +147,10 @@ export default function AdminInventario() {
                   ))
                 ) : filtrado.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-12 text-center" style={{ color: "#6B8E4E" }}>
-                      No se encontraron productos.
-                    </td>
-                  </tr>
+                      <td colSpan={6} className="px-4 py-12 text-center" style={{ color: "var(--md-aqua)" }}>
+                        No se encontraron productos.
+                      </td>
+                    </tr>
                 ) : (
                   filtrado.map((item) => {
                     const nivel = nivelStock(Number(item.Stock));
@@ -171,13 +171,13 @@ export default function AdminInventario() {
                               )}
                             </div>
                             <div>
-                              <p className="font-semibold" style={{ color: "#1B2727" }}>{item.Producto}</p>
-                              <p className="text-xs" style={{ color: "#6B8E4E" }}>ID: {item.Cod_Producto}</p>
+                              <p className="font-semibold" style={{ color: "var(--md-text)" }}>{item.Producto}</p>
+                                <p className="text-xs" style={{ color: "var(--md-aqua)" }}>ID: {item.Cod_Producto}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 hidden md:table-cell text-sm" style={{ color: "#3C5148" }}>{item.Categoria || "-"}</td>
-                        <td className="px-4 py-3 hidden lg:table-cell text-right font-medium" style={{ color: "#6B8E4E" }}>
+                          <td className="px-4 py-3 hidden md:table-cell text-sm" style={{ color: "var(--md-text-soft)" }}>{item.Categoria || "-"}</td>
+                          <td className="px-4 py-3 hidden lg:table-cell text-right font-medium" style={{ color: "var(--md-aqua)" }}>
                           ${Number(item.Precio || 0).toLocaleString("es-CO")}
                         </td>
                         <td className="px-4 py-3 text-center">
@@ -185,9 +185,9 @@ export default function AdminInventario() {
                             <input type="number" min="0" value={stockInput}
                               onChange={(e) => setStockInput(e.target.value)}
                               className="w-20 text-center rounded-lg py-1 text-sm focus:outline-none"
-                              style={{ backgroundColor: "#1B2727", border: "1px solid #6366f1", color: "#1B2727" }} />
+                              style={{ backgroundColor: "var(--md-surface-soft)", border: "1px solid var(--md-border)", color: "var(--md-text)" }} />
                           ) : (
-                            <span className="font-bold" style={{ color: "#1B2727" }}>{item.Stock}</span>
+                            <span className="font-bold" style={{ color: "var(--md-text)" }}>{item.Stock}</span>
                           )}
                         </td>
                         <td className="px-4 py-3 text-center">
@@ -201,19 +201,19 @@ export default function AdminInventario() {
                             <div className="flex items-center justify-center gap-2">
                               <button onClick={() => guardarStock(item)} disabled={guardando}
                                 className="px-3 py-1 rounded-lg text-xs font-semibold text-white disabled:opacity-50 transition"
-                                style={{ backgroundColor: "#6B8E4E" }}>
+                                style={{ backgroundColor: "var(--md-aqua)" }}>
                                 Guardar
                               </button>
                               <button onClick={cancelarEdicion}
                                 className="px-3 py-1 rounded-lg text-xs font-semibold transition"
-                                style={{ border: "1px solid rgba(107,142,78,0.18)", color: "#3C5148" }}>
+                                style={{ border: "1px solid rgba(107,142,78,0.18)", color: "var(--md-text-soft)" }}>
                                 Cancelar
                               </button>
                             </div>
                           ) : (
                             <button onClick={() => iniciarEdicion(item)}
                               className="px-3 py-1 rounded-lg text-xs font-semibold transition"
-                              style={{ border: "1px solid rgba(107,142,78,0.4)", color: "#3C5148" }}>
+                              style={{ border: "1px solid rgba(107,142,78,0.4)", color: "var(--md-text-soft)" }}>
                               Editar stock
                             </button>
                           )}

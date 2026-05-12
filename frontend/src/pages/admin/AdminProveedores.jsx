@@ -3,12 +3,12 @@ import Sidebar from "../../components/Sidebar";
 import { proveedorService } from "../../services/api";
 
 const VACIO = { nombre: "", telefono: "", correo: "" };
-const CARD = { backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2", boxShadow: "0 2px 8px rgba(27,39,39,0.06)" };
-const INPUT_STYLE = { backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", color: "#1B2727" };
-const LABEL = { color: "#3C5148" };
+const CARD = { backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)", boxShadow: "var(--md-shadow)" };
+const INPUT_STYLE = { backgroundColor: "var(--md-surface-soft)", border: "1px solid var(--md-border)", color: "var(--md-text)" };
+const LABEL = { color: "var(--md-text-soft)" };
 
 function Badge({ n }) {
-  if (!n || Number(n) === 0) return <span className="text-xs" style={{ color: "#1B2727" }}>—</span>;
+  if (!n || Number(n) === 0) return <span className="text-xs" style={{ color: "var(--md-text)" }}>—</span>;
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold"
       style={{ backgroundColor: "rgba(239,68,68,0.15)", color: "#f87171" }}>
@@ -27,7 +27,7 @@ function Modal({ proveedor, onGuardar, onCerrar, guardando, error }) {
       style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
       onClick={(e) => { if (e.target === e.currentTarget) onCerrar(); }}>
       <div className="w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
-        style={{ backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2" }}>
+        style={{ backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)" }}>
         <div className="px-6 py-5 text-white" style={{ background: "linear-gradient(135deg,#4f46e5,#7c3aed)" }}>
           <p className="text-xs uppercase tracking-widest text-white/70 font-semibold">
             {proveedor ? "Editar" : "Nuevo"} proveedor
@@ -67,12 +67,12 @@ function Modal({ proveedor, onGuardar, onCerrar, guardando, error }) {
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onCerrar}
               className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition"
-              style={{ border: "1px solid rgba(107,142,78,0.18)", color: "#3C5148" }}>
+              style={{ border: "1px solid rgba(107,142,78,0.18)", color: "var(--md-text-soft)" }}>
               Cancelar
             </button>
             <button type="submit" disabled={guardando}
               className="flex-1 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-60 transition"
-              style={{ backgroundColor: "#6B8E4E" }}>
+              style={{ backgroundColor: "var(--md-aqua)" }}>
               {guardando ? "Guardando..." : proveedor ? "Guardar cambios" : "Crear proveedor"}
             </button>
           </div>
@@ -223,7 +223,7 @@ export default function AdminProveedores() {
   const totalAlertas = proveedores.filter((p) => Number(p.productos_bajo_stock) > 0).length;
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: "#D5DDDF" }}>
+    <div className="flex min-h-screen" style={{ backgroundColor: "var(--md-bg)" }}>
       <Sidebar />
       <div className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
 
@@ -233,13 +233,13 @@ export default function AdminProveedores() {
         {confirmar && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
             <div className="w-full max-w-sm rounded-2xl shadow-2xl p-6"
-              style={{ backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2" }}>
-              <h2 className="text-lg font-black mb-2" style={{ color: "#1B2727" }}>Eliminar proveedor</h2>
-              <p className="text-sm mb-6" style={{ color: "#6B8E4E" }}>Esta accion no se puede deshacer. Los productos vinculados quedaran sin proveedor asignado.</p>
+              style={{ backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)" }}>
+              <h2 className="text-lg font-black mb-2" style={{ color: "var(--md-text)" }}>Eliminar proveedor</h2>
+              <p className="text-sm mb-6" style={{ color: "var(--md-aqua)" }}>Esta accion no se puede deshacer. Los productos vinculados quedaran sin proveedor asignado.</p>
               <div className="flex gap-3">
                 <button onClick={() => setConfirmar(null)}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition"
-                  style={{ border: "1px solid rgba(107,142,78,0.18)", color: "#3C5148" }}>
+                  style={{ border: "1px solid rgba(107,142,78,0.18)", color: "var(--md-text-soft)" }}>
                   Cancelar
                 </button>
                 <button onClick={() => eliminar(confirmar)}
@@ -303,26 +303,26 @@ export default function AdminProveedores() {
             <input value={buscar} onChange={(e) => setBuscar(e.target.value)}
               placeholder="Buscar proveedor o correo..."
               className="flex-1 min-w-[200px] px-4 py-2.5 rounded-xl text-sm focus:outline-none"
-              style={{ backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", color: "#1B2727" }} />
+              style={INPUT_STYLE} />
             <button onClick={cargar} disabled={cargando}
               className="px-5 py-2.5 rounded-xl text-sm font-semibold transition disabled:opacity-50"
-              style={{ backgroundColor: "#B2C5B2", border: "1px solid #B2C5B2", color: "#1B2727" }}>
+              style={{ backgroundColor: "var(--md-border)", border: "1px solid var(--md-border)", color: "var(--md-text)" }}>
               {cargando ? "Cargando..." : "Actualizar"}
             </button>
             <button onClick={abrirNuevo}
               className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition"
-              style={{ backgroundColor: "#6B8E4E" }}>
+              style={{ backgroundColor: "var(--md-aqua)" }}>
               + Nuevo proveedor
             </button>
           </div>
 
           {/* Tabla */}
-          <div className="rounded-2xl overflow-x-auto" style={{ backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2", boxShadow: "0 2px 8px rgba(27,39,39,0.06)" }}>
+          <div className="rounded-2xl overflow-x-auto" style={CARD}>
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
                   {["Proveedor", "Telefono", "Correo", "Productos", "Stock critico", "Acciones"].map((h) => (
-                    <th key={h} className="px-5 py-3.5 text-left text-xs font-bold uppercase tracking-wider" style={{ color: "#6B8E4E" }}>
+                    <th key={h} className="px-5 py-3.5 text-left text-xs font-bold uppercase tracking-wider" style={{ color: "var(--md-aqua)" }}>
                       {h}
                     </th>
                   ))}
@@ -350,19 +350,19 @@ export default function AdminProveedores() {
                       onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(107,142,78,0.06)"}
                       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ""}>
                       <td className="px-5 py-4">
-                        <p className="font-semibold" style={{ color: "#1B2727" }}>{p.Nombre_proveedor}</p>
+                        <p className="font-semibold" style={{ color: "var(--md-text)" }}>{p.Nombre_proveedor}</p>
                       </td>
                       <td className="px-5 py-4">
-                        <a href={`tel:${p.Telefono_proveedor}`} className="hover:underline" style={{ color: "#3C5148" }}>
+                        <a href={`tel:${p.Telefono_proveedor}`} className="hover:underline" style={{ color: "var(--md-text-soft)" }}>
                           {p.Telefono_proveedor}
                         </a>
                       </td>
                       <td className="px-5 py-4">
-                        <a href={`mailto:${p.Correo_proveedor}`} className="hover:underline" style={{ color: "#3C5148" }}>
+                        <a href={`mailto:${p.Correo_proveedor}`} className="hover:underline" style={{ color: "var(--md-text-soft)" }}>
                           {p.Correo_proveedor}
                         </a>
                       </td>
-                      <td className="px-5 py-4 text-center font-semibold" style={{ color: "#3C5148" }}>
+                      <td className="px-5 py-4 text-center font-semibold" style={{ color: "var(--md-text-soft)" }}>
                         {p.total_productos || 0}
                       </td>
                       <td className="px-5 py-4 text-center">
@@ -373,20 +373,20 @@ export default function AdminProveedores() {
                             ⚠ {p.productos_bajo_stock} productos
                           </button>
                         ) : (
-                          <span className="text-xs" style={{ color: "#1B2727" }}>Sin alertas</span>
+                          <span className="text-xs" style={{ color: "var(--md-text)" }}>Sin alertas</span>
                         )}
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex items-center justify-center gap-2">
                           <a href={`mailto:${p.Correo_proveedor}`}
                             className="px-3 py-1.5 rounded-xl text-xs font-semibold transition"
-                            style={{ border: "1px solid rgba(107,142,78,0.4)", color: "#3C5148" }}
+                            style={{ border: "1px solid rgba(107,142,78,0.4)", color: "var(--md-text-soft)" }}
                             title="Contactar por correo">
                             Contactar
                           </a>
                           <button onClick={() => abrirEditar(p)}
                             className="px-3 py-1.5 rounded-xl text-xs font-semibold transition"
-                            style={{ border: "1px solid rgba(107,142,78,0.4)", color: "#3C5148" }}>
+                            style={{ border: "1px solid rgba(107,142,78,0.4)", color: "var(--md-text-soft)" }}>
                             Editar
                           </button>
                           <button onClick={() => setConfirmar(p.Cod_Proveedor)}

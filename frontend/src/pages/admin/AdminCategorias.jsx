@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import { categoriaService } from "../../services/api";
 
-const CARD = { backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2", boxShadow: "0 2px 8px rgba(27,39,39,0.06)" };
-const INPUT_STYLE = { backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", color: "#1B2727" };
+const CARD = { backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)", boxShadow: "var(--md-shadow)" };
+const INPUT_STYLE = { backgroundColor: "var(--md-surface-soft)", border: "1px solid var(--md-border)", color: "var(--md-text)" };
 
 export default function AdminCategorias() {
   const [categorias, setCategorias] = useState([]);
@@ -85,14 +85,14 @@ export default function AdminCategorias() {
   );
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: "#D5DDDF" }}>
+    <div className="flex min-h-screen" style={{ backgroundColor: "var(--md-bg)" }}>
       <Sidebar />
       <div className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
         <div className="max-w-4xl mx-auto px-4 py-8">
 
           <div className="mb-6">
-            <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Categorias</h1>
-            <p className="text-sm mt-1" style={{ color: "#3C5148" }}>
+            <h1 className="text-2xl font-extrabold" style={{ color: "var(--md-text)" }}>Categorias</h1>
+            <p className="text-sm mt-1" style={{ color: "var(--md-text-soft)" }}>
               Gestiona las categorias de productos del supermercado
             </p>
           </div>
@@ -107,12 +107,12 @@ export default function AdminCategorias() {
           <div className="grid lg:grid-cols-[1fr,1.6fr] gap-6">
 
             {/* Panel crear */}
-            <div className="rounded-2xl p-6 h-fit" style={CARD}>
-              <h2 className="text-base font-extrabold mb-4" style={{ color: "#1B2727" }}>Nueva categoria</h2>
+            <div className="rounded-2xl p-6 h-fit" style={{ backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)", boxShadow: "var(--md-shadow)" }}>
+              <h2 className="text-base font-extrabold mb-4" style={{ color: "var(--md-text)" }}>Nueva categoria</h2>
               <form onSubmit={handleCrear} className="space-y-3">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#6B8E4E" }}>
-                    Nombre <span className="normal-case" style={{ color: "#1B2727" }}>(max. 30 caracteres)</span>
+                  <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--md-aqua)" }}>
+                    Nombre <span className="normal-case" style={{ color: "var(--md-text)" }}>(max. 30 caracteres)</span>
                   </label>
                   <input
                     type="text"
@@ -123,7 +123,7 @@ export default function AdminCategorias() {
                     className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none"
                     style={INPUT_STYLE}
                   />
-                  <p className="text-xs mt-1 text-right" style={{ color: "#1B2727" }}>{nuevoNombre.length}/30</p>
+                  <p className="text-xs mt-1 text-right" style={{ color: "var(--md-text)" }}>{nuevoNombre.length}/30</p>
                 </div>
 
                 {errCrear && (
@@ -134,15 +134,15 @@ export default function AdminCategorias() {
                   type="submit"
                   disabled={creando}
                   className="w-full py-2.5 rounded-xl text-white font-bold text-sm disabled:opacity-50 transition"
-                  style={{ backgroundColor: "#6B8E4E" }}
+                  style={{ backgroundColor: "var(--md-aqua)" }}
                 >
                   {creando ? "Creando..." : "Crear categoria"}
                 </button>
               </form>
 
               <div className="mt-5 rounded-xl px-4 py-3" style={{ backgroundColor: "rgba(107,142,78,0.12)", border: "1px solid rgba(107,142,78,0.18)" }}>
-                <p className="text-xs" style={{ color: "#6B8E4E" }}>Total de categorias</p>
-                <p className="text-3xl font-black mt-0.5" style={{ color: "#3C5148" }}>{categorias.length}</p>
+                <p className="text-xs" style={{ color: "var(--md-aqua)" }}>Total de categorias</p>
+                <p className="text-3xl font-black mt-0.5" style={{ color: "var(--md-text-soft)" }}>{categorias.length}</p>
               </div>
             </div>
 
@@ -167,9 +167,9 @@ export default function AdminCategorias() {
               )}
 
               {cargando ? (
-                <div className="py-16 text-center text-sm" style={{ color: "#6B8E4E" }}>Cargando categorias...</div>
+                <div className="py-16 text-center text-sm" style={{ color: "var(--md-aqua)" }}>Cargando categorias...</div>
               ) : filtradas.length === 0 ? (
-                <div className="py-16 text-center text-sm" style={{ color: "#6B8E4E" }}>
+                <div className="py-16 text-center text-sm" style={{ color: "var(--md-aqua)" }}>
                   {buscar ? "Ninguna categoria coincide con la busqueda." : "No hay categorias registradas."}
                 </div>
               ) : (
@@ -198,14 +198,14 @@ export default function AdminCategorias() {
                                 onClick={() => handleGuardar(cat.Cod_Categoria)}
                                 disabled={guardando}
                                 className="flex-1 py-1.5 rounded-xl text-xs font-bold text-white disabled:opacity-50"
-                                style={{ backgroundColor: "#6B8E4E" }}
+                                style={{ backgroundColor: "var(--md-aqua)" }}
                               >
                                 {guardando ? "Guardando..." : "Guardar"}
                               </button>
                               <button
                                 onClick={() => { setEditandoId(null); setErrEditar(""); }}
                                 className="flex-1 py-1.5 rounded-xl text-xs font-semibold transition"
-                                style={{ border: "1px solid rgba(107,142,78,0.18)", color: "#3C5148" }}
+                                style={{ border: "1px solid rgba(107,142,78,0.18)", color: "var(--md-text-soft)" }}
                               >
                                 Cancelar
                               </button>
@@ -215,13 +215,13 @@ export default function AdminCategorias() {
                           <div className="flex items-center gap-3">
                             <div
                               className="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black flex-shrink-0"
-                              style={{ backgroundColor: "rgba(107,142,78,0.18)", color: "#3C5148" }}
+                              style={{ backgroundColor: "rgba(107,142,78,0.18)", color: "var(--md-text-soft)" }}
                             >
                               {cat.Cod_Categoria}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-semibold truncate" style={{ color: "#1B2727" }}>{cat.Nombre}</p>
-                              <p className="text-xs" style={{ color: "#6B8E4E" }}>
+                              <p className="font-semibold truncate" style={{ color: "var(--md-text)" }}>{cat.Nombre}</p>
+                              <p className="text-xs" style={{ color: "var(--md-aqua)" }}>
                                 {cat.total_productos === "0" || cat.total_productos === 0
                                   ? "Sin productos"
                                   : `${cat.total_productos} producto(s)`}
@@ -231,7 +231,7 @@ export default function AdminCategorias() {
                               <button
                                 onClick={() => iniciarEdicion(cat)}
                                 className="px-3 py-1.5 rounded-xl text-xs font-bold transition"
-                                style={{ border: "1px solid rgba(107,142,78,0.4)", color: "#3C5148" }}
+                                style={{ border: "1px solid rgba(107,142,78,0.4)", color: "var(--md-text-soft)" }}
                               >
                                 Editar
                               </button>

@@ -17,10 +17,10 @@ const VACIO = {
   rol_id: "",
 };
 
-const CARD = { backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2", boxShadow: "0 2px 8px rgba(27,39,39,0.06)" };
-const INPUT_STYLE = { backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", color: "#1B2727" };
-const LABEL = { color: "#3C5148" };
-const SELECT_TABLE = { backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", color: "#1B2727", borderRadius: "0.5rem", padding: "0.375rem 0.75rem", fontSize: "0.75rem" };
+const CARD = { backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)", boxShadow: "var(--md-shadow)" };
+const INPUT_STYLE = { backgroundColor: "var(--md-surface-soft)", border: "1px solid var(--md-border)", color: "var(--md-text)", borderRadius: "1rem" };
+const LABEL = { color: "var(--md-text-soft)" };
+const SELECT_TABLE = { backgroundColor: "var(--md-surface-soft)", border: "1px solid var(--md-border)", color: "var(--md-text)", borderRadius: "0.5rem", padding: "0.375rem 0.75rem", fontSize: "0.75rem" };
 
 export default function AdminUsuarios() {
   const { esOscuro } = useTheme();
@@ -191,13 +191,13 @@ export default function AdminUsuarios() {
   }, [buscar, usuarios]);
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: "#D5DDDF" }}>
+    <div className="flex min-h-screen" style={{ backgroundColor: "var(--md-bg)" }}>
       <Sidebar />
       <div className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
 
         {notif && (
           <div className="fixed bottom-6 right-6 text-white px-5 py-3 rounded-2xl shadow-xl z-50 font-semibold text-sm"
-            style={{ backgroundColor: "#6B8E4E" }}>
+            style={{ backgroundColor: "var(--md-aqua)" }}>
             {notif}
           </div>
         )}
@@ -205,12 +205,12 @@ export default function AdminUsuarios() {
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
             <div>
-              <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Gestion de Usuarios</h1>
-              <p className="text-sm mt-1" style={{ color: "#3C5148" }}>{usuarios.length} usuarios registrados</p>
+              <h1 className="text-2xl font-extrabold" style={{ color: "var(--md-text)" }}>Gestion de Usuarios</h1>
+              <p className="text-sm mt-1" style={{ color: "var(--md-text-soft)" }}>{usuarios.length} usuarios registrados</p>
             </div>
             <button onClick={abrirCrear}
               className="text-white font-semibold px-5 py-2.5 rounded-xl hover:opacity-90 transition text-sm"
-              style={{ backgroundColor: "#6B8E4E" }}>
+              style={{ backgroundColor: "var(--md-aqua)" }}>
               + Nuevo usuario
             </button>
           </div>
@@ -236,7 +236,7 @@ export default function AdminUsuarios() {
                   {["Documento", "Usuario", "Contacto", "Rol", "Estado", "Acciones"].map((h, i) => (
                     <th key={h}
                       className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${i === 2 ? "hidden lg:table-cell" : ""} ${i >= 4 ? "text-center" : ""}`}
-                      style={{ color: "#6B8E4E" }}>
+                      style={{ color: "var(--md-aqua)" }}>
                       {h}
                     </th>
                   ))}
@@ -246,14 +246,14 @@ export default function AdminUsuarios() {
                 {cargando ? (
                   [...Array(5)].map((_, i) => (
                     <tr key={i} style={{ borderTop: "1px solid rgba(107,142,78,0.08)" }}>
-                      <td colSpan={6} className="px-4 py-3">
-                        <div className="h-4 rounded animate-pulse" style={{ backgroundColor: "rgba(107,142,78,0.1)" }} />
-                      </td>
-                    </tr>
+                        <td colSpan={6} className="px-4 py-3">
+                          <div className="h-4 rounded animate-pulse" style={{ backgroundColor: "rgba(107,142,78,0.1)" }} />
+                        </td>
+                      </tr>
                   ))
                 ) : usuariosFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-12 text-center" style={{ color: "#6B8E4E" }}>
+                    <td colSpan={6} className="px-4 py-12 text-center" style={{ color: "var(--md-aqua)" }}>
                       No se encontraron usuarios
                     </td>
                   </tr>
@@ -265,16 +265,16 @@ export default function AdminUsuarios() {
                         style={{ borderTop: "1px solid rgba(107,142,78,0.08)" }}
                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(107,142,78,0.06)"}
                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ""}>
-                        <td className="px-4 py-3 font-semibold" style={{ color: "#3C5148" }}>
+                        <td className="px-4 py-3 font-semibold" style={{ color: "var(--md-text-soft)" }}>
                           {item.Num_Documento}
                         </td>
                         <td className="px-4 py-3">
-                          <p className="font-semibold" style={{ color: "#1B2727" }}>{item.Nombre} {item.Apellido}</p>
-                          <p className="text-xs md:hidden" style={{ color: "#6B8E4E" }}>{item.Correo}</p>
+                          <p className="font-semibold" style={{ color: "var(--md-text)" }}>{item.Nombre} {item.Apellido}</p>
+                          <p className="text-xs md:hidden" style={{ color: "var(--md-aqua)" }}>{item.Correo}</p>
                         </td>
                         <td className="px-4 py-3 hidden lg:table-cell">
-                          <p style={{ color: "#3C5148" }}>{item.Correo}</p>
-                          <p className="text-xs" style={{ color: "#6B8E4E" }}>{item.Telefono || "Sin telefono"}</p>
+                          <p style={{ color: "var(--md-text-soft)" }}>{item.Correo}</p>
+                          <p className="text-xs" style={{ color: "var(--md-aqua)" }}>{item.Telefono || "Sin telefono"}</p>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
@@ -291,7 +291,7 @@ export default function AdminUsuarios() {
                               onClick={() => handleCambioRol(item.Num_Documento)}
                               disabled={esPropioUsuario || String(item.Id_rol) === String(rolesPendientes[item.Num_Documento])}
                               className="px-2 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50 transition"
-                              style={{ backgroundColor: "#6B8E4E" }}>
+                              style={{ backgroundColor: "var(--md-aqua)" }}>
                               OK
                             </button>
                           </div>
@@ -311,7 +311,7 @@ export default function AdminUsuarios() {
                               onClick={() => handleCambioEstado(item.Num_Documento)}
                               disabled={esPropioUsuario || String(item.estado || "Activo") === String(estadosPendientes[item.Num_Documento] || "Activo")}
                               className="px-2 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50 transition"
-                              style={{ backgroundColor: "#6B8E4E" }}>
+                              style={{ backgroundColor: "var(--md-aqua)" }}>
                               OK
                             </button>
                           </div>
@@ -321,7 +321,7 @@ export default function AdminUsuarios() {
                           <div className="flex items-center justify-center gap-2">
                             <button onClick={() => abrirEditar(item)}
                               className="px-3 py-1.5 rounded-lg text-xs font-semibold transition"
-                              style={{ border: "1px solid rgba(107,142,78,0.4)", color: "#3C5148" }}>
+                              style={{ border: "1px solid rgba(107,142,78,0.4)", color: "var(--md-text-soft)" }}>
                               Editar
                             </button>
                             <button

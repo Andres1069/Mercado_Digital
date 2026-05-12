@@ -22,9 +22,9 @@ const VACIO = {
   cod_proveedor: "",
 };
 
-const CARD = { backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2", boxShadow: "0 2px 8px rgba(27,39,39,0.06)" };
-const INPUT_STYLE = { backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", color: "#1B2727" };
-const LABEL = { color: "#3C5148" };
+const CARD = { backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)", boxShadow: "var(--md-shadow)" };
+const INPUT_STYLE = { backgroundColor: "var(--md-surface-soft)", border: "1px solid var(--md-border)", color: "var(--md-text)" };
+const LABEL = { color: "var(--md-text-soft)" };
 
 export default function AdminProductos() {
   const { esAdmin } = useAuth();
@@ -142,13 +142,13 @@ export default function AdminProductos() {
   const preview = resolverImagen(form.imagen_url);
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: "#D5DDDF" }}>
+    <div className="flex min-h-screen" style={{ backgroundColor: "var(--md-bg)" }}>
       <Sidebar />
       <div className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
 
         {notif && (
           <div className="fixed bottom-6 right-6 text-white px-5 py-3 rounded-2xl shadow-xl z-50 font-semibold text-sm"
-            style={{ backgroundColor: "#6B8E4E" }}>
+            style={{ backgroundColor: "var(--md-aqua)" }}>
             {notif}
           </div>
         )}
@@ -156,13 +156,13 @@ export default function AdminProductos() {
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Gestion de Productos</h1>
-              <p className="text-sm mt-1" style={{ color: "#3C5148" }}>{productos.length} productos en total</p>
+              <h1 className="text-2xl font-extrabold" style={{ color: "var(--md-text)" }}>Gestion de Productos</h1>
+              <p className="text-sm mt-1" style={{ color: "var(--md-text-soft)" }}>{productos.length} productos en total</p>
             </div>
             {soloAdmin && (
               <button onClick={abrirCrear}
                 className="text-white font-semibold px-5 py-2.5 rounded-xl hover:opacity-90 transition text-sm"
-                style={{ backgroundColor: "#6B8E4E" }}>
+                style={{ backgroundColor: "var(--md-aqua)" }}>
                 + Nuevo producto
               </button>
             )}

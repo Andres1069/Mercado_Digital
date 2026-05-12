@@ -21,8 +21,8 @@ html.theme-dark, html.dark {
   --md-surface: #111827;
   --md-surface-soft: #1f2937;
   --md-border: #334155;
-  --md-text: #e5e7eb;
-  --md-text-soft: #94a3b8;
+  --md-text: #ffffff;
+  --md-text-soft: #cbd5e1;
   --md-sage: #475569;
   --md-aqua: #84cc16;
   --md-lavender: #334155;
@@ -110,7 +110,7 @@ body {
 
   html.theme-dark, html.dark .md-input {
     background: #0f172a;
-    color: #e5e7eb;
+    color: #ffffff;
     border-color: #334155;
   }
 
@@ -141,7 +141,7 @@ body {
 
   html.theme-dark, html.dark .landing-page {
     background: #0f172a !important;
-    color: #e5e7eb !important;
+    color: #ffffff !important;
   }
 
   html.theme-dark, html.dark .landing-page nav {
@@ -307,12 +307,12 @@ body {
   html.theme-dark, html.dark textarea {
     background-color: #0f172a !important;
     border-color: #334155 !important;
-    color: #e5e7eb !important;
+    color: #ffffff !important;
   }
 
   html.theme-dark, html.dark option {
     background-color: #0f172a;
-    color: #e5e7eb;
+    color: #ffffff;
   }
 
   html.theme-dark, html.dark .bg-white,

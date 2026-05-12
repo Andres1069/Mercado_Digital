@@ -16,9 +16,9 @@ export function ThemeProvider({ children }) {
 
   useEffect(() => {
     const html = document.documentElement;
-    // add both the legacy css hook `theme-dark` and Tailwind `dark` class
     html.classList.toggle("theme-dark", tema === "dark");
     html.classList.toggle("theme-light", tema === "light");
+    // ensure Tailwind 'dark' class is kept in sync
     html.classList.toggle("dark", tema === "dark");
     try {
       localStorage.setItem(STORAGE_KEY, tema);

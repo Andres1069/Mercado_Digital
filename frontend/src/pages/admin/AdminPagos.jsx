@@ -4,10 +4,10 @@ import { pagoService } from "../../services/api";
 
 const ESTADOS_FILTRO = ["todos", "Completado", "Pendiente", "Fallido"];
 const CARD = { backgroundColor: "var(--md-surface)", border: "1px solid var(--md-border)", boxShadow: "var(--md-shadow)" };
-const INPUT_STYLE = { backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", color: "#1B2727" };
+const INPUT_STYLE = { backgroundColor: "var(--md-surface-soft)", border: "1px solid var(--md-border)", color: "var(--md-text)" };
 
 const BADGE_ESTADO = {
-  Completado: { bg: "rgba(107,142,78,0.2)",  color: "#6B8E4E",  label: "Completado" },
+  Completado: { bg: "rgba(107,142,78,0.2)",  color: "var(--md-aqua)",  label: "Completado" },
   Pendiente:  { bg: "rgba(245,158,11,0.15)", color: "#d97706",  label: "Pendiente"  },
   Fallido:    { bg: "rgba(239,68,68,0.15)",  color: "#f87171",  label: "Fallido"    },
 };
@@ -73,14 +73,14 @@ export default function AdminPagos() {
           {/* Encabezado */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Gestión de Pagos</h1>
-              <p className="text-sm mt-1" style={{ color: "#3C5148" }}>
+              <h1 className="text-2xl font-extrabold" style={{ color: "var(--md-text)" }}>Gestión de Pagos</h1>
+              <p className="text-sm mt-1" style={{ color: "var(--md-text-soft)" }}>
                 Pagos procesados automáticamente por MercadoPago
               </p>
             </div>
             <button onClick={cargar} disabled={cargando}
               className="px-5 py-2.5 rounded-xl text-sm font-semibold transition disabled:opacity-50"
-              style={{ backgroundColor: "#B2C5B2", border: "1px solid #B2C5B2", color: "#1B2727" }}>
+              style={{ backgroundColor: "var(--md-border)", border: "1px solid var(--md-border)", color: "var(--md-text)" }}>
               {cargando ? "Actualizando..." : "Actualizar"}
             </button>
           </div>
@@ -93,15 +93,15 @@ export default function AdminPagos() {
           )}
 
           {/* Filtros */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-5">
+            <div className="flex flex-col sm:flex-row gap-3 mb-5">
             <div className="flex gap-2 flex-wrap">
               {ESTADOS_FILTRO.map((f) => (
                 <button key={f} onClick={() => setFiltro(f)}
                   className="px-4 py-2 rounded-xl text-sm font-semibold transition capitalize"
                   style={
                     filtro === f
-                      ? { backgroundColor: "#6B8E4E", color: "white", border: "1px solid #6B8E4E" }
-                      : { backgroundColor: "rgba(107,142,78,0.08)", color: "#3C5148", border: "1px solid rgba(107,142,78,0.15)" }
+                      ? { backgroundColor: "var(--md-aqua)", color: "white", border: "1px solid var(--md-aqua)" }
+                      : { backgroundColor: "rgba(107,142,78,0.08)", color: "var(--md-text-soft)", border: "1px solid rgba(107,142,78,0.15)" }
                   }>
                   {f === "todos" ? "Todos" : BADGE_ESTADO[f]?.label || f}
                 </button>
@@ -115,11 +115,11 @@ export default function AdminPagos() {
 
           {/* Tabla */}
           {cargando ? (
-            <div className="text-center py-20 text-sm" style={{ color: "#6B8E4E" }}>Cargando pagos...</div>
+            <div className="text-center py-20 text-sm" style={{ color: "var(--md-aqua)" }}>Cargando pagos...</div>
           ) : filtrados.length === 0 ? (
             <div className="rounded-2xl p-14 text-center" style={CARD}>
               <p className="text-4xl mb-3">💳</p>
-              <p className="font-bold" style={{ color: "#6B8E4E" }}>No hay pagos que coincidan</p>
+              <p className="font-bold" style={{ color: "var(--md-aqua)" }}>No hay pagos que coincidan</p>
             </div>
           ) : (
             <div className="rounded-2xl overflow-x-auto" style={CARD}>
@@ -128,7 +128,7 @@ export default function AdminPagos() {
                   <tr style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
                     {["#Pago","#Pedido","Cliente","Método","Monto","ID Transacción","Método MP","Estado"].map((h) => (
                       <th key={h} className="px-4 py-3.5 text-left text-xs font-bold uppercase tracking-wider whitespace-nowrap"
-                        style={{ color: "#6B8E4E" }}>
+                          style={{ color: "var(--md-aqua)" }}>
                         {h}
                       </th>
                     ))}
@@ -141,33 +141,33 @@ export default function AdminPagos() {
                       onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(107,142,78,0.06)"}
                       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ""}>
 
-                      <td className="px-4 py-3.5 font-mono font-bold whitespace-nowrap" style={{ color: "#3C5148" }}>
+                      <td className="px-4 py-3.5 font-mono font-bold whitespace-nowrap" style={{ color: "var(--md-text-soft)" }}>
                         #{p.Cod_Pago}
                       </td>
-                      <td className="px-4 py-3.5 font-mono whitespace-nowrap" style={{ color: "#6B8E4E" }}>
+                      <td className="px-4 py-3.5 font-mono whitespace-nowrap" style={{ color: "var(--md-aqua)" }}>
                         #{p.Cod_pedido}
                       </td>
                       <td className="px-4 py-3.5 whitespace-nowrap">
-                        <p className="font-semibold" style={{ color: "#1B2727" }}>{p.cliente_nombre} {p.cliente_apellido}</p>
-                        <p className="text-xs" style={{ color: "#6B8E4E" }}>{p.cliente_documento}</p>
+                          <p className="font-semibold" style={{ color: "var(--md-text)" }}>{p.cliente_nombre} {p.cliente_apellido}</p>
+                          <p className="text-xs" style={{ color: "var(--md-aqua)" }}>{p.cliente_documento}</p>
                       </td>
-                      <td className="px-4 py-3.5 font-semibold whitespace-nowrap" style={{ color: "#3C5148" }}>
+                        <td className="px-4 py-3.5 font-semibold whitespace-nowrap" style={{ color: "var(--md-text-soft)" }}>
                         {p.Metodo_Pago}
                       </td>
-                      <td className="px-4 py-3.5 font-extrabold whitespace-nowrap" style={{ color: "#6B8E4E" }}>
+                        <td className="px-4 py-3.5 font-extrabold whitespace-nowrap" style={{ color: "var(--md-aqua)" }}>
                         {fmt(p.Monto_Pago)}
                       </td>
                       <td className="px-4 py-3.5">
-                        {p.mp_payment_id ? (
-                          <span className="font-mono text-xs" style={{ color: "#3C5148" }}>{p.mp_payment_id}</span>
-                        ) : (
-                          <span className="text-xs" style={{ color: "#94a3b8" }}>—</span>
-                        )}
+                          {p.mp_payment_id ? (
+                            <span className="font-mono text-xs" style={{ color: "var(--md-text-soft)" }}>{p.mp_payment_id}</span>
+                          ) : (
+                            <span className="text-xs" style={{ color: "var(--md-text-soft)" }}>—</span>
+                          )}
                       </td>
-                      <td className="px-4 py-3.5 whitespace-nowrap" style={{ color: "#3C5148" }}>
+                        <td className="px-4 py-3.5 whitespace-nowrap" style={{ color: "var(--md-text-soft)" }}>
                         {p.mp_payment_method
                           ? (METODO_LABEL[p.mp_payment_method] || p.mp_payment_method)
-                          : <span className="text-xs" style={{ color: "#94a3b8" }}>—</span>
+                            : <span className="text-xs" style={{ color: "var(--md-text-soft)" }}>—</span>
                         }
                       </td>
                       <td className="px-4 py-3.5 whitespace-nowrap">
