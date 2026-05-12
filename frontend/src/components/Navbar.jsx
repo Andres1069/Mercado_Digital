@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import BrandMark from "./BrandMark";
 import ThemeToggle from "./ThemeToggle";
+import { useTheme } from "../context/ThemeContext";
 
 export default function Navbar({ carritoCount }) {
   const { usuario, cerrarSesion, esAdmin, esEmpleado } = useAuth();
@@ -20,10 +21,10 @@ export default function Navbar({ carritoCount }) {
 
   return (
     <nav
-      className="sticky top-0 z-40 border-b border-white/15 shadow-lg"
-      style={{ background: "linear-gradient(90deg, #1B2727 0%, #3C5148 100%)" }}
+      className="sticky top-0 z-40 border-b shadow-lg"
+      style={{ background: esOscuro ? "linear-gradient(90deg,#0b1220 0%,#13201a 100%)" : "linear-gradient(90deg, #1B2727 0%, #3C5148 100%)", borderColor: esOscuro ? "rgba(148,163,184,0.06)" : "rgba(255,255,255,0.15)" }}
     >
-      <div className="max-w-7xl mx-auto px-3 sm:px-5 py-2.5 sm:py-3.5 flex items-center justify-between gap-3 sm:gap-4 text-white">
+      <div className="max-w-7xl mx-auto px-3 sm:px-5 py-2.5 sm:py-3.5 flex items-center justify-between gap-3 sm:gap-4" style={{ color: esOscuro ? "var(--md-text)" : "white" }}>
         <Link
           to={esAdmin() ? "/admin/dashboard" : esEmpleado() ? "/empleado/dashboard" : "/tienda"}
           className="flex items-center gap-3 min-w-0 pr-2"
@@ -128,14 +129,14 @@ export default function Navbar({ carritoCount }) {
 
             {menuAbierto && (
               <div
-                className="absolute right-0 mt-2 w-56 sm:w-60 rounded-3xl overflow-hidden shadow-2xl border border-black/5"
-                style={{ backgroundColor: "#FFFFFF" }}
+                className="absolute right-0 mt-2 w-56 sm:w-60 rounded-3xl overflow-hidden shadow-2xl border"
+                style={{ backgroundColor: esOscuro ? "var(--md-surface)" : "#FFFFFF", borderColor: esOscuro ? "rgba(148,163,184,0.06)" : "rgba(0,0,0,0.05)" }}
               >
                 <div className="px-5 py-4 text-white" style={{ background: "linear-gradient(135deg, #6B8E4E, #3C5148)" }}>
                   <p className="font-bold text-sm truncate">{usuario?.Nombre} {usuario?.Apellido}</p>
                   <p className="text-xs text-white/80 mt-1 uppercase tracking-normal font-semibold">{rolUsuario}</p>
                 </div>
-                <div className="p-2 text-slate-700">
+                <div className="p-2" style={{ color: esOscuro ? "var(--md-text-soft)" : "#374151" }}>
                   <Link to="/perfil" onClick={() => setMenuAbierto(false)} className="block px-4 py-3 rounded-2xl text-sm hover:bg-slate-50 transition">
                     Mi perfil
                   </Link>

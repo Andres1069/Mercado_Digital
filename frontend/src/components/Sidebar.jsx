@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import ThemeToggle from "./ThemeToggle";
+import { useTheme } from "../context/ThemeContext";
 
 /* ── Íconos SVG ─────────────────────────────────────────── */
 const Ico = {
@@ -116,6 +117,7 @@ const LINKS_EMPLEADO = [
 
 export default function Sidebar() {
   const { usuario, esEmpleado, cerrarSesion } = useAuth();
+  const { esOscuro } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const [abierto, setAbierto] = useState(false);
@@ -130,7 +132,7 @@ export default function Sidebar() {
 
   const renderContenido = () => {
     return (
-      <div className="flex flex-col h-full" style={{ backgroundColor: "#3C5148", borderRight: "1px solid rgba(107,142,78,0.2)" }}>
+      <div className="flex flex-col h-full" style={{ backgroundColor: "var(--md-surface)", borderRight: "1px solid var(--md-border)" }}>
 
         {/* Logo */}
         <Link
@@ -156,17 +158,17 @@ export default function Sidebar() {
         <div className="mx-4 border-t" style={{ borderColor: "rgba(107,142,78,0.12)" }} />
 
         {/* Usuario */}
-        <div className="px-3 py-3">
-          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl" style={{ backgroundColor: "rgba(107,142,78,0.12)" }}>
+          <div className="px-3 py-3">
+          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl" style={{ backgroundColor: "rgba(107,142,78,0.08)" }}>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-black text-white"
               style={{ background: "linear-gradient(135deg, #1B2727, #6B8E4E)" }}>
               {inicial}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold truncate leading-tight" style={{ color: "#D5DDDF" }}>
+              <p className="text-sm font-bold truncate leading-tight" style={{ color: "var(--md-text)" }}>
                 {usuario?.Nombre} {usuario?.Apellido}
               </p>
-              <p className="text-[10px] font-semibold mt-0.5" style={{ color: "#6B8E4E" }}>
+              <p className="text-[10px] font-semibold mt-0.5" style={{ color: "var(--md-aqua)" }}>
                 {esEmp ? "Empleado" : "Administrador"}
               </p>
             </div>
@@ -194,7 +196,7 @@ export default function Sidebar() {
                 style={
                   activo
                     ? { backgroundColor: "rgba(107,142,78,0.22)", color: "#fff", borderLeft: `3px solid ${color}`, paddingLeft: "9px" }
-                    : { color: "rgba(213,221,223,0.65)" }
+                    : { color: esOscuro ? "var(--md-text-soft)" : "rgba(213,221,223,0.65)" }
                 }
                 onMouseEnter={(e) => { if (!activo) e.currentTarget.style.backgroundColor = "rgba(107,142,78,0.1)"; e.currentTarget.style.color = "#fff"; }}
                 onMouseLeave={(e) => { if (!activo) { e.currentTarget.style.backgroundColor = ""; e.currentTarget.style.color = "rgba(213,221,223,0.65)"; }}}
@@ -219,7 +221,7 @@ export default function Sidebar() {
             style={{
               backgroundColor: "rgba(107,142,78,0.08)",
               border: "1px solid rgba(107,142,78,0.16)",
-              color: "#D5DDDF",
+              color: "var(--md-text)",
             }}
           />
           <Link
