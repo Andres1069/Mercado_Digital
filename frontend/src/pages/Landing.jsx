@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import BrandMark from "../components/BrandMark";
 import ThemeToggle from "../components/ThemeToggle";
+import HeroCarousel from "../components/HeroCarousel";
 import { productoService, ofertaService, categoriaService, resolverImagen } from "../services/api";
 import { useTheme } from "../context/ThemeContext";
 
@@ -121,8 +122,12 @@ function CategoriaCard({ categoria, index }) {
         boxShadow: esOscuro ? "0 18px 40px rgba(2,6,23,0.16)" : "0 14px 30px rgba(15,23,42,0.08)",
       }}
     >
-      <div className="h-28 flex items-center justify-center text-4xl" style={{ backgroundColor: esOscuro ? "rgba(255,255,255,0.06)" : visual.top }}>
-        {visual.icono}
+      <div className="h-28 flex items-center justify-center" style={{ backgroundColor: esOscuro ? "rgba(255,255,255,0.06)" : visual.top }}>
+        {categoria.imagen ? (
+          <img src={categoria.imagen} alt={categoria.Nombre || categoria.nombre} className="max-h-full max-w-full object-contain" />
+        ) : (
+          <div className="text-4xl">{visual.icono}</div>
+        )}
       </div>
       <div className="p-5 flex-1 flex flex-col justify-between">
         <div>
@@ -178,7 +183,23 @@ export default function Landing() {
         });
 
         setProductos(prodsConOferta);
-        setCategorias(cats);
+        // Asociar a cada categoría la imagen del primer producto que pertenezca a ella
+        const mapaProductosPorCategoria = new Map();
+        for (const p of prodsConOferta) {
+          const claveProd = normalizarCategoria(p.categoria || p.Categoria || "");
+          if (!mapaProductosPorCategoria.has(claveProd)) {
+            mapaProductosPorCategoria.set(claveProd, p);
+          }
+        }
+
+        const catsConImagen = cats.map((cat) => {
+          const claveCat = normalizarCategoria(cat.Nombre || cat.nombre || "");
+          const prod = mapaProductosPorCategoria.get(claveCat);
+          const imagen = prod ? resolverImagen(prod.Imagen_url || prod.imagen_url || prod.imagen || "") : null;
+          return { ...cat, imagen };
+        });
+
+        setCategorias(catsConImagen);
       } catch (error) {
         console.error("Error cargando datos de landing:", error);
       } finally {
@@ -239,6 +260,13 @@ export default function Landing() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-5 py-10">
+        {/* Carrusel hero: coloque las imágenes en `public/images/hero1.png`, `hero2.png`, `hero3.png`, `hero4.png` */}
+        <div className="mb-8">
+          <HeroCarousel
+            images={["/images/imagen1.png", "/images/imagen2.png", "/images/imagen3.png", "/images/imagen4.png"]}
+            interval={4500}
+          />
+        </div>
         <section className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] items-center py-10">
           <div>
             <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em]" style={{ backgroundColor: esOscuro ? "rgba(107,142,78,0.12)" : "#ecfdf5", color: esOscuro ? "#b7d8a3" : "#166534" }}>
