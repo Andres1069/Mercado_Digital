@@ -222,11 +222,32 @@ switch ($modulo) {
     case 'pago':
         $ctrl = new PagoController();
         match(true) {
+<<<<<<< HEAD
             $metodo === 'GET'  && $accion === ''                                                       => $ctrl->todos(),
             in_array($metodo, ['POST','GET']) && $accion === 'webhook'                                  => $ctrl->webhook(),
             $metodo === 'GET'  && is_numeric($accion) && ($partes[2] ?? '') === ''                     => $ctrl->obtener((int)$accion),
             $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'preferencia'          => $ctrl->crearPreferencia((int)$accion),
             $metodo === 'GET'  && is_numeric($accion) && ($partes[2] ?? '') === 'verificar-mp'         => $ctrl->verificarMP((int)$accion),
+=======
+            $metodo === 'GET'  && $accion === 'stripe' && ($partes[2] ?? '') === 'confirmar'     => $ctrl->stripeConfirmar(),
+            $metodo === 'GET'  && $accion === ''                                                 => $ctrl->todos(),
+            $metodo === 'GET'  && is_numeric($accion)                                            => $ctrl->obtener((int)$accion),
+            $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'simulado'        => $ctrl->simular((int)$accion),
+            $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'stripe-checkout' => $ctrl->stripeCheckout((int)$accion),
+            $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'comprobante'    => $ctrl->subirComprobante((int)$accion),
+            $metodo === 'PUT'  && is_numeric($accion) && ($partes[2] ?? '') === 'verificar'      => $ctrl->verificar((int)$accion),
+            default => ruta404()
+        };
+        break;
+
+    case 'metodos-pago':
+        $ctrl = new MetodoPagoConfigController();
+        match(true) {
+            $metodo === 'GET'  && $accion === ''                                              => $ctrl->listar(),
+            $metodo === 'GET'  && !is_numeric($accion) && $accion !== ''                      => $ctrl->obtenerPorMetodo($accion),
+            $metodo === 'PUT'  && is_numeric($accion)                                         => $ctrl->actualizar((int)$accion),
+            $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'upload-qr'   => $ctrl->uploadQR((int)$accion),
+>>>>>>> 1d86c12 (pasarela de pagos)
             default => ruta404()
         };
         break;

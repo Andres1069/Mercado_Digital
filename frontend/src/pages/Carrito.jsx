@@ -4,12 +4,25 @@ import Navbar from "../components/Navbar";
 import { resolverImagen, pedidoService } from "../services/api";
 import { useCart } from "../context/CartContext";
 
+<<<<<<< HEAD
+=======
+const METODOS_PAGO = [
+  { nombre: "Simulado", etiqueta: "Prueba de desarrollo", tipo: "Simulador", icon: "🏦" },
+  { nombre: "Stripe",   etiqueta: "Tarjeta de prueba",   tipo: "Pasarela",  icon: "💳" },
+];
+
+>>>>>>> 1d86c12 (pasarela de pagos)
 export default function Carrito() {
   const { items, updateQty, removeItem, clearCart, itemsCount, subtotal } = useCart();
   const navigate = useNavigate();
 
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState("");
+<<<<<<< HEAD
+=======
+  const [metodoPago, setMetodoPago] = useState("Simulado");
+  const envioEnCursoRef = useRef(false);
+>>>>>>> 1d86c12 (pasarela de pagos)
 
   const envio = subtotal > 70000 || items.length === 0 ? 0 : 7900;
   const total = subtotal + envio;
@@ -20,10 +33,21 @@ export default function Carrito() {
     try {
       const res = await pedidoService.crear({
         items: items.map((it) => ({ id: it.id, nombre: it.nombre, precio: it.precio, cantidad: it.cantidad })),
+<<<<<<< HEAD
         metodo_pago: "MercadoPago",
         monto_total: total,
       });
       navigate(`/pago/qr?pedido=${res.cod_pedido}`);
+=======
+        metodo_pago: metodoPago,
+        monto_total: total,
+      });
+      setMostrarModal(false);
+      const ruta = metodoPago === "Stripe"
+        ? `/pago/stripe?pedido=${res.cod_pedido}`
+        : `/pago/simulado?pedido=${res.cod_pedido}`;
+      navigate(ruta);
+>>>>>>> 1d86c12 (pasarela de pagos)
     } catch (e) {
       setError(e.message || "No se pudo procesar el pedido.");
       setProcesando(false);
@@ -176,6 +200,87 @@ export default function Carrito() {
         )}
       </div>
 
+<<<<<<< HEAD
+=======
+      {mostrarModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <h2 className="text-lg font-extrabold text-gray-800 mb-1">Confirmar pedido</h2>
+            <p className="text-sm text-gray-500 mb-4">Elige cómo quieres realizar el pago.</p>
+
+            {error && (
+              <div className="mb-3 px-3 py-2 rounded-xl text-xs border" style={{ backgroundColor: "#fee2e2", borderColor: "#fca5a5", color: "#991b1b" }}>
+                {error}
+              </div>
+            )}
+
+            <div className="mb-5 space-y-2">
+              {METODOS_PAGO.map((m) => (
+                <button
+                  key={m.nombre}
+                  type="button"
+                  onClick={() => setMetodoPago(m.nombre)}
+                  disabled={procesando}
+                  className="w-full flex items-center gap-3 rounded-2xl border p-3 text-left transition disabled:opacity-50"
+                  style={metodoPago === m.nombre
+                    ? { borderColor: "#6B8E4E", backgroundColor: "rgba(107,142,78,0.06)" }
+                    : { borderColor: "#e5e7eb", backgroundColor: "white" }}
+                >
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0"
+                    style={metodoPago === m.nombre
+                      ? { background: "linear-gradient(135deg,#3C5148,#6B8E4E)", color: "white" }
+                      : { backgroundColor: "#f3f4f6", color: "#6b7280" }}
+                  >
+                    {m.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-semibold text-gray-700">{m.nombre}</span>
+                    {m.nombre === "Simulado" && (
+                      <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ backgroundColor: "#dcfce7", color: "#166534" }}>
+                        Recomendado
+                      </span>
+                    )}
+                    <div className="text-[11px] text-gray-400 mt-0.5">{m.etiqueta} · {m.tipo}</div>
+                  </div>
+                  <div
+                    className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"
+                    style={{ borderColor: metodoPago === m.nombre ? "#6B8E4E" : "#d1d5db" }}
+                  >
+                    {metodoPago === m.nombre && (
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#6B8E4E" }} />
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between text-sm font-bold text-gray-800 mb-5">
+              <span>Total a pagar</span>
+              <span>${Number(total).toLocaleString("es-CO")}</span>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setMostrarModal(false); setError(""); }}
+                disabled={procesando}
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleFinalizarCompra}
+                disabled={procesando}
+                className="flex-1 py-2.5 rounded-xl text-white font-bold text-sm hover:opacity-90 transition disabled:opacity-50"
+                style={{ background: "linear-gradient(135deg,#6B8E4E,#3C5148)" }}
+              >
+                {procesando ? "Procesando..." : "Confirmar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+>>>>>>> 1d86c12 (pasarela de pagos)
     </div>
   );
 }

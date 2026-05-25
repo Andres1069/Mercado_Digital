@@ -124,11 +124,72 @@ class PagoController {
             return;
         }
 
+<<<<<<< HEAD
         $paymentData = $this->consultarPagoMP((int)$paymentId);
         if (!$paymentData) {
             http_response_code(200);
             echo json_encode(['success' => true]);
             return;
+=======
+        $ok = $this->model->verificar($pagoId, $estado, $notas ?: null);
+        echo json_encode(['success' => $ok]);
+    }
+
+    public function simular(int $pedidoId): void {
+        $payload = AuthMiddleware::verify();
+        $doc = (int)($payload['num_documento'] ?? 0);
+
+        $body   = json_decode(file_get_contents('php://input'), true) ?? [];
+        $metodo = trim($body['metodo'] ?? '');
+        $datos  = is_array($body['datos'] ?? null) ? $body['datos'] : [];
+
+        if (!in_array($metodo, ['Tarjeta', 'Nequi', 'Daviplata'], true)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Método de pago no válido.']);
+            return;
+        }
+
+        $pago = $this->model->getCheckoutData($pedidoId, $doc);
+        if (!$pago) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'No se encontró el pago para este pedido.']);
+            return;
+        }
+
+        if ($metodo === 'Tarjeta') {
+            $numero   = preg_replace('/[\s\-]/', '', (string)($datos['numero_tarjeta'] ?? ''));
+            $aprobado = $numero === '4000000000000000';
+            $rechazo  = (mt_rand(0, 1) === 0) ? 'Fondos insuficientes.' : 'Transacción declinada por el banco.';
+        } else {
+            $celular  = preg_replace('/[\s\-]/', '', (string)($datos['celular'] ?? ''));
+            $aprobado = $celular === '3000000000';
+            $rechazo  = 'Número no registrado en ' . $metodo . '.';
+        }
+
+        $verificacion = $aprobado ? 'aprobado' : 'rechazado';
+        $estadoPago   = $aprobado ? 'Completado' : 'Fallido';
+        $mensaje      = $aprobado ? '¡Pago aprobado! Gracias por tu compra.' : ($rechazo ?? 'Transacción rechazada.');
+
+        $this->model->registrarSimulado($pedidoId, $metodo, $verificacion, $estadoPago, $mensaje);
+
+        echo json_encode([
+            'success'   => true,
+            'resultado' => [
+                'aprobado'     => $aprobado,
+                'verificacion' => $verificacion,
+                'mensaje'      => $mensaje,
+            ],
+        ]);
+    }
+
+    // ── Helpers privados ──────────────────────────────────────────────────
+
+    private function resolverAppUrl(): string {
+        require_once __DIR__ . '/../../config/StripeConfig.php';
+
+        if (STRIPE_APP_URL !== '') {
+            return STRIPE_APP_URL;
+>>>>>>> 1d86c12 (pasarela de pagos)
         }
 
         $pedidoId      = (int)($paymentData['external_reference'] ?? 0);

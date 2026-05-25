@@ -228,8 +228,26 @@ export async function uploadFile(ruta, formData) {
 
 // ── Pago ──────────────────────────────────────────────────
 export const pagoService = {
+<<<<<<< HEAD
   obtener:          (pedidoId)              => get(`pago/${pedidoId}`),
   todos:            ()                      => get("pago"),
   crearPreferencia: (pedidoId, frontendUrl) => post(`pago/${pedidoId}/preferencia`, { frontend_url: frontendUrl }),
   verificarMP:      (pedidoId, paymentId)   => get(`pago/${pedidoId}/verificar-mp${paymentId ? `?payment_id=${paymentId}` : ""}`),
+=======
+  obtener: (pedidoId) => get(`pago/${pedidoId}`),
+  todos: () => get("pago"),
+  simular: (pedidoId, metodo, datos) => post(`pago/${pedidoId}/simulado`, { metodo, datos }),
+  stripeCheckout: (pedidoId) => post(`pago/${pedidoId}/stripe-checkout`, {}, { timeoutMs: 15000 }),
+  stripeConfirmar: (pedidoId, sessionId) =>
+    get(`pago/stripe/confirmar?pedido=${pedidoId}&session_id=${encodeURIComponent(sessionId)}`, { timeoutMs: 15000 }),
+  subirComprobante: (pedidoId, formData) => uploadFile(`pago/${pedidoId}/comprobante`, formData),
+  verificar: (pagoId, estado, notas = "") => put(`pago/${pagoId}/verificar`, { estado, notas }),
+};
+
+export const metodoPagoConfigService = {
+  listar: () => get("metodos-pago"),
+  obtener: (metodo) => get(`metodos-pago/${metodo}`),
+  actualizar: (id, datos) => put(`metodos-pago/${id}`, datos),
+  uploadQR: (id, formData) => uploadFile(`metodos-pago/${id}/upload-qr`, formData),
+>>>>>>> 1d86c12 (pasarela de pagos)
 };

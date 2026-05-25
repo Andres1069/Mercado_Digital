@@ -22,7 +22,12 @@ import Seguimiento from "./pages/Domicilio/Seguimiento";
 
 // Paginas pago
 import PagoQR from "./pages/PagoQR";
+<<<<<<< HEAD
 import PagoResultado from "./pages/PagoResultado";
+=======
+import PagoStripe from "./pages/PagoStripe";
+import PagoSimulado from "./pages/PagoSimulado";
+>>>>>>> 1d86c12 (pasarela de pagos)
 
 // Paginas admin
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -94,7 +99,12 @@ function AppRoutes() {
 
         {/* Pago */}
         <Route path="/pago/qr"       element={<RutaPrivada><PagoQR /></RutaPrivada>} />
+<<<<<<< HEAD
         <Route path="/pago/resultado" element={<RutaPrivada><PagoResultado /></RutaPrivada>} />
+=======
+        <Route path="/pago/stripe"   element={<RutaPrivada><PagoStripe /></RutaPrivada>} />
+        <Route path="/pago/simulado" element={<RutaPrivada><PagoSimulado /></RutaPrivada>} />
+>>>>>>> 1d86c12 (pasarela de pagos)
 
         {/* Domicilio cliente */}
         <Route path="/domicilio/crear" element={<RutaPrivada><CrearDomicilio /></RutaPrivada>} />
