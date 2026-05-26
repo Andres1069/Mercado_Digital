@@ -1,28 +1,23 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { resolverImagen, pedidoService } from "../services/api";
 import { useCart } from "../context/CartContext";
 
-<<<<<<< HEAD
-=======
 const METODOS_PAGO = [
   { nombre: "Simulado", etiqueta: "Prueba de desarrollo", tipo: "Simulador", icon: "🏦" },
   { nombre: "Stripe",   etiqueta: "Tarjeta de prueba",   tipo: "Pasarela",  icon: "💳" },
 ];
 
->>>>>>> 1d86c12 (pasarela de pagos)
 export default function Carrito() {
   const { items, updateQty, removeItem, clearCart, itemsCount, subtotal } = useCart();
   const navigate = useNavigate();
 
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState("");
-<<<<<<< HEAD
-=======
   const [metodoPago, setMetodoPago] = useState("Simulado");
+  const [mostrarModal, setMostrarModal] = useState(false);
   const envioEnCursoRef = useRef(false);
->>>>>>> 1d86c12 (pasarela de pagos)
 
   const envio = subtotal > 70000 || items.length === 0 ? 0 : 7900;
   const total = subtotal + envio;
@@ -30,15 +25,11 @@ export default function Carrito() {
   async function handleFinalizarCompra() {
     setError("");
     setProcesando(true);
+    if (envioEnCursoRef.current) return;
+    envioEnCursoRef.current = true;
     try {
       const res = await pedidoService.crear({
         items: items.map((it) => ({ id: it.id, nombre: it.nombre, precio: it.precio, cantidad: it.cantidad })),
-<<<<<<< HEAD
-        metodo_pago: "MercadoPago",
-        monto_total: total,
-      });
-      navigate(`/pago/qr?pedido=${res.cod_pedido}`);
-=======
         metodo_pago: metodoPago,
         monto_total: total,
       });
@@ -47,9 +38,10 @@ export default function Carrito() {
         ? `/pago/stripe?pedido=${res.cod_pedido}`
         : `/pago/simulado?pedido=${res.cod_pedido}`;
       navigate(ruta);
->>>>>>> 1d86c12 (pasarela de pagos)
     } catch (e) {
       setError(e.message || "No se pudo procesar el pedido.");
+    } finally {
+      envioEnCursoRef.current = false;
       setProcesando(false);
     }
   }
@@ -182,7 +174,7 @@ export default function Carrito() {
                 </div>
               )}
               <button
-                onClick={handleFinalizarCompra}
+                onClick={() => setMostrarModal(true)}
                 disabled={procesando}
                 className="w-full mt-5 text-white font-bold py-3 rounded-xl hover:opacity-90 transition disabled:opacity-50"
                 style={{ background: "linear-gradient(135deg,#6B8E4E,#3C5148)" }}
@@ -200,8 +192,6 @@ export default function Carrito() {
         )}
       </div>
 
-<<<<<<< HEAD
-=======
       {mostrarModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
@@ -280,7 +270,6 @@ export default function Carrito() {
           </div>
         </div>
       )}
->>>>>>> 1d86c12 (pasarela de pagos)
     </div>
   );
 }

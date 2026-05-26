@@ -5,6 +5,18 @@ import ProductoCard from "../components/ProductoCard";
 import { productoService, ofertaService, categoriaService } from "../services/api";
 import { useCart } from "../context/CartContext";
 
+const FAVORITOS_KEY = "md-favoritos";
+function keyFavoritosPorUsuario() {
+  try {
+    const raw = sessionStorage.getItem("md_usuario");
+    const u = raw ? JSON.parse(raw) : null;
+    const id = u?.Num_Documento ?? u?.num_documento ?? u?.id ?? u?.Cod_Usuario ?? "anon";
+    return `${FAVORITOS_KEY}:${id}`;
+  } catch {
+    return `${FAVORITOS_KEY}:anon`;
+  }
+}
+
 export default function Tienda() {
   const [searchParams] = useSearchParams();
   const [productos, setProductos] = useState([]);
@@ -16,6 +28,15 @@ export default function Tienda() {
   const [catActiva, setCatActiva] = useState(null);
   const [verOfertas, setVerOfertas] = useState(searchParams.get("ofertas") === "1");
   const [notif, setNotif] = useState("");
+  const [favoritos, setFavoritos] = useState(() => {
+    try {
+      const raw = localStorage.getItem(keyFavoritosPorUsuario());
+      const ids = raw ? JSON.parse(raw) : [];
+      return new Set((Array.isArray(ids) ? ids : []).map((v) => Number(v)));
+    } catch {
+      return new Set();
+    }
+  });
   const { addItem } = useCart();
 
   useEffect(() => {
@@ -73,6 +94,22 @@ export default function Tienda() {
     addItem(producto, cantidad);
     setNotif(`${cantidad} agregado${cantidad > 1 ? "s" : ""}: ${producto.Nombre}`);
     setTimeout(() => setNotif(""), 2200);
+  };
+
+  const toggleFavorito = (producto) => {
+    const id = Number(producto?.Cod_Producto ?? producto?.id);
+    if (!Number.isFinite(id)) return;
+    setFavoritos((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      try {
+        localStorage.setItem(keyFavoritosPorUsuario(), JSON.stringify(Array.from(next)));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
   };
 
   const productosFiltrados = (() => {
@@ -299,7 +336,13 @@ export default function Tienda() {
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {productosFiltrados.map((p) => (
-                  <ProductoCard key={p.Cod_Producto} producto={p} onAgregar={agregarAlCarrito} />
+                  <ProductoCard
+                    key={p.Cod_Producto}
+                    producto={p}
+                    onAgregar={agregarAlCarrito}
+                    esFavorito={favoritos.has(Number(p.Cod_Producto))}
+                    onToggleFavorito={() => toggleFavorito(p)}
+                  />
                 ))}
               </div>
             )}

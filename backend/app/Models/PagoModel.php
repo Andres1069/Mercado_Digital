@@ -10,40 +10,60 @@ class PagoModel {
         $this->ensureColumns();
     }
 
-    // ── Migración de columnas ─────────────────────────────────────────────
+    // ——— Migración de columnas ———
     private function ensureColumns(): void {
-        // Agregar columnas de MercadoPago si no existen
+        // Agrega columnas si no existen. No eliminamos nada para no perder datos.
         $nuevas = [
-            'mp_preference_id'  => "VARCHAR(100) DEFAULT NULL",
-            'mp_payment_id'     => "VARCHAR(50)  DEFAULT NULL",
-            'mp_status'         => "VARCHAR(50)  DEFAULT NULL",
-            'mp_payment_method' => "VARCHAR(50)  DEFAULT NULL",
+            // MercadoPago
+            'mp_preference_id'   => "VARCHAR(100) DEFAULT NULL",
+            'mp_payment_id'      => "VARCHAR(50)  DEFAULT NULL",
+            'mp_status'          => "VARCHAR(50)  DEFAULT NULL",
+            'mp_payment_method'  => "VARCHAR(50)  DEFAULT NULL",
+
+            // Pagos manuales/simulados
+            'comprobante_url'    => "VARCHAR(255) DEFAULT NULL",
+            'monto_comprobante'  => "INT          DEFAULT NULL",
+            'verificacion'       => "VARCHAR(20)  DEFAULT NULL",
+            'notas_verificacion' => "VARCHAR(255) DEFAULT NULL",
+
+            // Stripe checkout
+            'stripe_reference'          => "VARCHAR(120) DEFAULT NULL",
+            'stripe_session_id'         => "VARCHAR(120) DEFAULT NULL",
+            'stripe_payment_intent_id'  => "VARCHAR(120) DEFAULT NULL",
+            'stripe_session_status'     => "VARCHAR(40)  DEFAULT NULL",
+            'stripe_payment_status'     => "VARCHAR(40)  DEFAULT NULL",
+            'stripe_updated_at'         => "DATETIME     DEFAULT NULL",
         ];
+
         foreach ($nuevas as $col => $def) {
             $chk = $this->db->query("SHOW COLUMNS FROM pago LIKE '$col'");
             if ($chk->rowCount() === 0) {
                 $this->db->exec("ALTER TABLE pago ADD COLUMN `$col` $def");
             }
         }
-
-        // Eliminar columnas del sistema manual de comprobantes si aún existen
-        $viejas = ['comprobante_url', 'monto_comprobante', 'verificacion', 'notas_verificacion'];
-        foreach ($viejas as $col) {
-            $chk = $this->db->query("SHOW COLUMNS FROM pago LIKE '$col'");
-            if ($chk->rowCount() > 0) {
-                $this->db->exec("ALTER TABLE pago DROP COLUMN `$col`");
-            }
-        }
-
-        // Eliminar tabla de configuración de métodos de pago manual (ya no se usa)
-        $this->db->exec("DROP TABLE IF EXISTS `metodo_pago_config`");
     }
 
-    // ── Consultas ─────────────────────────────────────────────────────────
+    // ——— Consultas ———
 
     public function getByPedido(int $pedidoId): ?array {
         $stmt = $this->db->prepare("SELECT * FROM pago WHERE Cod_pedido = ? LIMIT 1");
         $stmt->execute([$pedidoId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    /**
+     * Datos mínimos de checkout para validar que el pedido pertenece al usuario.
+     * Usado por el simulador de pago.
+     */
+    public function getCheckoutData(int $pedidoId, int $numDocumento): ?array {
+        $stmt = $this->db->prepare("
+            SELECT pa.*
+            FROM pago pa
+            INNER JOIN usuario_pedido up ON up.Cod_pedido = pa.Cod_pedido
+            WHERE pa.Cod_pedido = ? AND up.Num_Documento = ?
+            LIMIT 1
+        ");
+        $stmt->execute([$pedidoId, $numDocumento]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
@@ -76,14 +96,26 @@ class PagoModel {
         return $stmt->execute([$preferenceId, $pedidoId]);
     }
 
-<<<<<<< HEAD
     /** Actualiza el estado del pago con la respuesta real de MercadoPago */
     public function procesarPago(int $pedidoId, string $paymentId, string $status, string $paymentMethod): bool {
         $estadoPago = match($status) {
             'approved' => 'Completado',
             'rejected' => 'Fallido',
             default    => 'Pendiente',
-=======
+        };
+
+        $stmt = $this->db->prepare("
+            UPDATE pago
+               SET mp_payment_id     = ?,
+                   mp_status         = ?,
+                   mp_payment_method = ?,
+                   Estado_Pago       = ?,
+                   Fecha_Pago        = NOW()
+             WHERE Cod_pedido = ?
+        ");
+        return $stmt->execute([$paymentId, $status, $paymentMethod, $estadoPago, $pedidoId]);
+    }
+
     public function setStripeSession(int $pedidoId, string $sessionId, string $reference): void {
         $stmt = $this->db->prepare("
             UPDATE pago
@@ -101,8 +133,8 @@ class PagoModel {
         $paymentIntentId = (string)($session['payment_intent'] ?? '');
         $sessionId       = (string)($session['id']             ?? '');
 
-        $estadoPago   = $paymentStatus === 'paid'    ? 'Completado' : ($sessionStatus === 'expired' ? 'Fallido'   : 'Pending');
-        $verificacion = $paymentStatus === 'paid'    ? 'aprobado'   : ($sessionStatus === 'expired' ? 'rechazado' : 'pendiente');
+        $estadoPago   = $paymentStatus === 'paid' ? 'Completado' : ($sessionStatus === 'expired' ? 'Fallido' : 'Pendiente');
+        $verificacion = $paymentStatus === 'paid' ? 'aprobado'   : ($sessionStatus === 'expired' ? 'rechazado' : 'pendiente');
         $nota = $paymentStatus === 'paid'
             ? 'Pago confirmado por Stripe.'
             : ($sessionStatus === 'expired'
@@ -124,14 +156,14 @@ class PagoModel {
         $stmt->execute([$sessionId, $paymentIntentId ?: null, $sessionStatus, $paymentStatus, $verificacion, $nota, $estadoPago, $pedidoId]);
 
         return [
-            'success'          => true,
-            'session_id'       => $sessionId,
-            'payment_intent_id'=> $paymentIntentId,
-            'status'           => $sessionStatus,
-            'payment_status'   => $paymentStatus,
-            'estado_pago'      => $estadoPago,
-            'verificacion'     => $verificacion,
-            'mensaje'          => $nota,
+            'success'           => true,
+            'session_id'        => $sessionId,
+            'payment_intent_id' => $paymentIntentId,
+            'status'            => $sessionStatus,
+            'payment_status'    => $paymentStatus,
+            'estado_pago'       => $estadoPago,
+            'verificacion'      => $verificacion,
+            'mensaje'           => $nota,
         ];
     }
 
@@ -169,18 +201,18 @@ class PagoModel {
             'aprobado'  => 'Completado',
             'rechazado' => 'Fallido',
             default     => null,
->>>>>>> 1d86c12 (pasarela de pagos)
         };
+        if ($estadoPago === null) return false;
 
         $stmt = $this->db->prepare("
             UPDATE pago
-               SET mp_payment_id     = ?,
-                   mp_status         = ?,
-                   mp_payment_method = ?,
-                   Estado_Pago       = ?,
-                   Fecha_Pago        = NOW()
-             WHERE Cod_pedido = ?
+               SET verificacion       = ?,
+                   notas_verificacion = ?,
+                   Estado_Pago        = ?,
+                   Fecha_Pago         = NOW()
+             WHERE Cod_Pago = ?
         ");
-        return $stmt->execute([$paymentId, $status, $paymentMethod, $estadoPago, $pedidoId]);
+        return $stmt->execute([$estado, $notas, $estadoPago, $pagoId]);
     }
 }
+

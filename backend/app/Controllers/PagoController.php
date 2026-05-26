@@ -124,15 +124,24 @@ class PagoController {
             return;
         }
 
-<<<<<<< HEAD
         $paymentData = $this->consultarPagoMP((int)$paymentId);
         if (!$paymentData) {
             http_response_code(200);
             echo json_encode(['success' => true]);
             return;
-=======
-        $ok = $this->model->verificar($pagoId, $estado, $notas ?: null);
-        echo json_encode(['success' => $ok]);
+        }
+
+        $pedidoId      = (int)($paymentData['external_reference'] ?? 0);
+        $status        = $paymentData['status']            ?? 'pending';
+        $paymentMethod = $paymentData['payment_method_id'] ?? '';
+        $mpPaymentId   = (string)($paymentData['id']       ?? '');
+
+        if ($pedidoId > 0 && $mpPaymentId !== '') {
+            $this->model->procesarPago($pedidoId, $mpPaymentId, $status, $paymentMethod);
+        }
+
+        http_response_code(200);
+        echo json_encode(['success' => true]);
     }
 
     public function simular(int $pedidoId): void {
@@ -187,22 +196,13 @@ class PagoController {
     private function resolverAppUrl(): string {
         require_once __DIR__ . '/../../config/StripeConfig.php';
 
-        if (STRIPE_APP_URL !== '') {
+        if (defined('STRIPE_APP_URL') && STRIPE_APP_URL !== '') {
             return STRIPE_APP_URL;
->>>>>>> 1d86c12 (pasarela de pagos)
         }
 
-        $pedidoId      = (int)($paymentData['external_reference'] ?? 0);
-        $status        = $paymentData['status']            ?? 'pending';
-        $paymentMethod = $paymentData['payment_method_id'] ?? '';
-        $mpPaymentId   = (string)($paymentData['id']       ?? '');
-
-        if ($pedidoId > 0 && $mpPaymentId !== '') {
-            $this->model->procesarPago($pedidoId, $mpPaymentId, $status, $paymentMethod);
-        }
-
-        http_response_code(200);
-        echo json_encode(['success' => true]);
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host   = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        return $scheme . '://' . $host;
     }
 
     // GET /pago/{pedido}/verificar-mp?payment_id=XXX  — verifica pago tras redirect de MP
