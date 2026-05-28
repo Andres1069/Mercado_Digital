@@ -14,6 +14,9 @@ export default function Navbar({ carritoCount }) {
 
   const [menuAbierto, setMenuAbierto] = useState(false);
 
+  const logoLight = `${import.meta.env.BASE_URL}Logo-Mercado-Digital.png`;
+  const logoDark = `${import.meta.env.BASE_URL}Logo-Mercado-Digital-Blanco.png`;
+
   const estaLogueado = Boolean(usuario);
 
   const count = carritoCount ?? itemsCount;
@@ -56,9 +59,12 @@ export default function Navbar({ carritoCount }) {
           className="flex items-center shrink-0"
         >
           <img
-            src={esOscuro ? "/Logo-Mercado-Digital-Blanco.png" : "/Logo-Mercado-Digital.png"}
+            src={esOscuro ? logoDark : logoLight}
             alt="Mercado Digital"
             className="h-12 sm:h-14 md:h-16 w-auto object-contain"
+            onError={(e) => {
+              e.currentTarget.src = esOscuro ? logoLight : logoDark;
+            }}
           />
         </Link>
 
@@ -69,6 +75,7 @@ export default function Navbar({ carritoCount }) {
               ["/admin/dashboard", "Dashboard"],
               ["/admin/productos", "Productos"],
               ["/admin/ofertas", "Ofertas"],
+              ["/admin/ventas", "Ventas tienda"],
               ["/admin/pedidos", "Pedidos"],
               ["/admin/pagos", "Pagos"],
               ["/admin/inventario", "Inventario"],
@@ -105,6 +112,7 @@ export default function Navbar({ carritoCount }) {
           <div className="hidden md:flex items-center gap-1 text-xs font-medium">
             {[
               ["/empleado/dashboard", "Dashboard"],
+              ["/empleado/ventas", "Ventas tienda"],
               ["/empleado/pedidos", "Pedidos"],
               ["/empleado/inventario", "Inventario"],
               ["/empleado/domicilios", "Domicilios"],
@@ -228,7 +236,7 @@ export default function Navbar({ carritoCount }) {
                 color: esOscuro ? "#ffffff" : "#111827",
               }}
             >
-              <span className="text-xl leading-none">🛍️</span>
+              <span className="text-xl leading-none">🛒</span>
 
               {count > 0 && (
                 <span

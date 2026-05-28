@@ -22,7 +22,9 @@ class UsuarioModel {
 
     // Conteo total de usuarios (para dashboard).
     public function contarUsuarios(): int {
-        return (int)$this->db->query("SELECT COUNT(*) FROM usuario")->fetchColumn();
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM usuario");
+        $stmt->execute();
+        return (int)$stmt->fetchColumn();
     }
 
     // Conteo por estado. Si la BD no soporta Estado, asume todo Activo.
@@ -181,14 +183,16 @@ class UsuarioModel {
 
     public function getAll(): array {
         $selectEstado = $this->tieneEstado ? "u.Estado AS estado" : "'Activo' AS estado";
-        return $this->db->query(
+        $stmt = $this->db->prepare(
             "SELECT p.Num_Documento, p.Nombre, p.Apellido, p.Correo,
                     p.Telefono, p.Barrio, p.Direccion, r.nombre_rol AS rol,
                     r.Id_rol, u.Id_usuario, $selectEstado
              FROM persona p
              INNER JOIN usuario u ON u.Id_usuario = p.Id_Usuario
              INNER JOIN rol_usuario r ON r.Id_rol = u.Id_Rol ORDER BY p.Nombre"
-        )->fetchAll();
+        );
+        $stmt->execute();
+        return $stmt->fetchAll();
     }
 
     // Lee el estado de la cuenta para invalidar tokens si el usuario fue desactivado.
@@ -256,11 +260,13 @@ class UsuarioModel {
     }
 
     public function getRoles(): array {
-        return $this->db->query(
+        $stmt = $this->db->prepare(
             "SELECT Id_rol, nombre_rol
              FROM rol_usuario
              ORDER BY nombre_rol"
-        )->fetchAll();
+        );
+        $stmt->execute();
+        return $stmt->fetchAll();
     }
 
     public function crearDesdeAdmin(array $datos): int {

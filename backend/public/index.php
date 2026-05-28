@@ -150,6 +150,16 @@ switch ($modulo) {
             $metodo === 'POST' && $accion === ''                                        => $ctrl->crear(),
             $metodo === 'GET'  && is_numeric($accion)                                  => $ctrl->obtener((int)$accion),
             $metodo === 'PUT'  && is_numeric($accion) && ($partes[2] ?? '') === 'estado' => $ctrl->cambiarEstado((int)$accion),
+            $metodo === 'PUT'  && is_numeric($accion) && ($partes[2] ?? '') === 'entrega' => $ctrl->actualizarTipoEntrega((int)$accion),
+            $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'notificar-domicilio' => $ctrl->notificarDomicilio((int)$accion),
+            default => ruta404()
+        };
+        break;
+
+    case 'ventas':
+        $ctrl = new PedidoController();
+        match(true) {
+            $metodo === 'POST' && in_array($accion, ['presencial', 'presenciales'], true) => $ctrl->crearVentaPresencial(),
             default => ruta404()
         };
         break;
@@ -224,15 +234,12 @@ switch ($modulo) {
     case 'pago':
         $ctrl = new PagoController();
         match(true) {
-            $metodo === 'GET'  && $accion === 'stripe' && ($partes[2] ?? '') === 'confirmar'           => $ctrl->stripeConfirmar(),
             $metodo === 'GET'  && $accion === ''                                                       => $ctrl->todos(),
             in_array($metodo, ['POST','GET'], true) && $accion === 'webhook'                            => $ctrl->webhook(),
             $metodo === 'GET'  && is_numeric($accion) && ($partes[2] ?? '') === ''                     => $ctrl->obtener((int)$accion),
             $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'preferencia'          => $ctrl->crearPreferencia((int)$accion),
             $metodo === 'GET'  && is_numeric($accion) && ($partes[2] ?? '') === 'verificar-mp'         => $ctrl->verificarMP((int)$accion),
             $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'simulado'             => $ctrl->simular((int)$accion),
-            $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'stripe-checkout'      => $ctrl->stripeCheckout((int)$accion),
-            $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'comprobante'          => $ctrl->subirComprobante((int)$accion),
             $metodo === 'PUT'  && is_numeric($accion) && ($partes[2] ?? '') === 'verificar'            => $ctrl->verificar((int)$accion),
             default => ruta404()
         };

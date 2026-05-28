@@ -9,25 +9,22 @@ class PagoController {
         $this->model = new PagoModel();
     }
 
-    // GET /pago/{pedido}  — usuario autenticado: obtiene su pago
     public function obtener(int $pedidoId): void {
         AuthMiddleware::verify();
         $pago = $this->model->getByPedido($pedidoId);
         if (!$pago) {
             http_response_code(404);
-            echo json_encode(['success' => false, 'message' => 'No se encontró el pago para este pedido.']);
+            echo json_encode(['success' => false, 'message' => 'No se encontro el pago para este pedido.']);
             return;
         }
         echo json_encode(['success' => true, 'pago' => $pago]);
     }
 
-    // GET /pago  — solo admin: lista todos los pagos con datos del cliente
     public function todos(): void {
         AuthMiddleware::requireRole(['Administrador']);
         echo json_encode(['success' => true, 'pagos' => $this->model->getAll()]);
     }
 
-    // POST /pago/{pedido}/preferencia  — crea preferencia en MercadoPago y retorna init_point
     public function crearPreferencia(int $pedidoId): void {
         AuthMiddleware::verify();
 
@@ -38,7 +35,6 @@ class PagoController {
             return;
         }
 
-        // Si ya fue aprobado, no crear nueva preferencia
         if (($pago['mp_status'] ?? '') === 'approved') {
             echo json_encode(['success' => false, 'message' => 'Este pago ya fue completado.']);
             return;
@@ -49,28 +45,30 @@ class PagoController {
         $monto       = (float)$pago['Monto_Pago'];
 
         $preferenceData = [
-            'items' => [
-                [
-                    'id'          => "pedido-{$pedidoId}",
-                    'title'       => "Pedido #{$pedidoId} - Mercado Digital",
-                    'quantity'    => 1,
-                    'unit_price'  => $monto,
-                    'currency_id' => 'COP',
-                ]
-            ],
+            'items' => [[
+                'id'          => "pedido-{$pedidoId}",
+                'title'       => "Pedido #{$pedidoId} - Mercado Digital",
+                'quantity'    => 1,
+                'unit_price'  => $monto,
+                'currency_id' => 'COP',
+            ]],
             'back_urls' => [
                 'success' => "{$frontendUrl}/pago/resultado?pedido={$pedidoId}&status=approved",
                 'failure' => "{$frontendUrl}/carrito",
                 'pending' => "{$frontendUrl}/carrito",
             ],
             'external_reference' => (string)$pedidoId,
-            'notification_url'   => MP_WEBHOOK_URL . '/pago/webhook',
             'payment_methods'    => [
                 'excluded_payment_methods' => [],
                 'excluded_payment_types'   => [],
                 'installments'             => 1,
             ],
         ];
+
+        $webhookUrl = rtrim((string)MP_WEBHOOK_URL, '/') . '/pago/webhook';
+        if ($this->esUrlPublica($webhookUrl)) {
+            $preferenceData['notification_url'] = $webhookUrl;
+        }
 
         $ch = curl_init('https://api.mercadopago.com/checkout/preferences');
         curl_setopt_array($ch, [
@@ -85,6 +83,7 @@ class PagoController {
             CURLOPT_SSL_VERIFYPEER => false,
         ]);
         $resp = curl_exec($ch);
+        $curlError = curl_error($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
@@ -94,7 +93,7 @@ class PagoController {
             echo json_encode([
                 'success' => false,
                 'message' => 'Error al crear preferencia en MercadoPago.',
-                'detail'  => $err['message'] ?? $resp,
+                'detail'  => $err['message'] ?? ($curlError ?: $resp),
             ]);
             return;
         }
@@ -110,13 +109,11 @@ class PagoController {
         ]);
     }
 
-    // POST /pago/webhook  — recibe notificaciones automáticas de MercadoPago (IPN)
     public function webhook(): void {
         $body = json_decode(file_get_contents('php://input'), true) ?? [];
 
-        // MP puede enviar notificaciones tipo "payment" o via query params (?topic=payment&id=XXX)
-        $tipo      = $body['type']          ?? ($_GET['topic'] ?? '');
-        $paymentId = $body['data']['id']    ?? ($_GET['id']    ?? null);
+        $tipo      = $body['type']       ?? ($_GET['topic'] ?? '');
+        $paymentId = $body['data']['id'] ?? ($_GET['id']    ?? null);
 
         if ($tipo !== 'payment' || !$paymentId) {
             http_response_code(200);
@@ -144,81 +141,16 @@ class PagoController {
         echo json_encode(['success' => true]);
     }
 
-    public function simular(int $pedidoId): void {
-        $payload = AuthMiddleware::verify();
-        $doc = (int)($payload['num_documento'] ?? 0);
-
-        $body   = json_decode(file_get_contents('php://input'), true) ?? [];
-        $metodo = trim($body['metodo'] ?? '');
-        $datos  = is_array($body['datos'] ?? null) ? $body['datos'] : [];
-
-        if (!in_array($metodo, ['Tarjeta', 'Nequi', 'Daviplata'], true)) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Método de pago no válido.']);
-            return;
-        }
-
-        $pago = $this->model->getCheckoutData($pedidoId, $doc);
-        if (!$pago) {
-            http_response_code(404);
-            echo json_encode(['success' => false, 'message' => 'No se encontró el pago para este pedido.']);
-            return;
-        }
-
-        if ($metodo === 'Tarjeta') {
-            $numero   = preg_replace('/[\s\-]/', '', (string)($datos['numero_tarjeta'] ?? ''));
-            $aprobado = $numero === '4000000000000000';
-            $rechazo  = (mt_rand(0, 1) === 0) ? 'Fondos insuficientes.' : 'Transacción declinada por el banco.';
-        } else {
-            $celular  = preg_replace('/[\s\-]/', '', (string)($datos['celular'] ?? ''));
-            $aprobado = $celular === '3000000000';
-            $rechazo  = 'Número no registrado en ' . $metodo . '.';
-        }
-
-        $verificacion = $aprobado ? 'aprobado' : 'rechazado';
-        $estadoPago   = $aprobado ? 'Completado' : 'Fallido';
-        $mensaje      = $aprobado ? '¡Pago aprobado! Gracias por tu compra.' : ($rechazo ?? 'Transacción rechazada.');
-
-        $this->model->registrarSimulado($pedidoId, $metodo, $verificacion, $estadoPago, $mensaje);
-
-        echo json_encode([
-            'success'   => true,
-            'resultado' => [
-                'aprobado'     => $aprobado,
-                'verificacion' => $verificacion,
-                'mensaje'      => $mensaje,
-            ],
-        ]);
-    }
-
-    // ── Helpers privados ──────────────────────────────────────────────────
-
-    private function resolverAppUrl(): string {
-        require_once __DIR__ . '/../../config/StripeConfig.php';
-
-        if (defined('STRIPE_APP_URL') && STRIPE_APP_URL !== '') {
-            return STRIPE_APP_URL;
-        }
-
-        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-        $host   = $_SERVER['HTTP_HOST'] ?? 'localhost';
-        return $scheme . '://' . $host;
-    }
-
-    // GET /pago/{pedido}/verificar-mp?payment_id=XXX  — verifica pago tras redirect de MP
     public function verificarMP(int $pedidoId): void {
         AuthMiddleware::verify();
 
         $paymentId = $_GET['payment_id'] ?? null;
-
-        // 1. Si tenemos payment_id explícito, intentar con ese primero
         $paymentData = null;
+
         if ($paymentId) {
             $paymentData = $this->consultarPagoMP((int)$paymentId);
         }
 
-        // 2. Si no tenemos datos o el estado sigue pendiente, buscar por external_reference
-        //    Esto cubre el caso en que el usuario cerró la pestaña de MP sin volver.
         $statusActual = $paymentData['status'] ?? '';
         if (!$paymentData || in_array($statusActual, ['pending', 'in_process', ''], true)) {
             $mejorPago = $this->buscarMejorPagoPorPedido($pedidoId);
@@ -241,10 +173,62 @@ class PagoController {
         echo json_encode(['success' => true, 'pago' => $pago]);
     }
 
-    /**
-     * Busca todos los pagos de MP asociados al pedido por external_reference
-     * y devuelve el mejor: primero approved, luego in_process, luego pending.
-     */
+    public function simular(int $pedidoId): void {
+        $payload = AuthMiddleware::verify();
+        $doc = (int)($payload['num_documento'] ?? 0);
+
+        $body   = json_decode(file_get_contents('php://input'), true) ?? [];
+        $metodo = trim($body['metodo'] ?? '');
+        $datos  = is_array($body['datos'] ?? null) ? $body['datos'] : [];
+
+        if (!in_array($metodo, ['Tarjeta', 'Nequi', 'Daviplata'], true)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Metodo de pago no valido.']);
+            return;
+        }
+
+        $pago = $this->model->getCheckoutData($pedidoId, $doc);
+        if (!$pago) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'No se encontro el pago para este pedido.']);
+            return;
+        }
+
+        if ($metodo === 'Tarjeta') {
+            $numero   = preg_replace('/[\s\-]/', '', (string)($datos['numero_tarjeta'] ?? ''));
+            $aprobado = $numero === '4000000000000000';
+            $rechazo  = (mt_rand(0, 1) === 0) ? 'Fondos insuficientes.' : 'Transaccion declinada por el banco.';
+        } else {
+            $celular  = preg_replace('/[\s\-]/', '', (string)($datos['celular'] ?? ''));
+            $aprobado = $celular === '3000000000';
+            $rechazo  = 'Numero no registrado en ' . $metodo . '.';
+        }
+
+        $verificacion = $aprobado ? 'aprobado' : 'rechazado';
+        $estadoPago   = $aprobado ? 'Completado' : 'Fallido';
+        $mensaje      = $aprobado ? 'Pago aprobado. Gracias por tu compra.' : ($rechazo ?? 'Transaccion rechazada.');
+
+        $this->model->registrarSimulado($pedidoId, $metodo, $verificacion, $estadoPago, $mensaje);
+
+        echo json_encode([
+            'success'   => true,
+            'resultado' => [
+                'aprobado'     => $aprobado,
+                'verificacion' => $verificacion,
+                'mensaje'      => $mensaje,
+            ],
+        ]);
+    }
+
+    public function verificar(int $pagoId): void {
+        AuthMiddleware::requireRole(['Administrador']);
+        $body = json_decode(file_get_contents('php://input'), true) ?? [];
+        $estado = (string)($body['estado'] ?? '');
+        $notas = trim((string)($body['notas'] ?? ''));
+        $ok = $this->model->verificar($pagoId, $estado, $notas ?: null);
+        echo json_encode(['success' => $ok]);
+    }
+
     private function buscarMejorPagoPorPedido(int $pedidoId): ?array {
         $ch = curl_init(
             "https://api.mercadopago.com/v1/payments/search" .
@@ -264,7 +248,6 @@ class PagoController {
         $data = json_decode($resp, true);
         $pagos = $data['results'] ?? [];
 
-        // Prioridad: approved > in_process > pending
         $prioridad = ['approved' => 0, 'in_process' => 1, 'pending' => 2];
         usort($pagos, fn($a, $b) =>
             ($prioridad[$a['status']] ?? 99) <=> ($prioridad[$b['status']] ?? 99)
@@ -272,8 +255,6 @@ class PagoController {
 
         return !empty($pagos) ? $pagos[0] : null;
     }
-
-    // ── Helper privado ────────────────────────────────────────────────────
 
     private function consultarPagoMP(int $paymentId): ?array {
         $ch = curl_init("https://api.mercadopago.com/v1/payments/{$paymentId}");
@@ -289,5 +270,16 @@ class PagoController {
         if ($code !== 200) return null;
         $data = json_decode($resp, true);
         return is_array($data) ? $data : null;
+    }
+
+    private function esUrlPublica(string $url): bool {
+        $host = parse_url($url, PHP_URL_HOST);
+        if (!$host) return false;
+
+        $host = strtolower($host);
+        if (in_array($host, ['localhost', '127.0.0.1', '::1'], true)) return false;
+        if (preg_match('/^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.)/', $host)) return false;
+
+        return (bool)filter_var($url, FILTER_VALIDATE_URL);
     }
 }

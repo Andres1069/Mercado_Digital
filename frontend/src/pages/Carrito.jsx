@@ -5,9 +5,11 @@ import { resolverImagen, pedidoService } from "../services/api";
 import { useCart } from "../context/CartContext";
 
 const METODOS_PAGO = [
-  { nombre: "Simulado", etiqueta: "Prueba de desarrollo", tipo: "Simulador", icon: "🏦" },
-  { nombre: "Stripe",   etiqueta: "Tarjeta de prueba",   tipo: "Pasarela",  icon: "💳" },
+  { nombre: "MercadoPago", etiqueta: "Pago con QR", tipo: "Pasarela", icon: "QR" },
+  { nombre: "Simulado", etiqueta: "Prueba de desarrollo", tipo: "Simulador", icon: "$" },
 ];
+
+const HORARIO_PEDIDOS = "Los pedidos se realizan de lunes a viernes de 10 AM a 5 PM. Fines de semana de 10 AM a 4 PM.";
 
 export default function Carrito() {
   const { items, updateQty, removeItem, clearCart, itemsCount, subtotal } = useCart();
@@ -15,18 +17,19 @@ export default function Carrito() {
 
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState("");
-  const [metodoPago, setMetodoPago] = useState("Simulado");
   const [mostrarModal, setMostrarModal] = useState(false);
+  const [metodoPago, setMetodoPago] = useState("MercadoPago");
   const envioEnCursoRef = useRef(false);
 
   const envio = subtotal > 70000 || items.length === 0 ? 0 : 7900;
   const total = subtotal + envio;
 
   async function handleFinalizarCompra() {
-    setError("");
-    setProcesando(true);
     if (envioEnCursoRef.current) return;
     envioEnCursoRef.current = true;
+    setError("");
+    setProcesando(true);
+
     try {
       const res = await pedidoService.crear({
         items: items.map((it) => ({ id: it.id, nombre: it.nombre, precio: it.precio, cantidad: it.cantidad })),
@@ -34,9 +37,9 @@ export default function Carrito() {
         monto_total: total,
       });
       setMostrarModal(false);
-      const ruta = metodoPago === "Stripe"
-        ? `/pago/stripe?pedido=${res.cod_pedido}`
-        : `/pago/simulado?pedido=${res.cod_pedido}`;
+      const ruta = metodoPago === "Simulado"
+        ? `/pago/simulado?pedido=${res.cod_pedido}`
+        : `/pago/qr?pedido=${res.cod_pedido}`;
       navigate(ruta);
     } catch (e) {
       setError(e.message || "No se pudo procesar el pedido.");
@@ -66,9 +69,12 @@ export default function Carrito() {
           )}
         </div>
 
+        <div className="mb-5 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800">
+          {HORARIO_PEDIDOS}
+        </div>
+
         {items.length === 0 ? (
           <div className="cart-empty-modern bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-14 text-center">
-            <div className="text-6xl mb-3">🛒</div>
             <div
               className="mx-auto w-24 h-24 rounded-2xl flex items-center justify-center shadow-sm"
               style={{ background: "rgba(107,142,78,0.14)", color: "#6B8E4E" }}
@@ -95,7 +101,9 @@ export default function Carrito() {
                       {it.imagen ? (
                         <img src={resolverImagen(it.imagen)} alt={it.nombre} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>
+                        <div className="w-full h-full flex items-center justify-center text-2xl">
+                          <i className="fa-solid fa-box" aria-hidden="true" />
+                        </div>
                       )}
                     </div>
 
@@ -152,6 +160,9 @@ export default function Carrito() {
 
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 h-fit">
               <h3 className="text-lg font-bold text-gray-800 mb-4">Resumen</h3>
+              <div className="mb-4 rounded-2xl border border-green-200 bg-green-50 px-3 py-3 text-xs font-semibold leading-relaxed text-green-800">
+                {HORARIO_PEDIDOS}
+              </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal</span>
@@ -168,18 +179,20 @@ export default function Carrito() {
               </div>
 
               {error && (
-                <div className="mt-4 px-3 py-2 rounded-xl text-xs border"
-                  style={{ backgroundColor: "#fee2e2", borderColor: "#fca5a5", color: "#991b1b" }}>
+                <div
+                  className="mt-4 px-3 py-2 rounded-xl text-xs border"
+                  style={{ backgroundColor: "#fee2e2", borderColor: "#fca5a5", color: "#991b1b" }}
+                >
                   {error}
                 </div>
               )}
               <button
-                onClick={() => setMostrarModal(true)}
+                onClick={() => { setError(""); setMostrarModal(true); }}
                 disabled={procesando}
                 className="w-full mt-5 text-white font-bold py-3 rounded-xl hover:opacity-90 transition disabled:opacity-50"
                 style={{ background: "linear-gradient(135deg,#6B8E4E,#3C5148)" }}
               >
-                {procesando ? "Procesando..." : "Finalizar compra →"}
+                {procesando ? "Procesando..." : "Finalizar compra ->"}
               </button>
               <Link
                 to="/tienda"
@@ -196,10 +209,13 @@ export default function Carrito() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
             <h2 className="text-lg font-extrabold text-gray-800 mb-1">Confirmar pedido</h2>
-            <p className="text-sm text-gray-500 mb-4">Elige cómo quieres realizar el pago.</p>
+            <p className="text-sm text-gray-500 mb-4">Elige como quieres realizar el pago.</p>
 
             {error && (
-              <div className="mb-3 px-3 py-2 rounded-xl text-xs border" style={{ backgroundColor: "#fee2e2", borderColor: "#fca5a5", color: "#991b1b" }}>
+              <div
+                className="mb-3 px-3 py-2 rounded-xl text-xs border"
+                style={{ backgroundColor: "#fee2e2", borderColor: "#fca5a5", color: "#991b1b" }}
+              >
                 {error}
               </div>
             )}
@@ -217,7 +233,7 @@ export default function Carrito() {
                     : { borderColor: "#e5e7eb", backgroundColor: "white" }}
                 >
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0"
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shrink-0"
                     style={metodoPago === m.nombre
                       ? { background: "linear-gradient(135deg,#3C5148,#6B8E4E)", color: "white" }
                       : { backgroundColor: "#f3f4f6", color: "#6b7280" }}
@@ -226,12 +242,12 @@ export default function Carrito() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <span className="text-sm font-semibold text-gray-700">{m.nombre}</span>
-                    {m.nombre === "Simulado" && (
+                    {m.nombre === "MercadoPago" && (
                       <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ backgroundColor: "#dcfce7", color: "#166534" }}>
                         Recomendado
                       </span>
                     )}
-                    <div className="text-[11px] text-gray-400 mt-0.5">{m.etiqueta} · {m.tipo}</div>
+                    <div className="text-[11px] text-gray-400 mt-0.5">{m.etiqueta} - {m.tipo}</div>
                   </div>
                   <div
                     className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"

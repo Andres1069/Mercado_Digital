@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ThemeToggle from "../components/ThemeToggle";
 import { productoService, ofertaService, categoriaService, resolverImagen } from "../services/api";
@@ -7,6 +7,8 @@ import { useTheme } from "../context/ThemeContext";
 function formatMoney(value) {
   return `$${Number(value || 0).toLocaleString("es-CO")}`;
 }
+
+const HORARIO_PEDIDOS = "Pedidos: lunes a viernes de 10 AM a 5 PM. Fines de semana de 10 AM a 4 PM.";
 
 function normalizarCategoria(nombre = "") {
   return nombre
@@ -18,16 +20,16 @@ function normalizarCategoria(nombre = "") {
 function obtenerVisualCategoria(nombre = "", index) {
   const clave = normalizarCategoria(nombre);
   const paletas = [
-    { icono: "🛢️", top: "#eef5ec", accent: "#6B8E4E", accentDark: "#5f7f45" },
-    { icono: "🧼", top: "#ecebfb", accent: "#3C5148", accentDark: "#32443d" },
-    { icono: "🥤", top: "#fdf0e4", accent: "#6B8E4E", accentDark: "#5f7f45" },
-    { icono: "🌾", top: "#dff4fb", accent: "#06b6d4", accentDark: "#0891b2" },
-    { icono: "🍬", top: "#fbe7f0", accent: "#6B8E4E", accentDark: "#5f7f45" },
-    { icono: "🍞", top: "#fdf2dc", accent: "#f59e0b", accentDark: "#d97706" },
-    { icono: "🧀", top: "#eaedff", accent: "#6B8E4E", accentDark: "#5f7f45" },
-    { icono: "🥐", top: "#e3f5f0", accent: "#6B8E4E", accentDark: "#5f7f45" },
-    { icono: "🏠", top: "#eef5ec", accent: "#6B8E4E", accentDark: "#5f7f45" },
-    { icono: "🍪", top: "#ecebfb", accent: "#3C5148", accentDark: "#32443d" },
+    { top: "#eef5ec", accent: "#6B8E4E", accentDark: "#5f7f45" },
+    { top: "#ecebfb", accent: "#3C5148", accentDark: "#32443d" },
+    { top: "#fdf0e4", accent: "#6B8E4E", accentDark: "#5f7f45" },
+    { top: "#dff4fb", accent: "#06b6d4", accentDark: "#0891b2" },
+    { top: "#fbe7f0", accent: "#6B8E4E", accentDark: "#5f7f45" },
+    { top: "#fdf2dc", accent: "#f59e0b", accentDark: "#d97706" },
+    { top: "#eaedff", accent: "#6B8E4E", accentDark: "#5f7f45" },
+    { top: "#e3f5f0", accent: "#6B8E4E", accentDark: "#5f7f45" },
+    { top: "#eef5ec", accent: "#6B8E4E", accentDark: "#5f7f45" },
+    { top: "#ecebfb", accent: "#3C5148", accentDark: "#32443d" },
   ];
 
   if (clave.includes("aceite")) return paletas[0];
@@ -62,8 +64,8 @@ function ProductoCard({ producto }) {
         {imagen ? (
           <img src={imagen} alt={producto.Nombre} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-5xl" style={{ backgroundColor: "rgba(107,142,78,0.08)" }}>
-            🛒
+          <div className="w-full h-full flex items-center justify-center text-sm font-black tracking-[0.2em]" style={{ backgroundColor: "rgba(107,142,78,0.08)", color: "#6B8E4E" }}>
+            MD
           </div>
         )}
       </div>
@@ -163,7 +165,7 @@ export default function Landing() {
       label: "Envío express",
       title: "Recibe tu pedido en tiempo récord",
       description:
-        "Seguimiento en vivo, despachos confiables y entregas optimizadas para que tus compras lleguen directo a la puerta.",
+        "Seguimiento en vivo, despachos confiables y entregas optimizadas dentro de nuestro horario de atencion.",
     },
     {
       label: "Pagos seguros",
@@ -381,9 +383,121 @@ export default function Landing() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-5 py-10">
+      <main className="pb-10">
+        <section
+          className="relative overflow-hidden px-4 pb-14 pt-28 sm:px-5 lg:pb-20"
+          style={{
+            backgroundImage: esOscuro
+              ? "linear-gradient(180deg, #12351f 0%, #102016 48%, #0f172a 100%)"
+              : "linear-gradient(180deg, #dff4dc 0%, #effaf0 48%, #ffffff 100%)",
+          }}
+        >
+          <div
+            className="relative mx-auto max-w-6xl overflow-hidden px-1 py-8 sm:px-4 lg:min-h-[470px] lg:px-0 lg:py-12"
+            style={{
+              color: esOscuro ? "#f8fafc" : "#111827",
+            }}
+          >
+            <div className="absolute inset-0 opacity-[0.08] lg:-mx-20" aria-hidden="true">
+              <div
+                className="h-full w-full"
+                style={{
+                  backgroundImage:
+                    "repeating-linear-gradient(45deg, transparent 0 18px, rgba(107,142,78,0.42) 18px 19px)",
+                }}
+              />
+            </div>
+
+            <div className="relative z-10 grid items-center gap-10 lg:grid-cols-[1fr_0.95fr]">
+              <div className="max-w-xl">
+                <span
+                  className="inline-flex items-center rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.22em]"
+                  style={{
+                    backgroundColor: esOscuro ? "rgba(183,216,163,0.14)" : "#ffffff",
+                    color: esOscuro ? "#d9f99d" : "#166534",
+                    border: `1px solid ${esOscuro ? "rgba(183,216,163,0.18)" : "#cdecc9"}`,
+                  }}
+                >
+                  Mercado fresco online
+                </span>
+
+                <h1
+                  className="mt-6 text-4xl font-black leading-tight sm:text-5xl lg:text-[56px]"
+                  style={{ color: esOscuro ? "#f8fafc" : "#111827" }}
+                >
+                  Haz tu mercado con productos{" "}
+                  <span style={{ color: "#16a34a" }}>frescos</span> para tu hogar
+                </h1>
+
+                <p
+                  className="mt-5 max-w-lg text-sm font-medium leading-7 sm:text-base"
+                  style={{ color: esOscuro ? "#cbd5e1" : "#3f4f46" }}
+                >
+                  Compra facil, encuentra ofertas y recibe tus productos sin filas.
+                  Tenemos despachos dentro del horario de atencion para que tu
+                  mercado llegue a tiempo.
+                </p>
+
+                <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <Link
+                    to="/tienda"
+                    className="inline-flex min-h-12 items-center justify-center rounded-xl px-7 text-sm font-black text-white transition hover:brightness-110"
+                    style={{ backgroundColor: "#16a34a" }}
+                  >
+                    Comprar ahora
+                  </Link>
+
+                  <a
+                    href="#productos"
+                    className="inline-flex min-h-12 items-center justify-center gap-3 rounded-xl px-5 text-sm font-bold transition"
+                    style={{
+                      backgroundColor: esOscuro ? "rgba(255,255,255,0.08)" : "#ffffff",
+                      color: esOscuro ? "#f8fafc" : "#111827",
+                      border: `1px solid ${esOscuro ? "rgba(148,163,184,0.18)" : "#dbe8d8"}`,
+                    }}
+                  >
+                    Ver productos
+                  </a>
+                </div>
+
+                <p
+                  className="mt-6 text-sm font-semibold"
+                  style={{ color: esOscuro ? "#b7d8a3" : "#166534" }}
+                >
+                  {HORARIO_PEDIDOS}
+                </p>
+              </div>
+
+              <div className="relative min-h-[320px] sm:min-h-[390px] lg:min-h-[430px]">
+                <div
+                  className="absolute bottom-0 left-1/2 h-[78%] w-[76%] -translate-x-1/2 rounded-t-[120px]"
+                  style={{
+                    backgroundColor: esOscuro ? "rgba(22,163,74,0.28)" : "#bfe8b9",
+                  }}
+                  aria-hidden="true"
+                />
+
+                <img
+                  src="/login.png"
+                  alt="Mujer con productos frescos"
+                  className="absolute bottom-0 left-1/2 z-10 h-full max-h-[430px] w-auto -translate-x-1/2 object-contain"
+                />
+
+                <div
+                  className="absolute bottom-8 right-2 z-20 rounded-2xl px-4 py-3 shadow-xl sm:right-4"
+                  style={{ backgroundColor: "#f97316", color: "#ffffff" }}
+                >
+                  <p className="text-sm font-black">Entrega</p>
+                  <p className="text-[11px] font-semibold text-white/85">Rapida y segura</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="max-w-6xl mx-auto px-4 sm:px-5">
         {/* SLIDER INDEPENDIENTE */}
-      <section className="mb-10 mt-24">
+      <section className="mb-10">
         <div
           className="relative overflow-hidden rounded-[32px] p-10 shadow-xl transition-all"
           style={{
@@ -423,6 +537,17 @@ export default function Landing() {
             >
               {slides[activeSlide].description}
             </p>
+
+            <div
+              className="mt-6 inline-flex max-w-full items-center rounded-2xl px-4 py-3 text-sm font-semibold"
+              style={{
+                backgroundColor: esOscuro ? "rgba(107,142,78,0.14)" : "#f0fdf4",
+                border: `1px solid ${esOscuro ? "rgba(183,216,163,0.28)" : "#bbf7d0"}`,
+                color: esOscuro ? "#d9f99d" : "#166534",
+              }}
+            >
+              {HORARIO_PEDIDOS}
+            </div>
           </div>
 
           <div className="mt-10 flex flex-wrap items-center justify-between gap-4">
@@ -476,42 +601,6 @@ export default function Landing() {
           </div>
         </div>
       </section>
-      <section className="py-10">
-  <div className="max-w-3xl">
-    <span
-      className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em]"
-      style={{
-        backgroundColor: esOscuro
-          ? "rgba(107,142,78,0.12)"
-          : "#ecfdf5",
-        color: esOscuro ? "#b7d8a3" : "#166534",
-      }}
-    >
-      Compra fácil y sin filas
-    </span>
-
-    <h1
-      className="mt-6 text-4xl sm:text-5xl font-black leading-tight"
-      style={{
-        color: esOscuro ? "#f8fafc" : "#0f172a",
-      }}
-    >
-      Todo lo que necesitas para tu hogar, en un solo lugar.
-    </h1>
-
-    <p
-      className="mt-5 text-base leading-8 max-w-2xl"
-      style={{
-        color: esOscuro ? "#cbd5e1" : "#475569",
-      }}
-    >
-      Descubre ofertas, categorías y productos listos para comprar.
-      Navega rápido, agrega al carrito y recíbelo en la puerta de tu
-      casa.
-    </p>
-  </div>
-</section>
-
         <section id="ofertas" className="py-10">
           <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -564,21 +653,15 @@ export default function Landing() {
                 <p style={{ color: esOscuro ? "#d1d5db" : "#475569" }}>No se encontraron categorías.</p>
               </div>
             ) : (
-              categorias.slice(0, 8).map((categoria, index) => {
-                const nombreCategoria = (categoria.Nombre || categoria.nombre || "").trim().toLowerCase();
-                const productoEjemplo = productos.find((producto) => {
-                  const nombreProdCategoria = (producto.Categoria || producto.categoria || "").trim().toLowerCase();
-                  return nombreProdCategoria === nombreCategoria && (producto.Imagen_url || producto.imagen_url || producto.imagen || "");
-                });
-                return (
+              categorias
+                .slice(0, 8)
+                .map((categoria, index) => (
                   <CategoriaCard
                     key={categoria.Id_categoria || categoria.id || index}
                     categoria={categoria}
                     index={index}
-                    imagenEjemplo={productoEjemplo?.Imagen_url || productoEjemplo?.imagen_url || productoEjemplo?.imagen || ""}
                   />
-                );
-              })
+                ))
             )}
           </div>
         </section>
@@ -611,6 +694,7 @@ export default function Landing() {
             )}
           </div>
         </section>
+        </div>
       </main>
     </div>
   );

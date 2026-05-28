@@ -4,6 +4,8 @@ import Navbar from "../components/Navbar";
 import { pagoService } from "../services/api";
 import { useCart } from "../context/CartContext";
 
+const HORARIO_PEDIDOS = "Los pedidos se realizan de lunes a viernes de 10 AM a 5 PM. Fines de semana de 10 AM a 4 PM.";
+
 const POLL_INTERVAL = 4000; // cada 4 s
 const POLL_MAX      = 10;   // máximo 10 intentos (40 s)
 
@@ -79,6 +81,8 @@ export default function PagoResultado() {
   }
 
   const estado     = pago?.Estado_Pago || "Pendiente";
+  const tipoEntrega = pago?.Tipo_Entrega || "Domicilio";
+  const recogeEnTienda = tipoEntrega === "Recoger_Tienda";
   const aprobado   = estado === "Completado";
   const rechazado  = estado === "Fallido";
   const pendiente  = !aprobado && !rechazado;
@@ -118,11 +122,17 @@ export default function PagoResultado() {
           {/* Mensaje */}
           <p className="text-slate-600 text-sm leading-relaxed mb-6">
             {aprobado
-              ? "Tu pago fue procesado exitosamente por MercadoPago. Ya puedes registrar tu dirección de entrega."
+              ? recogeEnTienda
+                ? "Tu pago fue procesado exitosamente por MercadoPago. Prepararemos tu pedido para que puedas recogerlo en tienda."
+                : "Tu pago fue procesado exitosamente por MercadoPago. Ya puedes registrar tu dirección de entrega."
               : rechazado
               ? "El pago fue rechazado. Puedes intentarlo de nuevo con otro método de pago."
               : "Tu pago está siendo procesado. Recibirás una confirmación en breve."}
           </p>
+
+          <div className="mb-6 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold leading-relaxed text-green-800">
+            {HORARIO_PEDIDOS}
+          </div>
 
           {/* Detalles */}
           {pago && (
@@ -138,6 +148,12 @@ export default function PagoResultado() {
                   <span className="font-bold text-slate-800">{fmt(pago.Monto_Pago)}</span>
                 </div>
               )}
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Entrega</span>
+                <span className="font-bold text-slate-800">
+                  {recogeEnTienda ? "Recoger en tienda" : "Domicilio"}
+                </span>
+              </div>
               {pago.mp_payment_method && (
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Método</span>
@@ -156,11 +172,11 @@ export default function PagoResultado() {
           {/* Acciones */}
           {aprobado && (
             <button
-              onClick={() => navigate(`/domicilio/crear?pedido=${pedidoId}`)}
+              onClick={() => recogeEnTienda ? navigate("/mis-pedidos") : navigate(`/domicilio/crear?pedido=${pedidoId}`)}
               className="w-full py-3.5 rounded-2xl text-white font-extrabold text-base transition"
               style={{ background: "linear-gradient(135deg,#6B8E4E,#3C5148)" }}
             >
-              Continuar → Registrar dirección de entrega
+              {recogeEnTienda ? "Ver estado de mi pedido" : "Continuar → Registrar dirección de entrega"}
             </button>
           )}
 

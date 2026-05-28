@@ -35,6 +35,11 @@ const Ico = {
       <line x1="1" y1="10" x2="23" y2="10"/>
     </svg>
   ),
+  ventas: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[18px] h-[18px] flex-shrink-0">
+      <path d="M3 3h18v6H3z"/><path d="M4 9v12h16V9"/><path d="M8 13h8"/><path d="M8 17h5"/>
+    </svg>
+  ),
   inventario: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[18px] h-[18px] flex-shrink-0">
       <polygon points="12 2 2 7 12 12 22 7 12 2"/>
@@ -95,6 +100,7 @@ const LINKS_ADMIN = [
   { to: "/admin/dashboard",    label: "Dashboard",     icon: Ico.dashboard,   color: "#6B8E4E" },
   { to: "/admin/productos",    label: "Productos",     icon: Ico.productos,   color: "#6B8E4E" },
   { to: "/admin/ofertas",      label: "Ofertas",       icon: Ico.ofertas,     color: "#D5DDDF" },
+  { to: "/admin/ventas",       label: "Ventas tienda", icon: Ico.ventas,      color: "#6B8E4E" },
   { to: "/admin/pedidos",      label: "Pedidos",       icon: Ico.pedidos,     color: "#6B8E4E" },
   { to: "/admin/pagos",        label: "Pagos",         icon: Ico.pagos,       color: "#6B8E4E" },
   { to: "/admin/inventario",   label: "Inventario",    icon: Ico.inventario,  color: "#D5DDDF" },
@@ -108,6 +114,7 @@ const LINKS_ADMIN = [
 const LINKS_EMPLEADO = [
   { to: "/empleado/dashboard",  label: "Dashboard",  icon: Ico.dashboard,  color: "#6B8E4E" },
   { to: "/empleado/productos",  label: "Productos",  icon: Ico.productos,  color: "#6B8E4E" },
+  { to: "/empleado/ventas",     label: "Ventas tienda", icon: Ico.ventas,   color: "#6B8E4E" },
   { to: "/empleado/pedidos",    label: "Pedidos",    icon: Ico.pedidos,    color: "#6B8E4E" },
   { to: "/empleado/inventario", label: "Inventario", icon: Ico.inventario, color: "#D5DDDF" },
   { to: "/empleado/domicilios", label: "Domicilios", icon: Ico.domicilios, color: "#B2C5B2" },
@@ -132,28 +139,7 @@ export default function Sidebar() {
     return (
       <div className="flex flex-col h-full" style={{ backgroundColor: "#3C5148", borderRight: "1px solid rgba(107,142,78,0.2)" }}>
 
-        {/* Logo */}
-        <Link
-          to={esEmp ? "/empleado/dashboard" : "/admin/dashboard"}
-          onClick={cerrar}
-          className="flex items-center gap-3 px-5 py-5 hover:bg-white/5 transition"
-        >
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background: "linear-gradient(135deg, #1B2727, #6B8E4E)" }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
-              <line x1="3" y1="6" x2="21" y2="6"/>
-              <path d="M16 10a4 4 0 01-8 0"/>
-            </svg>
-          </div>
-          <div className="min-w-0">
-            <p className="text-white font-black text-base leading-none">Mercado</p>
-            <p className="text-[11px] font-semibold leading-none mt-0.5" style={{ color: "#6B8E4E" }}>Digital Admin</p>
-          </div>
-        </Link>
-
-        {/* Separador */}
-        <div className="mx-4 border-t" style={{ borderColor: "rgba(107,142,78,0.12)" }} />
+        
 
         {/* Usuario */}
         <div className="px-3 py-3">

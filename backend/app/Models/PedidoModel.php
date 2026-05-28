@@ -2,12 +2,74 @@
 // backend/app/Models/PedidoModel.php
 
 require_once __DIR__ . '/../../config/Database.php';
+require_once __DIR__ . '/PagoModel.php';
 
 class PedidoModel {
     private PDO $db;
+    private array $pagoCols = [];
+    private array $domicilioCols = [];
 
     public function __construct() {
         $this->db = (new Database())->getConnection();
+        $this->ensureVentaColumns();
+        try {
+            new PagoModel(); // Si puede, actualiza columnas de MercadoPago; si no, usamos selects compatibles.
+        } catch (Throwable $e) {
+            error_log('[PedidoModel] No se pudo sincronizar columnas de pago: ' . $e->getMessage());
+        }
+        $this->detectarSchema();
+    }
+
+    private function ensureVentaColumns(): void {
+        try {
+            $this->db->exec("ALTER TABLE pedido ADD COLUMN IF NOT EXISTS Canal_Venta VARCHAR(20) NOT NULL DEFAULT 'Online'");
+            $this->db->exec("ALTER TABLE pedido ADD COLUMN IF NOT EXISTS Tipo_Entrega VARCHAR(20) NOT NULL DEFAULT 'Domicilio'");
+            $this->db->exec("ALTER TABLE pedido ADD COLUMN IF NOT EXISTS Num_Documento_Vendedor INT DEFAULT NULL");
+            $this->db->exec("ALTER TABLE pedido ADD COLUMN IF NOT EXISTS Observaciones_Venta VARCHAR(255) DEFAULT NULL");
+        } catch (Throwable $e) {
+            error_log('[PedidoModel] No se pudo sincronizar columnas de venta: ' . $e->getMessage());
+        }
+    }
+
+    private function detectarSchema(): void {
+        $this->pagoCols = $this->columnasTabla('pago');
+        $this->domicilioCols = $this->columnasTabla('domicilio');
+    }
+
+    private function columnasTabla(string $tabla): array {
+        try {
+            $stmt = $this->db->prepare(
+                "SELECT COLUMN_NAME
+                 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME = :tabla"
+            );
+            $stmt->execute([':tabla' => $tabla]);
+            return array_map(static fn($r) => (string)$r['COLUMN_NAME'], $stmt->fetchAll(PDO::FETCH_ASSOC) ?: []);
+        } catch (Throwable $e) {
+            return [];
+        }
+    }
+
+    private function hasCol(array $cols, string $col): bool {
+        foreach ($cols as $c) {
+            if (strcasecmp($c, $col) === 0) return true;
+        }
+        return false;
+    }
+
+    private function selectPago(string $col, string $alias = ''): string {
+        $salida = $alias !== '' ? $alias : $col;
+        return $this->hasCol($this->pagoCols, $col)
+            ? "pa.$col AS $salida"
+            : "NULL AS $salida";
+    }
+
+    private function selectDomicilio(string $col, string $alias = ''): string {
+        $salida = $alias !== '' ? $alias : $col;
+        return $this->hasCol($this->domicilioCols, $col)
+            ? "d.$col AS $salida"
+            : "NULL AS $salida";
     }
 
     public function getMisPedidos(int $numDocumento): array {
@@ -15,13 +77,17 @@ class PedidoModel {
                     p.Cod_Pedido,
                     p.Fecha_Pedido,
                     p.Estado_Pedido,
+                    p.Canal_Venta,
+                    p.Tipo_Entrega,
+                    p.Num_Documento_Vendedor,
+                    p.Observaciones_Venta,
                     c.Cantidad_articulos,
                     c.Total AS Total_Carrito,
                     pa.Metodo_Pago,
                     pa.Estado_Pago,
                     pa.Monto_Pago,
-                    pa.mp_payment_id,
-                    pa.mp_status,
+                    " . $this->selectPago('mp_payment_id') . ",
+                    " . $this->selectPago('mp_status') . ",
                     d.Estado AS Estado_Domicilio,
                     d.Fecha  AS Fecha_Domicilio
                 FROM pedido p
@@ -42,17 +108,29 @@ class PedidoModel {
                     p.Cod_Pedido,
                     p.Fecha_Pedido,
                     p.Estado_Pedido,
+                    p.Canal_Venta,
+                    p.Tipo_Entrega,
+                    p.Num_Documento_Vendedor,
+                    p.Observaciones_Venta,
                     c.Cantidad_articulos,
                     c.Total AS Total_Carrito,
                     pa.Metodo_Pago,
                     pa.Estado_Pago,
                     pa.Monto_Pago,
-                    pa.mp_payment_id,
-                    pa.mp_status,
+                    " . $this->selectPago('mp_payment_id') . ",
+                    " . $this->selectPago('mp_status') . ",
                     per.Nombre,
                     per.Apellido,
                     per.Num_Documento,
+                    per.Correo,
+                    per.Telefono AS Telefono_Cliente,
+                    per.Direccion AS Direccion_Cliente,
+                    d.Cod_Domicilio,
                     d.Estado AS Estado_Domicilio
+                    ,
+                    " . $this->selectDomicilio('Direccion_entrega') . ",
+                    " . $this->selectDomicilio('Telefono', 'Telefono_entrega') . ",
+                    " . $this->selectDomicilio('Notas') . "
                 FROM pedido p
                 INNER JOIN carrito c ON c.Cod_Carrito = p.Cod_Carrito
                 INNER JOIN usuario_pedido up ON up.Cod_pedido = p.Cod_Pedido
@@ -66,11 +144,38 @@ class PedidoModel {
         return $stmt->fetchAll();
     }
 
+    public function getContactoPedido(int $codPedido): ?array {
+        $sql = "SELECT
+                    p.Cod_Pedido,
+                    per.Nombre,
+                    per.Apellido,
+                    per.Correo,
+                    per.Telefono,
+                    per.Direccion AS Direccion_Cliente,
+                    d.Cod_Domicilio,
+                    d.Estado AS Estado_Domicilio,
+                    " . $this->selectDomicilio('Direccion_entrega') . ",
+                    " . $this->selectDomicilio('Telefono', 'Telefono_entrega') . "
+                FROM pedido p
+                INNER JOIN usuario_pedido up ON up.Cod_pedido = p.Cod_Pedido
+                INNER JOIN persona per ON per.Num_Documento = up.Num_Documento
+                LEFT JOIN domicilio d ON d.Cod_Usuario_Pedido = up.Cod_usuario_pedido
+                WHERE p.Cod_Pedido = :id
+                LIMIT 1";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':id' => $codPedido]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+
     public function getById(int $codPedido): ?array {
         $sql = "SELECT
                     p.Cod_Pedido,
                     p.Fecha_Pedido,
                     p.Estado_Pedido,
+                    p.Canal_Venta,
+                    p.Tipo_Entrega,
                     c.Cod_Carrito,
                     c.Cantidad_articulos,
                     c.Total AS Total_Carrito,
@@ -116,7 +221,7 @@ class PedidoModel {
      * Crea un pedido desde los items del carrito del frontend (localStorage).
      * Guarda el snapshot en DB: carrito_item, pedido, usuario_pedido, pago, detalle_pedido.
      */
-    public function crear(int $numDocumento, array $items, string $metodoPago, int $montoTotal): int {
+    public function crear(int $numDocumento, array $items, string $metodoPago, int $montoTotal, array $extra = []): int {
         $this->db->beginTransaction();
         try {
             // 1. Obtener (o crear) el carrito del usuario
@@ -155,12 +260,27 @@ class PedidoModel {
                 ]);
             }
 
+            $canalVenta = trim((string)($extra['canal_venta'] ?? 'Online'));
+            $canalVenta = in_array($canalVenta, ['Online', 'Tienda'], true) ? $canalVenta : 'Online';
+            $tipoEntrega = trim((string)($extra['tipo_entrega'] ?? 'Domicilio'));
+            $tipoEntrega = in_array($tipoEntrega, ['Domicilio', 'Recoger_Tienda'], true) ? $tipoEntrega : 'Domicilio';
+            $estadoPedido = trim((string)($extra['estado_pedido'] ?? 'Pendiente'));
+            $vendedor = isset($extra['vendedor']) ? (int)$extra['vendedor'] : null;
+            $observaciones = $extra['observaciones'] ?? null;
+
             // 4. Crear pedido
             $stmt = $this->db->prepare(
-                "INSERT INTO pedido (Fecha_Pedido, Estado_Pedido, Cod_Carrito)
-                 VALUES (NOW(), 'Pendiente', :carrito)"
+                "INSERT INTO pedido (Fecha_Pedido, Estado_Pedido, Cod_Carrito, Canal_Venta, Tipo_Entrega, Num_Documento_Vendedor, Observaciones_Venta)
+                 VALUES (NOW(), :estado, :carrito, :canal, :tipo_entrega, :vendedor, :observaciones)"
             );
-            $stmt->execute([':carrito' => $codCarrito]);
+            $stmt->execute([
+                ':estado' => $estadoPedido,
+                ':carrito' => $codCarrito,
+                ':canal' => $canalVenta,
+                ':tipo_entrega' => $tipoEntrega,
+                ':vendedor' => $vendedor,
+                ':observaciones' => $observaciones,
+            ]);
             $codPedido = (int)$this->db->lastInsertId();
 
             // 5. Crear usuario_pedido
@@ -169,12 +289,13 @@ class PedidoModel {
             );
             $stmt->execute([':pedido' => $codPedido, ':doc' => $numDocumento]);
 
+            $estadoPago = trim((string)($extra['estado_pago'] ?? 'Pendiente'));
             // 6. Crear pago
             $stmt = $this->db->prepare(
-                "INSERT INTO pago (Cod_pedido, Metodo_Pago, Monto_Pago, Estado_Pago)
-                 VALUES (:pedido, :metodo, :monto, 'Pending')"
+                "INSERT INTO pago (Cod_pedido, Metodo_Pago, Monto_Pago, Estado_Pago, Fecha_Pago)
+                 VALUES (:pedido, :metodo, :monto, :estado_pago, NOW())"
             );
-            $stmt->execute([':pedido' => $codPedido, ':metodo' => $metodoPago, ':monto' => $montoTotal]);
+            $stmt->execute([':pedido' => $codPedido, ':metodo' => $metodoPago, ':monto' => $montoTotal, ':estado_pago' => $estadoPago]);
 
             // 7. Validar stock disponible antes de insertar el detalle
             // LEFT JOIN: si el producto no tiene fila en inventario se omite la validación.
@@ -249,5 +370,29 @@ class PedidoModel {
         $stmt = $this->db->prepare("UPDATE pedido SET Estado_Pedido = :estado WHERE Cod_Pedido = :id");
         $stmt->execute([':estado' => $estado, ':id' => $codPedido]);
         return $stmt->rowCount() > 0;
+    }
+
+    public function actualizarTipoEntrega(int $codPedido, int $numDocumento, string $tipoEntrega): bool {
+        $tipoEntrega = in_array($tipoEntrega, ['Domicilio', 'Recoger_Tienda'], true) ? $tipoEntrega : 'Domicilio';
+        $stmt = $this->db->prepare(
+            "UPDATE pedido p
+             INNER JOIN usuario_pedido up ON up.Cod_pedido = p.Cod_Pedido
+             SET p.Tipo_Entrega = :tipo
+             WHERE p.Cod_Pedido = :pedido
+               AND up.Num_Documento = :doc"
+        );
+        $stmt->execute([':tipo' => $tipoEntrega, ':pedido' => $codPedido, ':doc' => $numDocumento]);
+        if ($stmt->rowCount() > 0) return true;
+
+        $chk = $this->db->prepare(
+            "SELECT 1
+             FROM pedido p
+             INNER JOIN usuario_pedido up ON up.Cod_pedido = p.Cod_Pedido
+             WHERE p.Cod_Pedido = :pedido
+               AND up.Num_Documento = :doc
+             LIMIT 1"
+        );
+        $chk->execute([':pedido' => $codPedido, ':doc' => $numDocumento]);
+        return (bool)$chk->fetchColumn();
     }
 }

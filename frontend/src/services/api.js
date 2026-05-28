@@ -149,6 +149,12 @@ export const pedidoService = {
   crear:        (datos)         => post("pedidos", datos),
   todos:        ()              => get("pedidos"),
   cambiarEstado:(id, estado)    => put(`pedidos/${id}/estado`, { estado }),
+  actualizarEntrega:(id, tipo_entrega) => put(`pedidos/${id}/entrega`, { tipo_entrega }),
+  notificarDomicilio:(id)       => post(`pedidos/${id}/notificar-domicilio`, {}),
+};
+
+export const ventaService = {
+  crearPresencial: (datos) => post("ventas/presencial", datos),
 };
 
 // ── Reportes ──────────────────────────────────────────────
@@ -195,7 +201,7 @@ export const domicilioService = {
   cancelar:        (pedido)         => post("domicilio/cancelar", { pedido }),
   seguimiento:     (pedido)         => get(`domicilio/seguimiento?pedido=${pedido}`),
   todos:           ()               => get("domicilio/todos"),
-  actualizarEstado:(id, estado)     => put(`domicilio/${id}/estado`, { estado }),
+  actualizarEstado:(id, estado, extra = {}) => put(`domicilio/${id}/estado`, { estado, ...extra }),
 };
 
 // ── Helper para subir archivos (multipart/form-data) ──────
@@ -228,16 +234,13 @@ export async function uploadFile(ruta, formData) {
 
 // ── Pago ──────────────────────────────────────────────────
 export const pagoService = {
-  obtener: (pedidoId) => get(`pago/${pedidoId}`),
-  todos: () => get("pago"),
+  obtener:          (pedidoId)              => get(`pago/${pedidoId}`),
+  todos:            ()                      => get("pago"),
   crearPreferencia: (pedidoId, frontendUrl) => post(`pago/${pedidoId}/preferencia`, { frontend_url: frontendUrl }),
-  verificarMP: (pedidoId, paymentId) => get(`pago/${pedidoId}/verificar-mp${paymentId ? `?payment_id=${paymentId}` : ""}`),
-  simular: (pedidoId, metodo, datos) => post(`pago/${pedidoId}/simulado`, { metodo, datos }),
-  stripeCheckout: (pedidoId) => post(`pago/${pedidoId}/stripe-checkout`, {}, { timeoutMs: 15000 }),
-  stripeConfirmar: (pedidoId, sessionId) =>
-    get(`pago/stripe/confirmar?pedido=${pedidoId}&session_id=${encodeURIComponent(sessionId)}`, { timeoutMs: 15000 }),
-  subirComprobante: (pedidoId, formData) => uploadFile(`pago/${pedidoId}/comprobante`, formData),
-  verificar: (pagoId, estado, notas = "") => put(`pago/${pagoId}/verificar`, { estado, notas }),
+  verificarMP:      (pedidoId, paymentId)   => get(`pago/${pedidoId}/verificar-mp${paymentId ? `?payment_id=${paymentId}` : ""}`),
+  simular:          (pedidoId, metodo, datos) => post(`pago/${pedidoId}/simulado`, { metodo, datos }),
+  subirComprobante: (pedidoId, formData)    => uploadFile(`pago/${pedidoId}/comprobante`, formData),
+  verificar:        (pagoId, estado, notas = "") => put(`pago/${pagoId}/verificar`, { estado, notas }),
 };
 
 export const metodoPagoConfigService = {

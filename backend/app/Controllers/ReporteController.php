@@ -20,7 +20,10 @@ class ReporteController {
 
     public function ventas(): void {
         AuthMiddleware::requireRole(['Administrador', 'Empleado']);
-        $this->ok(['ventas' => $this->model->getVentasResumen()]);
+        $this->ok([
+            'ventas' => $this->model->getVentasResumen(),
+            'canales' => $this->model->getVentasPorCanal(),
+        ]);
     }
 
     public function productosMasVendidos(): void {

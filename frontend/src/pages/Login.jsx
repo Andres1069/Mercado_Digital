@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { authService, categoriaService, productoService, resolverImagen } from "../services/api";
+import { authService } from "../services/api";
 
 function OjoIcon({ abierto }) {
   if (abierto) {
@@ -46,30 +46,6 @@ export default function Login() {
   const [verContrasena, setVerContrasena] = useState(false);
   const [verNueva, setVerNueva] = useState(false);
   const [verConfirmar, setVerConfirmar] = useState(false);
-  const [cats, setCats] = useState([]);
-  const [populares, setPopulares] = useState([]);
-  const [productosPreview, setProductosPreview] = useState([]);
-
-  useEffect(() => {
-    let cancelado = false;
-    (async () => {
-      try {
-        const [resCats, resProds] = await Promise.all([
-          categoriaService.listar(),
-          productoService.listar({}),
-        ]);
-        if (cancelado) return;
-        const listaCats = resCats?.categorias || [];
-        const listaProds = resProds?.productos || [];
-        setProductosPreview(listaProds);
-        setCats(listaCats.slice(0, 8));
-        setPopulares(listaProds.slice(0, 6));
-      } catch {
-        // opcional: esta seccion es decorativa, no bloquea el login
-      }
-    })();
-    return () => { cancelado = true; };
-  }, []);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
   const handleChangeReset = (e) => setFormReset({ ...formReset, [e.target.name]: e.target.value });
@@ -173,14 +149,14 @@ export default function Login() {
             <p className="text-xs uppercase tracking-[0.35em] text-white/70 font-semibold">Mercado Digital</p>
             <h1 className="text-2xl md:text-4xl font-black mt-3 leading-tight">Bienvenido de nuevo</h1>
             <p className="text-white/80 text-sm md:text-base mt-3">
-              Ingresa a tu cuenta para comprar, seguir pedidos o entrar al panel administrativo.
+              Ingresa a tu cuenta para comprar, seguir tus pedidos o acceder al panel de administración.
             </p>
           </div>
 
           <div className="hidden md:flex mt-8 justify-center">
             <div className="relative w-full max-w-[420px] min-h-[260px] sm:min-h-[320px] md:min-h-[360px] overflow-hidden rounded-[2rem] border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.18)] bg-slate-900">
               <img
-                src="/chicasofa.png"
+                src="/login-2.png"
                 alt="Ilustración de acceso"
                 className="w-full h-full object-cover object-center"
               />
@@ -197,7 +173,7 @@ export default function Login() {
 
           {reason === "session" && (
             <div className="px-4 py-3 rounded-2xl mb-6 text-sm border border-amber-200 bg-amber-50 text-amber-800">
-              Tu sesion fue cerrada porque iniciaste en otro dispositivo o el token expiro. Inicia sesion nuevamente.
+              Tu sesión se cerró porque iniciaste sesión en otro dispositivo o el token expiró. Inicia sesión nuevamente.
             </div>
           )}
 
@@ -206,11 +182,11 @@ export default function Login() {
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="text-center mb-6">
                   <h2 className="text-2xl font-black text-slate-800">Iniciar sesion</h2>
-                  <p className="text-sm text-slate-500 mt-2">Accede con tu correo y contrasena.</p>
+                  <p className="text-sm text-slate-500 mt-2">Accede con tu correo y contraseña.</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Correo electronico</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Correo electrónico</label>
                   <input
                     type="email"
                     name="correo"
@@ -223,7 +199,7 @@ export default function Login() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Contrasena</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Contraseña</label>
                   <div className="relative">
                     <input
                       type={verContrasena ? "text" : "password"}
@@ -256,134 +232,6 @@ export default function Login() {
                 </button>
               </form>
 
-              {/* Vista previa de productos/categorias (solo cuando no esta llenando el formulario) */}
-              {(cats.length > 0 || populares.length > 0) && !form.correo && !form.contrasena && (
-                <div className="mt-8">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-extrabold text-slate-800">Categories</h3>
-                    <button
-                      type="button"
-                      onClick={() => navigate("/tienda")}
-                      className="text-xs font-bold text-slate-500 hover:text-slate-700 transition"
-                    >
-                      View All
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {cats.map((c, idx) => {
-                      const nombre = String(c.Nombre || "");
-                      const iconos = {
-                        Snacks: "🍿",
-                        Desayuno: "🥐",
-                        Bebidas: "🥤",
-                        Café: "☕",
-                        Enlatados: "🥫",
-                        Frutas: "🍎",
-                        Salsas: "🧂",
-                        Vegetales: "🥬",
-                        "Aseo Personal": "🧴",
-                        Lácteos: "🥛",
-                        Panadería: "🥖",
-                        Granos: "🌾",
-                        Dulces: "🍬",
-                        Aceites: "🫙",
-                      };
-                      const emoji = iconos[nombre] || "🛒";
-
-                      const paletas = [
-                        { top: "linear-gradient(135deg, rgba(107,142,78,0.55), rgba(60,81,72,0.25))", accent: "#6B8E4E" },
-                        { top: "linear-gradient(135deg, rgba(59,130,246,0.55), rgba(34,211,238,0.22))", accent: "#0ea5e9" },
-                        { top: "linear-gradient(135deg, rgba(245,158,11,0.55), rgba(251,191,36,0.22))", accent: "#f59e0b" },
-                        { top: "linear-gradient(135deg, rgba(244,114,182,0.55), rgba(236,72,153,0.22))", accent: "#e11d48" },
-                      ];
-                      const pal = paletas[idx % paletas.length];
-
-                      const totalCat = productosPreview.reduce((acc, p) => {
-                        const cat = String(p.categoria || p.Categoria || "");
-                        return cat === nombre ? acc + 1 : acc;
-                      }, 0);
-
-                      return (
-                        <button
-                          key={c.Cod_Categoria}
-                          type="button"
-                          onClick={() => navigate(`/tienda?categoria=${c.Cod_Categoria}`)}
-                          className="rounded-3xl overflow-hidden border border-white/10 shadow-[0_18px_40px_rgba(2,6,23,0.12)] hover:shadow-[0_22px_55px_rgba(2,6,23,0.16)] transition text-left"
-                        >
-                          <div className="h-[92px] relative" style={{ background: pal.top }}>
-                            <div className="absolute left-4 top-4 w-10 h-10 rounded-2xl bg-black/25 border border-white/10 flex items-center justify-center">
-                              <span className="text-xl" aria-hidden="true">{emoji}</span>
-                            </div>
-                          </div>
-
-                          <div className="px-5 py-4 bg-slate-900">
-                            <div className="text-[11px] tracking-[0.35em] uppercase font-bold" style={{ color: "rgba(226,232,240,0.55)" }}>
-                              CATEGORÍA
-                            </div>
-                            <div className="mt-1 text-lg font-extrabold text-white leading-tight">{nombre}</div>
-                            <div className="mt-1 text-sm" style={{ color: "rgba(226,232,240,0.72)" }}>
-                              {totalCat || 0} producto{(totalCat || 0) === 1 ? "" : "s"}
-                            </div>
-
-                            <div className="mt-4">
-                              <span
-                                className="w-full inline-flex items-center justify-center gap-3 rounded-2xl py-2.5 text-sm font-bold text-white"
-                                style={{ backgroundColor: pal.accent }}
-                              >
-                                Ver categoría
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
-                                  <path d="M5 12h12" />
-                                  <path d="m13 6 6 6-6 6" />
-                                </svg>
-                              </span>
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div className="flex items-center justify-between mt-6 mb-3">
-                    <h3 className="text-sm font-extrabold text-slate-800">Popular Items</h3>
-                    <div className="flex items-center gap-2 text-slate-300 select-none">
-                      <span className="w-7 h-7 rounded-full border border-gray-100 bg-white grid place-items-center">‹</span>
-                      <span className="w-7 h-7 rounded-full border border-gray-100 bg-white grid place-items-center">›</span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {populares.map((p) => {
-                      const img = resolverImagen(p.Imagen_url || p.imagen_url);
-                      return (
-                        <button
-                          key={p.Cod_Producto}
-                          type="button"
-                          onClick={() => navigate("/tienda")}
-                          className="rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition overflow-hidden text-left"
-                        >
-                          <div className="relative h-24 flex items-center justify-center bg-slate-50">
-                            {img ? (
-                              <img src={img} alt={p.Nombre} className="h-full w-full object-contain p-2" loading="lazy" />
-                            ) : (
-                              <div className="text-3xl text-slate-300">□</div>
-                            )}
-                            <span className="absolute right-2 bottom-2 w-8 h-8 rounded-full bg-slate-800 text-white grid place-items-center shadow">
-                              +
-                            </span>
-                          </div>
-                          <div className="p-3">
-                            <div className="text-xs font-bold text-slate-700 line-clamp-2 min-h-[32px]">{p.Nombre}</div>
-                            <div className="mt-2 text-sm font-extrabold text-slate-900">
-                              ${Number(p.Precio || 0).toLocaleString("es-CO")}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
 
               <div className="mt-6 pt-6 border-t border-[var(--md-border)] text-center">
                 <button
@@ -391,7 +239,7 @@ export default function Login() {
                   onClick={abrirReset}
                   className="text-sm font-semibold md-accent-text hover:opacity-80 transition"
                 >
-                  Olvide mi contrasena
+                  Olvidé mi contraseña
                 </button>
               </div>
             </div>
@@ -403,8 +251,8 @@ export default function Login() {
                 <h2 className="text-2xl font-black text-slate-800">Restablecer contrasena</h2>
                 <p className="text-sm text-slate-500 mt-2">
                   {pasoReset === 1
-                    ? "Te enviaremos un codigo a tu correo para continuar."
-                    : "Ingresa el codigo recibido y define tu nueva contrasena."}
+                    ? "Te enviaremos un código a tu correo para continuar."
+                    : "Ingresa el código recibido y define tu nueva contraseña."}
                 </p>
               </div>
 
@@ -536,14 +384,14 @@ export default function Login() {
               className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 text-sm font-bold transition hover:opacity-90"
               style={{ borderColor: "#6B8E4E", color: "#6B8E4E", backgroundColor: "rgba(107,142,78,0.08)" }}
             >
-              No tienes cuenta? Registrate aqui
+              ¿No tienes cuenta? Regístrate aquí. 👇🏻
             </Link>
             <Link
               to="/"
               className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
               style={{ borderColor: "var(--md-border)" }}
             >
-              Volver al inicio
+              ⬅️ Volver al inicio
             </Link>
           </div>
         </div>

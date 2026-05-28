@@ -32,6 +32,7 @@ import AdminProductos from "./pages/admin/AdminProductos";
 import AdminUsuarios from "./pages/admin/AdminUsuarios";
 import AdminReportes from "./pages/admin/AdminReportes";
 import AdminPedidos from "./pages/admin/AdminPedidos";
+import AdminVentas from "./pages/admin/AdminVentas";
 import AdminInventario from "./pages/admin/AdminInventario";
 import AdminDomicilios from "./pages/admin/AdminDomicilios";
 import AdminPagos from "./pages/admin/AdminPagos";
@@ -65,6 +66,14 @@ function RutaEmpleado({ children }) {
   return children;
 }
 
+function RutaStaff({ children }) {
+  const { estaLogueado, esAdmin, esEmpleado, cargando } = useAuth();
+  if (cargando) return null;
+  if (!estaLogueado()) return <Navigate to="/login" />;
+  if (!esAdmin() && !esEmpleado()) return <Navigate to="/tienda" />;
+  return children;
+}
+
 function RutaSoloPublica({ children }) {
   const { estaLogueado, esAdmin, esEmpleado, cargando } = useAuth();
   if (cargando) return null;
@@ -89,28 +98,39 @@ function AppRoutes() {
 
         {/* Cliente */}
         <Route path="/tienda" element={<RutaPrivada><Tienda /></RutaPrivada>} />
+        <Route path="/comprar" element={<Navigate to="/tienda" />} />
         <Route path="/carrito" element={<RutaPrivada><Carrito /></RutaPrivada>} />
+        <Route path="/mi-carrito" element={<Navigate to="/carrito" />} />
         <Route path="/mis-pedidos" element={<RutaPrivada><MisPedidos /></RutaPrivada>} />
+        <Route path="/pedidos" element={<Navigate to="/mis-pedidos" />} />
         <Route path="/perfil" element={<RutaPrivada><Perfil /></RutaPrivada>} />
 
         {/* Pago */}
         <Route path="/pago/qr"       element={<RutaPrivada><PagoQR /></RutaPrivada>} />
+        <Route path="/pago/mercadopago" element={<Navigate to="/pago/qr" />} />
         <Route path="/pago/resultado" element={<RutaPrivada><PagoResultado /></RutaPrivada>} />
         <Route path="/pago/simulado" element={<RutaPrivada><PagoSimulado /></RutaPrivada>} />
 
         {/* Domicilio cliente */}
         <Route path="/domicilio/crear" element={<RutaPrivada><CrearDomicilio /></RutaPrivada>} />
+        <Route path="/domicilio/registrar-entrega" element={<Navigate to="/domicilio/crear" />} />
         <Route path="/domicilio/historial" element={<RutaPrivada><HistorialDomicilios /></RutaPrivada>} />
         <Route path="/domicilio/seguimiento" element={<RutaPrivada><Seguimiento /></RutaPrivada>} />
 
         {/* Admin (solo Administrador) */}
         <Route path="/admin/dashboard"   element={<RutaAdmin><AdminDashboard /></RutaAdmin>} />
+        <Route path="/admin/inicio"      element={<Navigate to="/admin/dashboard" />} />
         <Route path="/admin/productos"   element={<RutaAdmin><AdminProductos /></RutaAdmin>} />
         <Route path="/admin/ofertas"     element={<RutaAdmin><AdminOfertas /></RutaAdmin>} />
         <Route path="/admin/pedidos"     element={<RutaAdmin><AdminPedidos /></RutaAdmin>} />
+        <Route path="/admin/gestion-pedidos" element={<Navigate to="/admin/pedidos" />} />
+        <Route path="/admin/ventas"      element={<RutaStaff><AdminVentas /></RutaStaff>} />
+        <Route path="/admin/ventas-en-tienda" element={<Navigate to="/admin/ventas" />} />
         <Route path="/admin/inventario"  element={<RutaAdmin><AdminInventario /></RutaAdmin>} />
         <Route path="/admin/domicilios"  element={<RutaAdmin><AdminDomicilios /></RutaAdmin>} />
+        <Route path="/admin/entregas"    element={<Navigate to="/admin/domicilios" />} />
         <Route path="/admin/reportes"    element={<RutaAdmin><AdminReportes /></RutaAdmin>} />
+        <Route path="/admin/reportes-ventas" element={<Navigate to="/admin/reportes" />} />
         <Route path="/admin/pagos"       element={<RutaAdmin><AdminPagos /></RutaAdmin>} />
         <Route path="/admin/usuarios"    element={<RutaAdmin><AdminUsuarios /></RutaAdmin>} />
         <Route path="/admin/categorias"  element={<RutaAdmin><AdminCategorias /></RutaAdmin>} />
@@ -118,11 +138,17 @@ function AppRoutes() {
 
         {/* Empleado (solo Empleado) */}
         <Route path="/empleado/dashboard"  element={<RutaEmpleado><AdminDashboard /></RutaEmpleado>} />
+        <Route path="/empleado/inicio"     element={<Navigate to="/empleado/dashboard" />} />
         <Route path="/empleado/productos"  element={<RutaEmpleado><AdminProductos /></RutaEmpleado>} />
         <Route path="/empleado/pedidos"    element={<RutaEmpleado><AdminPedidos /></RutaEmpleado>} />
+        <Route path="/empleado/gestion-pedidos" element={<Navigate to="/empleado/pedidos" />} />
+        <Route path="/empleado/ventas"     element={<RutaStaff><AdminVentas /></RutaStaff>} />
+        <Route path="/empleado/ventas-en-tienda" element={<Navigate to="/empleado/ventas" />} />
         <Route path="/empleado/inventario" element={<RutaEmpleado><AdminInventario /></RutaEmpleado>} />
         <Route path="/empleado/domicilios" element={<RutaEmpleado><AdminDomicilios /></RutaEmpleado>} />
+        <Route path="/empleado/entregas"   element={<Navigate to="/empleado/domicilios" />} />
         <Route path="/empleado/reportes"   element={<RutaEmpleado><AdminReportes /></RutaEmpleado>} />
+        <Route path="/empleado/reportes-ventas" element={<Navigate to="/empleado/reportes" />} />
 
         {/* 404 */}
         <Route

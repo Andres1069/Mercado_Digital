@@ -9,6 +9,14 @@ require_once __DIR__ . '/../../config/Mailer.php';
 class AuthController {
     private UsuarioModel $model;
     private const BARRIO_UNICO = 'Chicala del Sur';
+    private const POLIGONO_CHICALA_SUR = [
+        ['lat' => 4.6339, 'lng' => -74.1945],
+        ['lat' => 4.6359, 'lng' => -74.1907],
+        ['lat' => 4.6331, 'lng' => -74.1870],
+        ['lat' => 4.6277, 'lng' => -74.1846],
+        ['lat' => 4.6244, 'lng' => -74.1900],
+        ['lat' => 4.6279, 'lng' => -74.1960],
+    ];
     private const RESET_TTL_SECONDS = 900; // 15 minutos
     private const RESET_STORE_FILE = __DIR__ . '/../../storage/reset_codes.json';
 
@@ -90,9 +98,18 @@ class AuthController {
             $this->error('La direccion es requerida.', 400);
         }
 
-        $normalizado = $this->normalizarTexto($barrio);
-        if ($normalizado !== $this->normalizarTexto(self::BARRIO_UNICO) && $normalizado !== 'chicala') {
+        if (!$this->barrioPermitido($barrio)) {
             $this->error('Barrio no permitido. Solo se acepta: ' . self::BARRIO_UNICO . '.', 400);
+        }
+
+        if (!isset($body['latitud'], $body['longitud']) || !is_numeric($body['latitud']) || !is_numeric($body['longitud'])) {
+            $this->error('Debes verificar tu direccion en el mapa antes de registrarte.', 400);
+        }
+
+        $latitud  = (float)$body['latitud'];
+        $longitud = (float)$body['longitud'];
+        if (!$this->puntoDentroDeChicala($latitud, $longitud)) {
+            $this->error('La direccion esta fuera de Chicala del Sur. Solo se permiten registros dentro del barrio.', 400);
         }
 
         $body['barrio']    = self::BARRIO_UNICO;
@@ -154,12 +171,17 @@ class AuthController {
             $this->error('Ya existe otro usuario con ese correo.', 409);
         }
 
+        $barrio = trim((string)($body['barrio'] ?? self::BARRIO_UNICO));
+        if ($barrio !== '' && !$this->barrioPermitido($barrio)) {
+            $this->error('Barrio no permitido. Solo se acepta: ' . self::BARRIO_UNICO . '.', 400);
+        }
+
         $this->model->actualizarPerfil($doc, [
             'nombre'    => trim((string)$body['nombre']),
             'apellido'  => trim((string)$body['apellido']),
             'correo'    => trim((string)$body['correo']),
             'telefono'  => trim((string)($body['telefono']  ?? '')),
-            'barrio'    => trim((string)($body['barrio']    ?? '')),
+            'barrio'    => self::BARRIO_UNICO,
             'direccion' => trim((string)($body['direccion'] ?? '')),
         ]);
 
@@ -403,6 +425,34 @@ class AuthController {
         ]);
         $t = preg_replace('/\s+/', ' ', $t) ?? $t;
         return $t;
+    }
+
+    private function barrioPermitido(string $barrio): bool {
+        $normalizado = $this->normalizarTexto($barrio);
+        return $normalizado === $this->normalizarTexto(self::BARRIO_UNICO) || $normalizado === 'chicala';
+    }
+
+    private function puntoDentroDeChicala(float $lat, float $lng): bool {
+        $dentro = false;
+        $vertices = self::POLIGONO_CHICALA_SUR;
+        $j = count($vertices) - 1;
+
+        for ($i = 0, $total = count($vertices); $i < $total; $i++) {
+            $latI = (float)$vertices[$i]['lat'];
+            $lngI = (float)$vertices[$i]['lng'];
+            $latJ = (float)$vertices[$j]['lat'];
+            $lngJ = (float)$vertices[$j]['lng'];
+
+            $intersecta = (($lngI > $lng) !== ($lngJ > $lng))
+                && ($lat < ($latJ - $latI) * ($lng - $lngI) / (($lngJ - $lngI) ?: 0.0000001) + $latI);
+
+            if ($intersecta) {
+                $dentro = !$dentro;
+            }
+            $j = $i;
+        }
+
+        return $dentro;
     }
 
     private function enviarCorreoReset(string $correo, string $codigo, string $origin): bool {

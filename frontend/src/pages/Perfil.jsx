@@ -68,7 +68,7 @@ export default function Perfil() {
         apellido: form.apellido.trim(),
         correo: form.correo.trim(),
         telefono: form.telefono.trim(),
-        barrio: form.barrio.trim(),
+        barrio: "Chicala del Sur",
         direccion: form.direccion.trim(),
       });
 
@@ -178,7 +178,8 @@ export default function Perfil() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Barrio</label>
-                  <input type="text" name="barrio" value={form.barrio} onChange={handleChange} className="md-input" />
+                  <input type="text" value="Chicala del Sur" disabled className="md-input bg-[var(--md-surface-soft)] text-gray-500" />
+                  <p className="mt-1 text-xs text-gray-500">Servicio exclusivo para este barrio.</p>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Direccion</label>

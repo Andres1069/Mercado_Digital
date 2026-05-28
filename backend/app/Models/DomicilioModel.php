@@ -6,12 +6,26 @@ require_once __DIR__ . '/../../config/Database.php';
 class DomicilioModel {
     private PDO $db;
     private array $domicilioCols = [];
+    private array $pagoCols = [];
     private bool $tieneHistorial = false;
     private array $historialCols = [];
 
     public function __construct() {
         $this->db = (new Database())->getConnection();
+        $this->ensureComprobanteColumns();
         $this->detectarSchema();
+    }
+
+    private function ensureComprobanteColumns(): void {
+        try {
+            $this->db->exec("ALTER TABLE domicilio ADD COLUMN IF NOT EXISTS Comprobante_Entrega MEDIUMTEXT DEFAULT NULL");
+            $this->db->exec("ALTER TABLE domicilio ADD COLUMN IF NOT EXISTS Recibido_Por VARCHAR(120) DEFAULT NULL");
+            $this->db->exec("ALTER TABLE domicilio ADD COLUMN IF NOT EXISTS Documento_Recibe VARCHAR(40) DEFAULT NULL");
+            $this->db->exec("ALTER TABLE domicilio ADD COLUMN IF NOT EXISTS Observaciones_Entrega VARCHAR(255) DEFAULT NULL");
+            $this->db->exec("ALTER TABLE domicilio ADD COLUMN IF NOT EXISTS Fecha_Entrega DATETIME DEFAULT NULL");
+        } catch (Throwable $e) {
+            error_log('[DomicilioModel] No se pudo sincronizar columnas de comprobante: ' . $e->getMessage());
+        }
     }
 
     private function detectarSchema(): void {
@@ -29,6 +43,22 @@ class DomicilioModel {
             ));
         } catch (Throwable $e) {
             $this->domicilioCols = [];
+        }
+
+        try {
+            $stmt = $this->db->prepare(
+                "SELECT COLUMN_NAME
+                 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME = 'pago'"
+            );
+            $stmt->execute();
+            $this->pagoCols = array_values(array_map(
+                static fn($r) => (string)$r['COLUMN_NAME'],
+                $stmt->fetchAll() ?: []
+            ));
+        } catch (Throwable $e) {
+            $this->pagoCols = [];
         }
 
         // Tabla opcional: historial_estado_pedido 
@@ -72,6 +102,14 @@ class DomicilioModel {
         return false;
     }
 
+    private function hasPagoCol(string $col): bool {
+        if (!$this->pagoCols) return false;
+        foreach ($this->pagoCols as $c) {
+            if (strcasecmp($c, $col) === 0) return true;
+        }
+        return false;
+    }
+
     private function hasHistorialCol(string $col): bool {
         if (!$this->historialCols) return false;
         foreach ($this->historialCols as $c) {
@@ -89,6 +127,11 @@ class DomicilioModel {
         if ($this->hasDomicilioCol('Telefono'))          $extra[] = 'd.Telefono';
         if ($this->hasDomicilioCol('Notas'))             $extra[] = 'd.Notas';
         if ($this->hasDomicilioCol('Costo_envio'))       $extra[] = 'd.Costo_envio';
+        if ($this->hasDomicilioCol('Comprobante_Entrega')) $extra[] = 'd.Comprobante_Entrega';
+        if ($this->hasDomicilioCol('Recibido_Por'))        $extra[] = 'd.Recibido_Por';
+        if ($this->hasDomicilioCol('Documento_Recibe'))    $extra[] = 'd.Documento_Recibe';
+        if ($this->hasDomicilioCol('Observaciones_Entrega')) $extra[] = 'd.Observaciones_Entrega';
+        if ($this->hasDomicilioCol('Fecha_Entrega'))       $extra[] = 'd.Fecha_Entrega';
         if ($this->hasDomicilioCol('Distancia_km'))      $extra[] = 'd.Distancia_km';
         if ($this->hasDomicilioCol('Tiempo_estimado'))   $extra[] = 'd.Tiempo_estimado';
         if ($this->hasDomicilioCol('Cod_pedido'))        $extra[] = 'd.Cod_pedido';
@@ -353,7 +396,7 @@ class DomicilioModel {
                     p.Fecha_Pedido,
                     p.Estado_Pedido,
                     pa.Metodo_Pago,
-                    pa.verificacion,
+                    " . ($this->hasPagoCol('mp_status') ? 'pa.mp_status' : 'NULL') . " AS verificacion,
                     per.Nombre,
                     per.Apellido,
                     per.Num_Documento,
@@ -374,13 +417,33 @@ class DomicilioModel {
     /**
      * Actualiza el estado del domicilio y sincroniza el estado del pedido.
      */
-    public function actualizarEstado(int $codDomicilio, string $estado): bool {
+    public function actualizarEstado(int $codDomicilio, string $estado, array $comprobante = []): bool {
         $this->db->beginTransaction();
         try {
             // Actualizar domicilio
+            $sets = ['Estado = :estado'];
+            $params = [':estado' => $estado, ':id' => $codDomicilio];
+
+            $map = [
+                'Comprobante_Entrega' => 'comprobante_entrega',
+                'Recibido_Por' => 'recibido_por',
+                'Documento_Recibe' => 'documento_recibe',
+                'Observaciones_Entrega' => 'observaciones_entrega',
+            ];
+
+            foreach ($map as $col => $key) {
+                if (!$this->hasDomicilioCol($col) || !array_key_exists($key, $comprobante)) continue;
+                $sets[] = "$col = :$key";
+                $params[":$key"] = $comprobante[$key];
+            }
+
+            if ($estado === 'Entregado' && $this->hasDomicilioCol('Fecha_Entrega')) {
+                $sets[] = "Fecha_Entrega = COALESCE(Fecha_Entrega, NOW())";
+            }
+
             $this->db->prepare(
-                "UPDATE domicilio SET Estado = :estado WHERE Cod_Domicilio = :id"
-            )->execute([':estado' => $estado, ':id' => $codDomicilio]);
+                "UPDATE domicilio SET " . implode(', ', $sets) . " WHERE Cod_Domicilio = :id"
+            )->execute($params);
 
             // Sincronizar Estado_Pedido
             $this->db->prepare(
