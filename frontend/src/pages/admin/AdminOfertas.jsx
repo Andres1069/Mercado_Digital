@@ -159,7 +159,7 @@ export default function AdminOfertas() {
   };
 
   const validar = () => {
-    if (!form.titulo.trim()) return "El titulo es obligatorio.";
+    if (!form.titulo.trim()) return "El título es obligatorio.";
     const pct = Number(form.porcentaje_descuento);
     if (!pct || pct <= 0 || pct > 100) return "El descuento debe estar entre 1 y 100.";
     if (!form.fecha_inicio_fecha || !form.fecha_inicio_hora || !form.fecha_fin_fecha || !form.fecha_fin_hora)
@@ -241,7 +241,7 @@ export default function AdminOfertas() {
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
             <div>
-              <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Gestion de Ofertas</h1>
+              <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Gestión de Ofertas</h1>
               <p className="text-sm mt-1" style={{ color: "#3C5148" }}>{ofertas.length} ofertas registradas</p>
             </div>
             {esAdmin() && (
@@ -262,7 +262,7 @@ export default function AdminOfertas() {
 
           <div className="mb-5">
             <input type="text" value={buscar} onChange={(e) => setBuscar(e.target.value)}
-              placeholder="Buscar por titulo o producto..."
+              placeholder="Buscar por título o producto..."
               className="w-full sm:w-96 px-4 py-2.5 rounded-xl text-sm focus:outline-none"
               style={INPUT_STYLE} />
           </div>
@@ -391,7 +391,7 @@ export default function AdminOfertas() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold mb-1" style={LABEL}>Descripcion</label>
+                  <label className="block text-sm font-semibold mb-1" style={LABEL}>Descripción</label>
                   <textarea name="descripcion" value={form.descripcion} onChange={handleChange} rows={2}
                     className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none resize-none" style={INPUT_STYLE} />
                 </div>

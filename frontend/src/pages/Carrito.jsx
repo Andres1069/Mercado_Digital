@@ -56,15 +56,15 @@ export default function Carrito() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex flex-wrap items-end justify-between gap-3 mb-6">
           <div>
-            <h1 className="text-2xl font-extrabold text-gray-800">Carrito de compras</h1>
-            <p className="text-sm text-gray-500 mt-1">{itemsCount} articulos</p>
+            <h1 className="text-2xl font-extrabold text-gray-800">Bolsa de compras</h1>
+            <p className="text-sm text-gray-500 mt-1">{itemsCount} artículos</p>
           </div>
           {items.length > 0 && (
             <button
               onClick={clearCart}
               className="px-4 py-2 rounded-xl text-sm font-semibold border border-red-200 text-red-500 hover:bg-red-50 transition"
             >
-              Vaciar carrito
+               Vaciar bolsa
             </button>
           )}
         </div>
@@ -81,7 +81,7 @@ export default function Carrito() {
             >
               <i className="fa-solid fa-cart-shopping text-4xl" aria-hidden="true" />
             </div>
-            <h2 className="mt-6 text-xl font-semibold text-gray-800">Tu carrito esta vacio</h2>
+            <h2 className="mt-6 text-xl font-semibold text-gray-800">Tu bolsa está vacía</h2>
             <p className="mt-2 text-gray-500 text-sm">Agrega productos desde la tienda para continuar.</p>
             <Link
               to="/tienda"
@@ -169,7 +169,7 @@ export default function Carrito() {
                   <span>${Number(subtotal).toLocaleString("es-CO")}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
-                  <span>Envio</span>
+                  <span>Envío</span>
                   <span>{envio === 0 ? "Gratis" : `$${Number(envio).toLocaleString("es-CO")}`}</span>
                 </div>
                 <div className="pt-2 mt-2 border-t flex justify-between text-base font-extrabold text-gray-800">

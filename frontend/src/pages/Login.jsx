@@ -25,7 +25,7 @@ function OjoIcon({ abierto }) {
 
 const loginInicial = { correo: "", contrasena: "" };
 const resetInicial = { correo: "", token: "", nueva_contrasena: "", confirmar_contrasena: "" };
-const LOGIN_ARTWORK = "/Dise√±o sin t√≠tulo.png";
+const LOGIN_ARTWORK = "/DiseÒo sin tÌtulo.png";
 
 export default function Login() {
   const { iniciarSesion } = useAuth();
@@ -86,7 +86,7 @@ export default function Login() {
 
     try {
       const res = await authService.resetRequest(formReset.correo);
-      setMensajeReset(res.message || "Si el correo existe, enviaremos un codigo para restablecer la contrasena.");
+      setMensajeReset(res.message || "Si el correo existe, enviaremos un cÛdigo para restablecer la contraseÒa.");
       setPasoReset(2);
     } catch (err) {
       setErrorReset(err.message);
@@ -101,19 +101,19 @@ export default function Login() {
     setMensajeReset("");
 
     if (!resetToken) {
-      setErrorReset("Debes ingresar el codigo o token que llego a tu correo.");
+      setErrorReset("Debes ingresar el cÛdigo o token que llegÛ a tu correo.");
       return;
     }
 
     if (formReset.nueva_contrasena !== formReset.confirmar_contrasena) {
-      setErrorReset("Las contrasenas no coinciden.");
+      setErrorReset("Las contraseÒas no coinciden.");
       return;
     }
 
     setCambiandoPassword(true);
     try {
       const res = await authService.resetConfirm(resetToken, formReset.nueva_contrasena);
-      setMensajeReset(res.message || "Contrasena actualizada correctamente.");
+      setMensajeReset(res.message || "ContraseÒa actualizada correctamente.");
       setFormReset(resetInicial);
       setPasoReset(1);
       setMostrarReset(false);
@@ -149,15 +149,15 @@ export default function Login() {
             <p className="text-xs uppercase tracking-[0.35em] text-white/70 font-semibold">Mercado Digital</p>
             <h1 className="text-2xl md:text-4xl font-black mt-3 leading-tight">Bienvenido de nuevo</h1>
             <p className="text-white/80 text-sm md:text-base mt-3">
-              Ingresa a tu cuenta para comprar, seguir tus pedidos o acceder al panel de administraci√≥n.
+              Ingresa a tu cuenta para comprar, seguir pedidos o entrar al panel administrativo.
             </p>
           </div>
 
           <div className="hidden md:flex mt-8 justify-center">
             <div className="relative w-full max-w-[420px] min-h-[260px] sm:min-h-[320px] md:min-h-[360px] overflow-hidden rounded-[2rem] border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.18)] bg-slate-900">
               <img
-                src="/login-2.png"
-                alt="Ilustraci√≥n de acceso"
+                src="/chicasofa.png"
+                alt="IlustraciÛn de acceso"
                 className="w-full h-full object-cover object-center"
               />
             </div>
@@ -173,7 +173,7 @@ export default function Login() {
 
           {reason === "session" && (
             <div className="px-4 py-3 rounded-2xl mb-6 text-sm border border-amber-200 bg-amber-50 text-amber-800">
-              Tu sesi√≥n se cerr√≥ porque iniciaste sesi√≥n en otro dispositivo o el token expir√≥. Inicia sesi√≥n nuevamente.
+              Tu sesiÛn fue cerrada porque iniciaste en otro dispositivo o el token expirÛ. Inicia sesiÛn nuevamente.
             </div>
           )}
 
@@ -181,12 +181,12 @@ export default function Login() {
             <div className="max-w-xl mx-auto w-full">
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="text-center mb-6">
-                  <h2 className="text-2xl font-black text-slate-800">Iniciar sesion</h2>
-                  <p className="text-sm text-slate-500 mt-2">Accede con tu correo y contrase√±a.</p>
+                  <h2 className="text-2xl font-black text-slate-800">Iniciar sesiÛn</h2>
+                  <p className="text-sm text-slate-500 mt-2">Accede con tu correo y contraseÒa.</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Correo electr√≥nico</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Correo electronico</label>
                   <input
                     type="email"
                     name="correo"
@@ -199,7 +199,7 @@ export default function Login() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Contrase√±a</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">ContraseÒa</label>
                   <div className="relative">
                     <input
                       type={verContrasena ? "text" : "password"}
@@ -215,7 +215,7 @@ export default function Login() {
                       onClick={() => setVerContrasena((v) => !v)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition p-1"
                       tabIndex={-1}
-                      aria-label={verContrasena ? "Ocultar contrasena" : "Ver contrasena"}
+                      aria-label={verContrasena ? "Ocultar contraseÒa" : "Ver contraseÒa"}
                     >
                       <OjoIcon abierto={verContrasena} />
                     </button>
@@ -232,14 +232,13 @@ export default function Login() {
                 </button>
               </form>
 
-
               <div className="mt-6 pt-6 border-t border-[var(--md-border)] text-center">
                 <button
                   type="button"
                   onClick={abrirReset}
                   className="text-sm font-semibold md-accent-text hover:opacity-80 transition"
                 >
-                  Olvid√© mi contrase√±a
+                  OlvidÈ mi contraseÒa
                 </button>
               </div>
             </div>
@@ -248,11 +247,11 @@ export default function Login() {
           {mostrarReset && (
             <div className="max-w-md mx-auto w-full">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-black text-slate-800">Restablecer contrasena</h2>
+                <h2 className="text-2xl font-black text-slate-800">Restablecer contraseÒa</h2>
                 <p className="text-sm text-slate-500 mt-2">
                   {pasoReset === 1
-                    ? "Te enviaremos un c√≥digo a tu correo para continuar."
-                    : "Ingresa el c√≥digo recibido y define tu nueva contrase√±a."}
+                    ? "Te enviaremos un cÛdigo a tu correo para continuar."
+                    : "Ingresa el cÛdigo recibido y define tu nueva contraseÒa."}
                 </p>
               </div>
 
@@ -290,20 +289,20 @@ export default function Login() {
                       className="w-full text-white font-semibold py-3 rounded-xl transition disabled:opacity-60"
                       style={{ backgroundColor: "#3C5148" }}
                     >
-                      {cambiandoPassword ? "Enviando..." : "Enviar codigo"}
+                      {cambiandoPassword ? "Enviando..." : "Enviar cÛdigo"}
                     </button>
                   </form>
                 ) : (
                   <form onSubmit={handleResetConfirm} className="space-y-4">
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">Codigo o token</label>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">CÛdigo o token</label>
                       <input
                         type="text"
                         name="token"
                         value={formReset.token}
                         onChange={handleChangeReset}
                         required={!tokenFromUrl}
-                        placeholder="Codigo recibido"
+                        placeholder="CÛdigo recibido"
                         className="md-input"
                       />
                     </div>
@@ -317,7 +316,7 @@ export default function Login() {
                           onChange={handleChangeReset}
                           required
                           minLength={8}
-                          placeholder="Nueva contrasena"
+                          placeholder="Nueva contraseÒa"
                           className="md-input pr-12"
                         />
                         <button
@@ -325,7 +324,7 @@ export default function Login() {
                           onClick={() => setVerNueva((v) => !v)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition p-1"
                           tabIndex={-1}
-                          aria-label={verNueva ? "Ocultar contrasena" : "Ver contrasena"}
+                          aria-label={verNueva ? "Ocultar contraseÒa" : "Ver contraseÒa"}
                         >
                           <OjoIcon abierto={verNueva} />
                         </button>
@@ -339,7 +338,7 @@ export default function Login() {
                           onChange={handleChangeReset}
                           required
                           minLength={8}
-                          placeholder="Confirmar contrasena"
+                          placeholder="Confirmar contraseÒa"
                           className="md-input pr-12"
                         />
                         <button
@@ -347,7 +346,7 @@ export default function Login() {
                           onClick={() => setVerConfirmar((v) => !v)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition p-1"
                           tabIndex={-1}
-                          aria-label={verConfirmar ? "Ocultar contrasena" : "Ver contrasena"}
+                          aria-label={verConfirmar ? "Ocultar contraseÒa" : "Ver contraseÒa"}
                         >
                           <OjoIcon abierto={verConfirmar} />
                         </button>
@@ -360,7 +359,7 @@ export default function Login() {
                       className="w-full text-white font-semibold py-3 rounded-xl transition disabled:opacity-60"
                       style={{ backgroundColor: "#3C5148" }}
                     >
-                      {cambiandoPassword ? "Actualizando..." : "Guardar nueva contrasena"}
+                      {cambiandoPassword ? "Actualizando..." : "Guardar nueva contraseÒa"}
                     </button>
                   </form>
                 )}
@@ -372,7 +371,7 @@ export default function Login() {
                   onClick={pasoReset === 2 && !tokenFromUrl ? () => setPasoReset(1) : cerrarReset}
                   className="text-sm font-semibold text-slate-600 hover:underline"
                 >
-                  {pasoReset === 2 && !tokenFromUrl ? "Volver al correo" : "Volver al inicio de sesion"}
+                  {pasoReset === 2 && !tokenFromUrl ? "Volver al correo" : "Volver al inicio de sesiÛn"}
                 </button>
               </div>
             </div>
@@ -384,14 +383,14 @@ export default function Login() {
               className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 text-sm font-bold transition hover:opacity-90"
               style={{ borderColor: "#6B8E4E", color: "#6B8E4E", backgroundColor: "rgba(107,142,78,0.08)" }}
             >
-              ¬øNo tienes cuenta? Reg√≠strate aqu√≠. üëáüèª
+              No tienes cuenta? Registrate aqui
             </Link>
             <Link
               to="/"
               className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
               style={{ borderColor: "var(--md-border)" }}
             >
-              ‚¨ÖÔ∏è Volver al inicio
+              Volver al inicio
             </Link>
           </div>
         </div>

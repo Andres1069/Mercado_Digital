@@ -53,7 +53,7 @@ async function request(ruta, opciones = {}) {
     .replace(/\s+/g, " ")
     .trim();
 
-  // Si la API invalida el token (expirado o sesion cerrada), limpiamos la sesion local y forzamos login.
+  // Si la API invalida el token (expirado o sesión cerrada), limpiamos la sesión local y forzamos login.
   if (!res.ok && res.status === 401) {
     const msg = (data?.message || data?.mensaje || textoLimpio || "").toLowerCase();
     const debeCerrarSesion =

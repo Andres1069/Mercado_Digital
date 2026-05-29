@@ -348,7 +348,7 @@ export default function AdminDashboard() {
           <div className="rounded-2xl overflow-x-auto" style={CARD}>
             <div className="px-6 py-4 flex items-center justify-between"
               style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
-              <h2 className="text-base font-bold" style={{ color: "#1B2727" }}>Gestion de Productos</h2>
+              <h2 className="text-base font-bold" style={{ color: "#1B2727" }}>Gestión de Productos</h2>
               <Link to={`${base}/productos`}
                 className="text-xs font-semibold px-3 py-1.5 rounded-lg transition hover:opacity-80"
                 style={{ backgroundColor: "rgba(107,142,78,0.18)", color: "#3C5148" }}>

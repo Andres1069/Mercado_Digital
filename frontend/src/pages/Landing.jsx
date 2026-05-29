@@ -145,7 +145,7 @@ function CategoriaCard({ categoria, index }) {
           className="mt-6 inline-flex items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold text-white transition group-hover:brightness-110"
           style={{ background: `linear-gradient(135deg, ${visual.accent}, ${visual.accentDark})` }}
         >
-          Ver categoria
+          Ver categoría
         </span>
       </div>
     </Link>
@@ -165,19 +165,28 @@ export default function Landing() {
       label: "Envío express",
       title: "Recibe tu pedido en tiempo récord",
       description:
-        "Seguimiento en vivo, despachos confiables y entregas optimizadas dentro de nuestro horario de atencion.",
+        "Seguimiento en vivo, despachos confiables y entregas optimizadas para que tus compras lleguen directo a la puerta.",
+      image: "/carrusel/carrusel 1.png",
+      imageAlt: "Envío express",
+      imagePosition: "left center",
     },
     {
       label: "Pagos seguros",
       title: "Procesamiento de pago confiable",
       description:
         "Disfruta de pagos protegidos y confirmaciones instantáneas con la pasarela de Mercado Pago integrada.",
+      image: "/carrusel/carrusel 2.png",
+      imageAlt: "Pagos seguros",
+      imagePosition: "left center",
     },
     {
       label: "Ofertas exclusivas",
       title: "Ahorra en los productos más buscados",
       description:
         "Encuentra descuentos seleccionados, promoción por tiempo limitado y categorías destacadas en nuestra plataforma.",
+      image: "/carrusel/carrusel 3.png",
+      imageAlt: "Ofertas exclusivas",
+      imagePosition: "left center",
     },
   ];
 
@@ -499,7 +508,7 @@ export default function Landing() {
         {/* SLIDER INDEPENDIENTE */}
       <section className="mb-10">
         <div
-          className="relative overflow-hidden rounded-[32px] p-10 shadow-xl transition-all"
+          className="relative overflow-hidden rounded-[32px] shadow-xl transition-all"
           style={{
             backgroundColor: esOscuro ? "#111827" : "#ffffff",
             border: `1px solid ${
@@ -507,96 +516,113 @@ export default function Landing() {
             }`,
           }}
         >
-          <div className="relative z-10">
-            <span
-              className="inline-flex items-center rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em]"
-              style={{
-                backgroundColor: esOscuro
-                  ? "rgba(107,142,78,0.12)"
-                  : "#ecfdf5",
-                color: esOscuro ? "#b7d8a3" : "#166534",
-              }}
-            >
-              {slides[activeSlide].label}
-            </span>
-
-            <h2
-              className="mt-6 text-3xl sm:text-5xl font-black leading-tight"
-              style={{
-                color: esOscuro ? "#f8fafc" : "#111827",
-              }}
-            >
-              {slides[activeSlide].title}
-            </h2>
-
-            <p
-              className="mt-4 max-w-2xl text-base leading-8"
-              style={{
-                color: esOscuro ? "#cbd5e1" : "#475569",
-              }}
-            >
-              {slides[activeSlide].description}
-            </p>
-
-            <div
-              className="mt-6 inline-flex max-w-full items-center rounded-2xl px-4 py-3 text-sm font-semibold"
-              style={{
-                backgroundColor: esOscuro ? "rgba(107,142,78,0.14)" : "#f0fdf4",
-                border: `1px solid ${esOscuro ? "rgba(183,216,163,0.28)" : "#bbf7d0"}`,
-                color: esOscuro ? "#d9f99d" : "#166534",
-              }}
-            >
-              {HORARIO_PEDIDOS}
-            </div>
-          </div>
-
-          <div className="mt-10 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              {slides.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setActiveSlide(index)}
-                  className={`h-3 w-3 rounded-full transition ${
-                    activeSlide === index
-                      ? "bg-green-600"
-                      : esOscuro
-                      ? "bg-slate-600"
-                      : "bg-slate-300"
-                  }`}
-                  aria-label={`Slide ${index + 1}`}
-                />
-              ))}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() =>
-                  setActiveSlide(
-                    (prev) => (prev - 1 + slides.length) % slides.length
-                  )
-                }
-                className="rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition"
+          <div className="relative z-10 grid grid-cols-1 md:grid-cols-[1fr_520px] lg:grid-cols-[1fr_560px] items-stretch md:min-h-[360px] lg:min-h-[390px]">
+            <div className="relative min-w-0 p-10 md:pr-6">
+              <span
+                className="inline-flex items-center rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em]"
                 style={{
-                  backgroundColor: esOscuro ? "#1e293b" : "#f1f5f9",
+                  backgroundColor: esOscuro
+                    ? "rgba(107,142,78,0.12)"
+                    : "#ecfdf5",
+                  color: esOscuro ? "#b7d8a3" : "#166534",
+                }}
+              >
+                {slides[activeSlide].label}
+              </span>
+              <h2
+                className="mt-6 text-3xl sm:text-5xl font-black leading-tight"
+                style={{
                   color: esOscuro ? "#f8fafc" : "#111827",
                 }}
               >
-                Anterior
-              </button>
+                {slides[activeSlide].title}
+              </h2>
 
-              <button
-                type="button"
-                onClick={() =>
-                  setActiveSlide((prev) => (prev + 1) % slides.length)
-                }
-                className="rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white transition"
+              <p
+                className="mt-4 max-w-2xl text-base leading-8"
                 style={{
-                  backgroundColor: "#6B8E4E",
+                  color: esOscuro ? "#cbd5e1" : "#475569",
                 }}
               >
-                Siguiente
-              </button>
+                {slides[activeSlide].description}
+              </p>
+
+              <div className="absolute bottom-8 left-10 flex items-center gap-2">
+                {slides.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setActiveSlide(index)}
+                    className={`h-3 w-3 rounded-full transition ${
+                      activeSlide === index
+                        ? "bg-green-600"
+                        : esOscuro
+                        ? "bg-slate-600"
+                        : "bg-slate-300"
+                    }`}
+                    aria-label={`Slide ${index + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div
+              className="relative hidden md:flex items-center justify-center"
+              aria-hidden="true"
+              style={{
+                backgroundColor: esOscuro ? "rgba(2,6,23,0.25)" : "#ffffff",
+              }}
+            >
+              <img
+                key={slides[activeSlide].image}
+                src={encodeURI(slides[activeSlide].image)}
+                alt={slides[activeSlide].imageAlt}
+                className="h-full w-full object-contain"
+                draggable="false"
+                loading="eager"
+              />
+
+              <div
+                className="absolute inset-y-0 left-0 w-24"
+                style={{
+                  background: esOscuro
+                    ? "linear-gradient(90deg, rgba(17,24,39,0.92) 0%, rgba(17,24,39,0) 100%)"
+                    : "linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%)",
+                }}
+              />
+
+              <div className="absolute bottom-8 right-10 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setActiveSlide(
+                      (prev) => (prev - 1 + slides.length) % slides.length
+                    )
+                  }
+                  className="rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition"
+                  style={{
+                    backgroundColor: esOscuro
+                      ? "rgba(148,163,184,0.18)"
+                      : "rgba(241,245,249,0.92)",
+                    color: esOscuro ? "#f8fafc" : "#111827",
+                    backdropFilter: "blur(8px)",
+                  }}
+                >
+                  Anterior
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setActiveSlide((prev) => (prev + 1) % slides.length)
+                  }
+                  className="rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white transition"
+                  style={{
+                    backgroundColor: "#6B8E4E",
+                  }}
+                >
+                  Siguiente
+                </button>
+              </div>
             </div>
           </div>
         </div>

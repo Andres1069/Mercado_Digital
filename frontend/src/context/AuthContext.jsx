@@ -1,7 +1,7 @@
 // frontend/src/context/AuthContext.jsx
 // Contexto global de autenticación
 // Guarda el usuario y token en sessionStorage (aislado por pestaña del navegador).
-// Cada pestaña mantiene su propia sesion independiente, permitiendo tener
+// Cada pestaña mantiene su propia sesión independiente, permitiendo tener
 // admin, empleado y cliente abiertos en simultaneo sin conflictos.
 /* eslint-disable react-refresh/only-export-components */
 
@@ -15,7 +15,7 @@ export function AuthProvider({ children }) {
   const [token, setToken]     = useState(null);
   const [cargando, setCargando] = useState(true);
 
-  // Al arrancar: carga la sesion guardada en sessionStorage (exclusiva de esta pestana)
+  // Al arrancar: carga la sesión guardada en sessionStorage (exclusiva de esta pestaña)
   // y la valida contra el backend.
   useEffect(() => {
     let cancelado = false;
@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
 
       try {
         // Valida el token contra el backend. Si la cuenta fue desactivada o el
-        // token expiro, el backend retorna 401 y api.js limpia sessionStorage
+        // token expiró, el backend retorna 401 y api.js limpia sessionStorage
         // y redirige al login automaticamente.
         const res = await authService.me();
         const u = res.usuario || null;
@@ -57,7 +57,7 @@ export function AuthProvider({ children }) {
     return () => { cancelado = true; };
   }, []);
 
-  // Heartbeat: valida la sesion cada 45 s para detectar tokens expirados o
+  // Heartbeat: valida la sesión cada 45 s para detectar tokens expirados o
   // cuentas desactivadas desde el backend.
   useEffect(() => {
     if (!token) return;
@@ -78,7 +78,7 @@ export function AuthProvider({ children }) {
     return () => clearInterval(id);
   }, [token]);
 
-  // Guardar sesion tras login exitoso en sessionStorage (solo esta pestana).
+  // Guardar sesión tras login exitoso en sessionStorage (solo esta pestaña).
   const iniciarSesion = (nuevoToken, nuevoUsuario) => {
     setToken(nuevoToken);
     setUsuario(nuevoUsuario);
@@ -91,7 +91,7 @@ export function AuthProvider({ children }) {
     sessionStorage.setItem("md_usuario", JSON.stringify(nuevoUsuario));
   };
 
-  // Cerrar sesion: notifica al backend y limpia estado local
+  // Cerrar sesión: notifica al backend y limpia estado local
   const cerrarSesion = async () => {
     try {
       // Intenta notificar al backend sobre el logout

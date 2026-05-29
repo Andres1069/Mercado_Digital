@@ -53,7 +53,7 @@ export default function AdminReportes() {
     { id: "domicilios",  emoji: "🚚", label: "Domicilios",             desc: "Envios y estados de entrega" },
     { id: "clientes",    emoji: "👤", label: "Clientes",               desc: "Usuarios registrados como clientes" },
     { id: "proveedores", emoji: "🏭", label: "Proveedores",            desc: "Contactos y proveedores activos" },
-    { id: "productos",   emoji: "🛒", label: "Productos y Categorias", desc: "Catalogo completo con categorias" },
+    { id: "productos",   emoji: "🛒", label: "Productos y Categorías", desc: "Catálogo completo con categorías" },
   ];
 
   const toggleSeccion = (id) => {
@@ -359,8 +359,8 @@ export default function AdminReportes() {
         <div className={`grid grid-cols-1 sm:grid-cols-2 ${esEmp ? "lg:grid-cols-1" : "lg:grid-cols-4"} gap-4 mb-7`}>
           <Card titulo="Pedidos" valor={data.ventas.total_pedidos || 0} detalle="Pedidos detectados en la base" />
           {!esEmp && <Card titulo="Ingresos" valor={formatMoney(data.ventas.total_ingresos)} detalle="Pagos completados" />}
-          {!esEmp && <Card titulo="Venta online" valor={formatMoney(data.ventas.ingresos_online)} detalle={`${data.ventas.pedidos_online || 0} pedidos web y domicilios`} />}
-          {!esEmp && <Card titulo="Venta tienda" valor={formatMoney(data.ventas.ingresos_tienda)} detalle={`${data.ventas.pedidos_tienda || 0} ventas presenciales`} />}
+          {!esEmp && <Card titulo="Reportes" valor={totalRegistros} detalle={`${totalTipos} tipos registrados`} />}
+          {!esEmp && <Card titulo="Último Reporte" valor={ultimoReporte ? "OK" : "-"} detalle={ultimoReporte ? formatDate(ultimoReporte) : "Sin registros"} />}
         </div>
 
         <div className={`grid grid-cols-1 ${!esEmp ? "xl:grid-cols-2" : ""} gap-6 mb-6`}>
@@ -479,7 +479,7 @@ export default function AdminReportes() {
               <table className="w-full text-sm">
                 <thead>
                   <tr style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
-                    {["Codigo","Fecha","Tipo","Usuario","Descripcion","Detalles"].map((h, i) => (
+                    {["Código","Fecha","Tipo","Usuario","Descripción","Detalles"].map((h, i) => (
                       <th key={h} className={`px-4 py-3 text-xs font-bold uppercase tracking-wider ${i === 5 ? "text-center" : "text-left"}`}
                         style={{ color: "#6B8E4E" }}>{h}</th>
                     ))}

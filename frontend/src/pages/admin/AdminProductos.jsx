@@ -156,7 +156,7 @@ export default function AdminProductos() {
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Gestion de Productos</h1>
+              <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Gestión de Productos</h1>
               <p className="text-sm mt-1" style={{ color: "#3C5148" }}>{productos.length} productos en total</p>
             </div>
             {soloAdmin && (
@@ -176,7 +176,7 @@ export default function AdminProductos() {
           )}
 
           <div className="mb-5">
-            <input type="text" placeholder="Buscar por nombre, categoria o proveedor..."
+            <input type="text" placeholder="Buscar por nombre, categoría o proveedor..."
               value={buscar} onChange={(e) => setBuscar(e.target.value)}
               className="w-full sm:w-96 px-4 py-2.5 rounded-xl text-sm focus:outline-none"
               style={INPUT_STYLE} />
@@ -292,7 +292,7 @@ export default function AdminProductos() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold mb-1" style={LABEL}>Descripcion</label>
+                  <label className="block text-sm font-semibold mb-1" style={LABEL}>Descripción</label>
                   <textarea name="descripcion" value={form.descripcion} onChange={handleChange} rows={2}
                     className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none resize-none" style={INPUT_STYLE} />
                 </div>
@@ -409,7 +409,7 @@ export default function AdminProductos() {
             <div className="rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center"
               style={{ backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2" }}>
               <h3 className="text-lg font-bold mb-2" style={{ color: "#1B2727" }}>Eliminar producto?</h3>
-              <p className="text-sm mb-6" style={{ color: "#6B8E4E" }}>Esta accion no se puede deshacer.</p>
+              <p className="text-sm mb-6" style={{ color: "#6B8E4E" }}>Esta acción no se puede deshacer.</p>
               <div className="flex gap-3">
                 <button onClick={() => setConfirmar(null)}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition"

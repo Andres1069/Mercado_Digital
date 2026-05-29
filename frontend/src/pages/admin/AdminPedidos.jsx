@@ -97,10 +97,8 @@ export default function AdminPedidos() {
 
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3 mb-6">
             <div>
-              <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Gestion de Pedidos</h1>
-              <p className="text-sm mt-1" style={{ color: "#3C5148" }}>
-                {pedidos.length} pedidos en total · {pendientesDomicilio} con domicilio por completar
-              </p>
+              <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Gestión de Pedidos</h1>
+              <p className="text-sm mt-1" style={{ color: "#3C5148" }}>{pedidos.length} pedidos en total</p>
             </div>
             <button onClick={cargar}
               className="px-4 py-2 rounded-xl text-sm font-semibold transition"

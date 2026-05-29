@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes bagPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.bag-pulse {
+  animation: bagPulse 0.4s ease-out;
+}
+
 :root {
   --md-bg: #D5DDDF;
   --md-surface: #FFFFFF;

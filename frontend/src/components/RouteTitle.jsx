@@ -5,7 +5,7 @@ const APP_NAME = "Mercado Digital";
 
 function tituloPorRuta(pathname) {
   if (pathname === "/") return "Inicio";
-  if (pathname === "/login") return "Iniciar sesion";
+  if (pathname === "/login") return "Iniciar sesión";
   if (pathname === "/registro") return "Registro";
 
   if (pathname === "/tienda") return "Tienda";
@@ -31,7 +31,7 @@ export default function RouteTitle() {
 
   useEffect(() => {
     const page = tituloPorRuta(pathname);
-    // Muestra solo la seccion actual en la pestaña para evitar un titulo repetitivo.
+    // Muestra solo la sección actual en la pestaña para evitar un título repetitivo.
     document.title = page || APP_NAME;
   }, [pathname]);
 

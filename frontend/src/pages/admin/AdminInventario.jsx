@@ -110,7 +110,7 @@ export default function AdminInventario() {
           )}
 
           <div className="mb-5">
-            <input type="text" placeholder="Buscar por producto o categoria..."
+            <input type="text" placeholder="Buscar por producto o categoría..."
               value={buscar} onChange={(e) => setBuscar(e.target.value)}
               className="w-full sm:w-80 px-4 py-2.5 rounded-xl text-sm focus:outline-none"
               style={INPUT_STYLE} />

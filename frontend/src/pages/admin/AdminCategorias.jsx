@@ -38,7 +38,7 @@ export default function AdminCategorias() {
     e.preventDefault();
     setErrCrear("");
     const nombre = nuevoNombre.trim();
-    if (!nombre) { setErrCrear("Escribe el nombre de la categoria."); return; }
+    if (!nombre) { setErrCrear("Escribe el nombre de la categoría."); return; }
     setCreando(true);
     try {
       await categoriaService.crear({ nombre });
@@ -57,7 +57,7 @@ export default function AdminCategorias() {
   async function handleGuardar(id) {
     setErrEditar("");
     const nombre = editNombre.trim();
-    if (!nombre) { setErrEditar("El nombre no puede estar vacio."); return; }
+    if (!nombre) { setErrEditar("El nombre no puede estar vacío."); return; }
     setGuardando(true);
     try {
       await categoriaService.actualizar(id, { nombre });
@@ -91,9 +91,9 @@ export default function AdminCategorias() {
         <div className="max-w-4xl mx-auto px-4 py-8">
 
           <div className="mb-6">
-            <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Categorias</h1>
+            <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Categorías</h1>
             <p className="text-sm mt-1" style={{ color: "#3C5148" }}>
-              Gestiona las categorias de productos del supermercado
+              Gestiona las categorías de productos del supermercado
             </p>
           </div>
 
@@ -108,7 +108,7 @@ export default function AdminCategorias() {
 
             {/* Panel crear */}
             <div className="rounded-2xl p-6 h-fit" style={CARD}>
-              <h2 className="text-base font-extrabold mb-4" style={{ color: "#1B2727" }}>Nueva categoria</h2>
+              <h2 className="text-base font-extrabold mb-4" style={{ color: "#1B2727" }}>Nueva categoría</h2>
               <form onSubmit={handleCrear} className="space-y-3">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#6B8E4E" }}>
@@ -136,12 +136,12 @@ export default function AdminCategorias() {
                   className="w-full py-2.5 rounded-xl text-white font-bold text-sm disabled:opacity-50 transition"
                   style={{ backgroundColor: "#6B8E4E" }}
                 >
-                  {creando ? "Creando..." : "Crear categoria"}
+                  {creando ? "Creando..." : "Crear categoría"}
                 </button>
               </form>
 
               <div className="mt-5 rounded-xl px-4 py-3" style={{ backgroundColor: "rgba(107,142,78,0.12)", border: "1px solid rgba(107,142,78,0.18)" }}>
-                <p className="text-xs" style={{ color: "#6B8E4E" }}>Total de categorias</p>
+                <p className="text-xs" style={{ color: "#6B8E4E" }}>Total de categorías</p>
                 <p className="text-3xl font-black mt-0.5" style={{ color: "#3C5148" }}>{categorias.length}</p>
               </div>
             </div>
@@ -151,7 +151,7 @@ export default function AdminCategorias() {
               <div className="px-5 py-4" style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
                 <input
                   type="text"
-                  placeholder="Buscar categoria..."
+                  placeholder="Buscar categoría..."
                   value={buscar}
                   onChange={(e) => setBuscar(e.target.value)}
                   className="w-full px-4 py-2 rounded-xl text-sm focus:outline-none"
@@ -167,10 +167,10 @@ export default function AdminCategorias() {
               )}
 
               {cargando ? (
-                <div className="py-16 text-center text-sm" style={{ color: "#6B8E4E" }}>Cargando categorias...</div>
+                <div className="py-16 text-center text-sm" style={{ color: "#6B8E4E" }}>Cargando categorías...</div>
               ) : filtradas.length === 0 ? (
                 <div className="py-16 text-center text-sm" style={{ color: "#6B8E4E" }}>
-                  {buscar ? "Ninguna categoria coincide con la busqueda." : "No hay categorias registradas."}
+                  {buscar ? "Ninguna categoría coincide con la búsqueda." : "No hay categorías registradas."}
                 </div>
               ) : (
                 <ul>

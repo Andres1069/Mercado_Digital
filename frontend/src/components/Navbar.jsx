@@ -1,18 +1,23 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { useTheme } from "../context/ThemeContext";
 import ThemeToggle from "./ThemeToggle";
+import BasketIcon from "./BasketIcon";
 
 export default function Navbar({ carritoCount }) {
   const { usuario, cerrarSesion, esAdmin, esEmpleado } = useAuth();
-  const { itemsCount } = useCart();
+  const { items, itemsCount, subtotal, removeItem } = useCart();
   const { esOscuro } = useTheme();
 
   const navigate = useNavigate();
 
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [bolsaPulso, setBolsaPulso] = useState(false);
+  const [bolsaPreviewAbierta, setBolsaPreviewAbierta] = useState(false);
+  const prevCountRef = useRef(0);
+  const closePreviewTimerRef = useRef(null);
 
   const logoLight = `${import.meta.env.BASE_URL}Logo-Mercado-Digital.png`;
   const logoDark = `${import.meta.env.BASE_URL}Logo-Mercado-Digital-Blanco.png`;
@@ -28,6 +33,28 @@ export default function Navbar({ carritoCount }) {
     cerrarSesion();
     navigate("/");
   };
+
+  const formatMoney = (value) =>
+    `$${Number(value || 0).toLocaleString("es-CO")}`;
+
+  useEffect(() => {
+    if (count > prevCountRef.current) {
+      setBolsaPulso(true);
+      const t = setTimeout(() => setBolsaPulso(false), 400);
+      prevCountRef.current = count;
+      return () => clearTimeout(t);
+    }
+
+    prevCountRef.current = count;
+  }, [count]);
+
+  useEffect(() => {
+    return () => {
+      if (closePreviewTimerRef.current) {
+        clearTimeout(closePreviewTimerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <nav
@@ -225,31 +252,142 @@ export default function Navbar({ carritoCount }) {
 
           {/* CARRITO */}
           {!esAdmin() && !esEmpleado() && (
-            <Link
-              to="/carrito"
-              className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-2xl transition flex items-center justify-center"
-              aria-label="Carrito"
-              style={{
-                background: esOscuro
-                  ? "rgba(255,255,255,0.08)"
-                  : "rgba(15,23,42,0.05)",
-                color: esOscuro ? "#ffffff" : "#111827",
+            <div
+              className="relative"
+              onMouseEnter={() => {
+                if (closePreviewTimerRef.current) {
+                  clearTimeout(closePreviewTimerRef.current);
+                  closePreviewTimerRef.current = null;
+                }
+                setBolsaPreviewAbierta(true);
+              }}
+              onMouseLeave={() => {
+                closePreviewTimerRef.current = setTimeout(() => {
+                  setBolsaPreviewAbierta(false);
+                }, 120);
               }}
             >
-              <span className="text-xl leading-none">🛒</span>
+              <Link
+                to="/carrito"
+                className={`relative inline-flex items-center justify-center p-2 rounded-full transition-all duration-300 ${
+                  bolsaPulso ? "bag-pulse" : ""
+                }`}
+                aria-label="Carrito"
+                style={{
+                  background: "transparent",
+                  color: esOscuro ? "#e2e8f0" : "#1e2918",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = esOscuro
+                    ? "rgba(255,255,255,0.08)"
+                    : "rgba(93, 124, 74, 0.08)";
+                  e.currentTarget.style.color = "#5d7c4a";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.color = esOscuro ? "#e2e8f0" : "#1e2918";
+                }}
+              >
+                <BasketIcon className="w-[34px] h-[34px]" />
 
-              {count > 0 && (
-                <span
-                  className="absolute -top-1 -right-1 text-white text-[11px] rounded-full min-w-5 h-5 px-1 flex items-center justify-center font-bold"
+                {count > 0 && (
+                  <span
+                    className="absolute top-[2px] right-[2px] text-white text-[11px] rounded-full w-5 h-5 flex items-center justify-center font-bold shadow transition-all duration-300"
+                    style={{ backgroundColor: "#5d7c4a" }}
+                  >
+                    {count}
+                  </span>
+                )}
+              </Link>
+
+              {bolsaPreviewAbierta && (
+                <div
+                  className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[300px] rounded-2xl shadow-2xl overflow-hidden"
                   style={{
-                    background:
-                      "linear-gradient(135deg, #6B8E4E, #3C5148)",
+                    backgroundColor: esOscuro ? "#0b1220" : "#ffffff",
+                    border: `1px solid ${
+                      esOscuro ? "rgba(148,163,184,0.14)" : "#e5e7eb"
+                    }`,
                   }}
                 >
-                  {count}
-                </span>
+                  <div className="p-3" style={{ color: esOscuro ? "#e5e7eb" : "#111827" }}>
+                    {items?.length ? (
+                      <div className="space-y-2">
+                        {items.slice(0, 3).map((it) => (
+                          <div
+                            key={it.id}
+                            className="flex items-center gap-3 rounded-xl px-2.5 py-2"
+                            style={{
+                              background: esOscuro
+                                ? "rgba(255,255,255,0.04)"
+                                : "rgba(15,23,42,0.03)",
+                            }}
+                          >
+                            <div
+                              className="w-6 text-center text-sm font-semibold opacity-80 flex-shrink-0"
+                              title="Cantidad"
+                            >
+                              {it.cantidad}
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                              <div className="text-sm font-semibold truncate">
+                                {it.nombre || "Producto"}
+                              </div>
+                              <div className="text-xs opacity-70 mt-0.5">
+                                {formatMoney(it.precio)}
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              className="w-8 h-8 rounded-xl flex items-center justify-center text-lg leading-none flex-shrink-0"
+                              aria-label="Quitar del carrito"
+                              title="Quitar"
+                              style={{
+                                color: esOscuro ? "#e5e7eb" : "#111827",
+                                background: esOscuro
+                                  ? "rgba(255,255,255,0.05)"
+                                  : "rgba(15,23,42,0.05)",
+                              }}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                removeItem(it.id);
+                              }}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+
+                        <div
+                          className="flex items-center justify-between pt-2 mt-1 border-t text-sm font-semibold"
+                          style={{
+                            borderColor: esOscuro
+                              ? "rgba(148,163,184,0.14)"
+                              : "#e5e7eb",
+                          }}
+                        >
+                          <span style={{ opacity: 0.8 }}>Total:</span>
+                          <span>{formatMoney(subtotal)}</span>
+                        </div>
+
+                        {items.length > 3 && (
+                          <div className="text-xs opacity-70 pt-1">
+                            +{items.length - 3} producto(s) más
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="py-6 text-center text-sm opacity-70">
+                        Tu carrito está vacío
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
-            </Link>
+            </div>
           )}
 
           {/* MENÚ USUARIO */}

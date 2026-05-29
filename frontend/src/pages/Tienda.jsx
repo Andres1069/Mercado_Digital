@@ -331,7 +331,7 @@ export default function Tienda() {
               <div className="text-center py-24 text-gray-400">
                 <div className="text-6xl mb-4">:(</div>
                 <p className="text-lg font-semibold text-gray-600">No se encontraron productos</p>
-                <p className="text-sm mt-1">Intenta con otra busqueda o categoria</p>
+                <p className="text-sm mt-1">Intenta con otra búsqueda o categoría</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4">

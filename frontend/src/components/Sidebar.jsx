@@ -107,7 +107,7 @@ const LINKS_ADMIN = [
   { to: "/admin/domicilios",   label: "Domicilios",    icon: Ico.domicilios,  color: "#B2C5B2" },
   { to: "/admin/reportes",     label: "Reportes",      icon: Ico.reportes,    color: "#B2C5B2" },
   { to: "/admin/usuarios",     label: "Usuarios",      icon: Ico.usuarios,    color: "#B2C5B2" },
-  { to: "/admin/categorias",   label: "Categorias",    icon: Ico.categorias,  color: "#6B8E4E" },
+  { to: "/admin/categorias",   label: "Categorías",    icon: Ico.categorias,  color: "#6B8E4E" },
   { to: "/admin/proveedores",  label: "Proveedores",   icon: Ico.proveedores, color: "#B2C5B2" },
 ];
 
@@ -227,7 +227,7 @@ export default function Sidebar() {
             onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ""; e.currentTarget.style.color = "rgba(213,221,223,0.65)"; }}
           >
             {Ico.logout}
-            Cerrar sesion
+            Cerrar sesión
           </button>
         </div>
       </div>

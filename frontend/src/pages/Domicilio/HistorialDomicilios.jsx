@@ -73,7 +73,7 @@ export default function HistorialDomicilios() {
           </div>
         ) : domicilios.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 text-center">
-            <div className="text-5xl mb-3">🛵</div>
+            <div className="text-5xl mb-3" aria-hidden="true" />
             <h2 className="text-lg font-bold text-gray-800">Sin envios registrados</h2>
             <p className="text-sm text-gray-500 mt-1">Cuando realices un pedido aparecera aqui.</p>
           </div>
@@ -113,7 +113,7 @@ export default function HistorialDomicilios() {
                         className="px-2 py-1 rounded-full text-xs font-semibold"
                         style={{ backgroundColor: cDomicilio.bg, color: cDomicilio.text }}
                       >
-                        Envio: {d.Estado_Domicilio}
+                        Envío: {d.Estado_Domicilio}
                       </span>
                     )}
                     <Link

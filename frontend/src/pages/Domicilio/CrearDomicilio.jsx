@@ -29,11 +29,11 @@ export default function CrearDomicilio() {
   async function handleSubmit(e) {
     e.preventDefault();
     if (!pedidoId) {
-      setError("No se encontro el numero de pedido. Vuelve al carrito.");
+      setError("No se encontró el número de pedido. Vuelve al carrito.");
       return;
     }
     if (!form.direccion.trim()) {
-      setError("La direccion es obligatoria.");
+      setError("La dirección es obligatoria.");
       return;
     }
 
@@ -62,7 +62,7 @@ export default function CrearDomicilio() {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <h1 className="text-xl font-extrabold text-gray-800 mb-1">Datos de entrega</h1>
           <p className="text-sm text-gray-500 mb-6">
-            {pedidoId ? `Pedido #${pedidoId}` : "Confirma tu direccion para el domicilio."}
+            {pedidoId ? `Pedido #${pedidoId}` : "Confirma tu dirección para el domicilio."}
           </p>
 
           {/* Panel de confirmación de dirección registrada */}
@@ -113,7 +113,7 @@ export default function CrearDomicilio() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Direccion de entrega <span className="text-red-500">*</span>
+                Dirección de entrega <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -128,7 +128,7 @@ export default function CrearDomicilio() {
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Telefono de contacto
+                Teléfono de contacto
               </label>
               <input
                 type="tel"

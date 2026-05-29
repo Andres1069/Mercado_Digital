@@ -8,19 +8,12 @@ const INPUT_STYLE = { backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", c
 
 function badgeEstado(estado) {
   const e = String(estado || "").toLowerCase();
-  if (e.includes("entregado"))   return { bg: "rgba(107,142,78,0.2)",  text: "#6B8E4E",  icon: "✅" };
-  if (e.includes("camino"))      return { bg: "rgba(107,142,78,0.18)",   text: "#3C5148",  icon: "🛵" };
-  if (e.includes("preparacion")) return { bg: "rgba(178,197,178,0.2)", text: "#3C5148",  icon: "📦" };
-  if (e.includes("cancel"))      return { bg: "rgba(239,68,68,0.15)",   text: "#f87171",  icon: "❌" };
-  return                                { bg: "rgba(245,158,11,0.15)",  text: "#fbbf24",  icon: "⏳" };
+  if (e.includes("entregado"))   return { bg: "rgba(107,142,78,0.2)",  text: "#6B8E4E" };
+  if (e.includes("camino"))      return { bg: "rgba(107,142,78,0.18)", text: "#3C5148" };
+  if (e.includes("preparacion")) return { bg: "rgba(178,197,178,0.2)", text: "#3C5148" };
+  if (e.includes("cancel"))      return { bg: "rgba(239,68,68,0.15)",  text: "#f87171" };
+  return                                { bg: "rgba(245,158,11,0.15)", text: "#fbbf24" };
 }
-
-const RESUMEN_CONFIG = [
-  { label: "Pendiente",      icon: "⏳", bg: "rgba(245,158,11,0.15)",  border: "rgba(245,158,11,0.4)",  text: "#fbbf24" },
-  { label: "En preparacion", icon: "📦", bg: "rgba(178,197,178,0.2)", border: "rgba(178,197,178,0.4)", text: "#3C5148" },
-  { label: "En camino",      icon: "🛵", bg: "rgba(107,142,78,0.18)",  border: "rgba(107,142,78,0.4)",  text: "#3C5148" },
-  { label: "Entregado",      icon: "✅", bg: "rgba(107,142,78,0.2)",  border: "rgba(107,142,78,0.4)",  text: "#6B8E4E" },
-];
 
 const RESUMEN_CONFIG_FA = [
   { label: "Pendiente",      iconClass: "fa-solid fa-hourglass-half", bg: "rgba(245,158,11,0.15)",  border: "rgba(245,158,11,0.4)",  text: "#fbbf24" },
@@ -146,7 +139,7 @@ export default function AdminDomicilios() {
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3 mb-6">
             <div>
-              <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Gestion de Domicilios</h1>
+              <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Gestión de Domicilios</h1>
               <p className="text-sm mt-1" style={{ color: "#3C5148" }}>{domicilios.length} domicilios registrados</p>
             </div>
             <button onClick={cargar}
@@ -180,7 +173,7 @@ export default function AdminDomicilios() {
 
           {/* Filtros */}
           <div className="flex flex-col sm:flex-row gap-3 mb-5">
-            <input type="text" placeholder="Buscar por # pedido, documento, nombre o direccion..."
+            <input type="text" placeholder="Buscar por # pedido, documento, nombre o dirección..."
               value={buscar} onChange={(e) => setBuscar(e.target.value)}
               className="flex-1 px-4 py-2.5 rounded-xl text-sm focus:outline-none"
               style={INPUT_STYLE} />
@@ -203,7 +196,7 @@ export default function AdminDomicilios() {
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
-                  {["Pedido", "Cliente", "Direccion", "Pago", "Estado", "Comprobante", "Cambiar estado"].map((h, i) => (
+                  {["Pedido", "Cliente", "Dirección", "Pago", "Estado", "Cambiar estado"].map((h, i) => (
                     <th key={h}
                       className={`px-4 py-3 text-xs font-bold uppercase tracking-wider ${i === 1 ? "hidden md:table-cell text-left" : ""} ${i === 2 ? "hidden lg:table-cell text-left" : ""} ${i === 3 ? "hidden md:table-cell text-center" : ""} ${i >= 4 ? "text-center" : ""} ${i === 0 ? "text-left" : ""}`}
                       style={{ color: "#6B8E4E" }}>
@@ -264,7 +257,7 @@ export default function AdminDomicilios() {
                         <td className="px-4 py-3 text-center">
                           <span className="px-2 py-1 rounded-full text-xs font-semibold"
                             style={{ backgroundColor: badge.bg, color: badge.text }}>
-                            {badge.icon} {d.Estado_Domicilio || "Pendiente"}
+                            {d.Estado_Domicilio || "Pendiente"}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-center">
