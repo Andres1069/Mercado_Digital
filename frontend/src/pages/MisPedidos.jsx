@@ -54,9 +54,18 @@ export default function MisPedidos() {
             <h1 className="text-2xl font-extrabold text-gray-800">Mis pedidos</h1>
             <p className="text-sm text-gray-500 mt-1">{pedidos.length} pedidos registrados</p>
           </div>
-          <div className="text-right">
-            <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold">Total historico</p>
-            <p className="text-xl font-extrabold text-gray-800">${Number(totalGastado).toLocaleString("es-CO")}</p>
+          <div className="flex items-center gap-3">
+            <Link
+              to="/domicilio/historial"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
+              style={{ background: "linear-gradient(135deg,#6B8E4E,#3C5148)" }}
+            >
+              🛵 Domicilio
+            </Link>
+            <div className="text-right">
+              <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold">Total histórico</p>
+              <p className="text-xl font-extrabold text-gray-800">${Number(totalGastado).toLocaleString("es-CO")}</p>
+            </div>
           </div>
         </div>
 

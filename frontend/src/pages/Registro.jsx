@@ -21,18 +21,28 @@ function OjoIcon({ abierto }) {
   );
 }
 
+const DIRECCION_GUARDADA_KEY = "md_ultima_direccion_registro";
+
 export default function Registro() {
   const { iniciarSesion } = useAuth();
   const navigate = useNavigate();
+
+  const direccionGuardada = (() => {
+    try {
+      return JSON.parse(localStorage.getItem(DIRECCION_GUARDADA_KEY) || "null");
+    } catch {
+      return null;
+    }
+  })();
 
   const [form, setForm] = useState({
     num_documento: "",
     nombre: "",
     apellido: "",
     correo: "",
-    telefono: "",
-    barrio: "Chicala del Sur",
-    direccion: "",
+    telefono: direccionGuardada?.telefono || "",
+    barrio: "Bosa Brasil",
+    direccion: direccionGuardada?.direccion || "",
     contrasena: "",
     confirmar: "",
   });
@@ -94,6 +104,10 @@ export default function Registro() {
         direccion: form.direccion,
         contrasena: form.contrasena,
       });
+      localStorage.setItem(
+        DIRECCION_GUARDADA_KEY,
+        JSON.stringify({ direccion: form.direccion, telefono: form.telefono })
+      );
       iniciarSesion(res.token, res.usuario);
       navigate("/tienda");
     } catch (err) {
@@ -135,11 +149,16 @@ export default function Registro() {
               <input type="email" name="correo" value={form.correo} onChange={handleChange} required placeholder="Correo electronico" className="md-input sm:col-span-2" />
               <input type="tel" name="telefono" value={form.telefono} onChange={handleChange} placeholder="Telefono" className="md-input" />
               <select name="barrio" value={form.barrio} onChange={handleChange} required className="md-input">
-                <option value="Chicala del Sur">Chicala del Sur (Bogota)</option>
+                <option value="Bosa Brasil">Bosa Brasil (Bogotá D.C.)</option>
               </select>
             </div>
 
-            <input type="text" name="direccion" value={form.direccion} onChange={handleChange} required placeholder="Direccion completa" className="md-input" />
+            <input type="text" name="direccion" value={form.direccion} onChange={handleChange} required placeholder="Direccion completa" className="md-input" autoComplete="street-address" />
+            {direccionGuardada?.direccion && (
+              <p className="text-xs -mt-1" style={{ color: "#3C5148" }}>
+                📍 Autocompletamos tu dirección con la última que registraste en este dispositivo.
+              </p>
+            )}
 
             <div className="grid sm:grid-cols-2 gap-4 lg:gap-3">
               <div className="relative">

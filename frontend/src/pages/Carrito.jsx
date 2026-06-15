@@ -1,56 +1,74 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { resolverImagen, pedidoService } from "../services/api";
 import { useCart } from "../context/CartContext";
 
-<<<<<<< HEAD
-=======
-const METODOS_PAGO = [
-  { nombre: "Simulado", etiqueta: "Prueba de desarrollo", tipo: "Simulador", icon: "🏦" },
-  { nombre: "Stripe",   etiqueta: "Tarjeta de prueba",   tipo: "Pasarela",  icon: "💳" },
+const OPCIONES_ENTREGA = [
+  {
+    id: "domicilio",
+    titulo: "Envío a domicilio",
+    descripcion: "Recibe tu pedido en la dirección que registres",
+    icono: "🛵",
+  },
+  {
+    id: "tienda",
+    titulo: "Recoger en tienda",
+    descripcion: "Pasa a recoger tu pedido en nuestro punto de venta",
+    icono: "🏪",
+  },
 ];
 
->>>>>>> 1d86c12 (pasarela de pagos)
 export default function Carrito() {
   const { items, updateQty, removeItem, clearCart, itemsCount, subtotal } = useCart();
   const navigate = useNavigate();
 
-  const [procesando, setProcesando] = useState(false);
-  const [error, setError] = useState("");
-<<<<<<< HEAD
-=======
-  const [metodoPago, setMetodoPago] = useState("Simulado");
-  const envioEnCursoRef = useRef(false);
->>>>>>> 1d86c12 (pasarela de pagos)
+  const [mostrarModal, setMostrarModal] = useState(false);
+  const [pasoModal, setPasoModal]       = useState(1);
+  const [tipoEntrega, setTipoEntrega]   = useState("");
+  const [procesando, setProcesando]     = useState(false);
+  const [error, setError]               = useState("");
+  const enviandoRef = useRef(false);
 
-  const envio = subtotal > 70000 || items.length === 0 ? 0 : 7900;
-  const total = subtotal + envio;
+  const envio  = subtotal > 70000 || items.length === 0 ? 0 : 7900;
+  const total  = subtotal + envio;
 
-  async function handleFinalizarCompra() {
+  function abrirModal() {
+    setPasoModal(1);
+    setTipoEntrega("");
     setError("");
+    setMostrarModal(true);
+  }
+
+  function cerrarModal() {
+    if (procesando) return;
+    setMostrarModal(false);
+    setError("");
+  }
+
+  async function handleConfirmar() {
+    if (enviandoRef.current) return;
+
+    setError("");
+    enviandoRef.current = true;
     setProcesando(true);
     try {
       const res = await pedidoService.crear({
-        items: items.map((it) => ({ id: it.id, nombre: it.nombre, precio: it.precio, cantidad: it.cantidad })),
-<<<<<<< HEAD
-        metodo_pago: "MercadoPago",
-        monto_total: total,
-      });
-      navigate(`/pago/qr?pedido=${res.cod_pedido}`);
-=======
-        metodo_pago: metodoPago,
+        items: items.map((it) => ({
+          id: it.id,
+          nombre: it.nombre,
+          precio: it.precio,
+          cantidad: it.cantidad,
+        })),
+        metodo_pago: "Simulado",
         monto_total: total,
       });
       setMostrarModal(false);
-      const ruta = metodoPago === "Stripe"
-        ? `/pago/stripe?pedido=${res.cod_pedido}`
-        : `/pago/simulado?pedido=${res.cod_pedido}`;
-      navigate(ruta);
->>>>>>> 1d86c12 (pasarela de pagos)
+      navigate(`/pago/simulado?pedido=${res.cod_pedido}&entrega=${tipoEntrega}`);
     } catch (e) {
       setError(e.message || "No se pudo procesar el pedido.");
       setProcesando(false);
+      enviandoRef.current = false;
     }
   }
 
@@ -62,7 +80,7 @@ export default function Carrito() {
         <div className="flex flex-wrap items-end justify-between gap-3 mb-6">
           <div>
             <h1 className="text-2xl font-extrabold text-gray-800">Carrito de compras</h1>
-            <p className="text-sm text-gray-500 mt-1">{itemsCount} articulos</p>
+            <p className="text-sm text-gray-500 mt-1">{itemsCount} artículos</p>
           </div>
           {items.length > 0 && (
             <button
@@ -75,15 +93,14 @@ export default function Carrito() {
         </div>
 
         {items.length === 0 ? (
-          <div className="cart-empty-modern bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-14 text-center">
-            <div className="text-6xl mb-3">🛒</div>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-14 text-center">
             <div
-              className="mx-auto w-24 h-24 rounded-2xl flex items-center justify-center shadow-sm"
+              className="mx-auto w-24 h-24 rounded-2xl flex items-center justify-center shadow-sm mb-4"
               style={{ background: "rgba(107,142,78,0.14)", color: "#6B8E4E" }}
             >
               <i className="fa-solid fa-cart-shopping text-4xl" aria-hidden="true" />
             </div>
-            <h2 className="mt-6 text-xl font-semibold text-gray-800">Tu carrito esta vacio</h2>
+            <h2 className="text-xl font-semibold text-gray-800">Tu carrito está vacío</h2>
             <p className="mt-2 text-gray-500 text-sm">Agrega productos desde la tienda para continuar.</p>
             <Link
               to="/tienda"
@@ -95,6 +112,7 @@ export default function Carrito() {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            {/* Lista de productos */}
             <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               {items.map((it) => (
                 <div key={it.id} className="p-4 border-b last:border-b-0 border-gray-100">
@@ -112,7 +130,9 @@ export default function Carrito() {
                         <p className="text-xs font-semibold text-gray-500">{it.categoria || "Producto"}</p>
                         <h3 className="font-bold text-gray-800 truncate">{it.nombre}</h3>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="font-extrabold text-indigo-600">${Number(it.precio).toLocaleString("es-CO")}</span>
+                          <span className="font-extrabold" style={{ color: "#6B8E4E" }}>
+                            ${Number(it.precio).toLocaleString("es-CO")}
+                          </span>
                           {it.precioOriginal > it.precio && (
                             <span className="text-xs text-gray-400 line-through">
                               ${Number(it.precioOriginal).toLocaleString("es-CO")}
@@ -143,7 +163,9 @@ export default function Carrito() {
                         </div>
 
                         <div className="text-right sm:shrink-0">
-                          <p className="font-bold text-gray-800">${Number(it.precio * it.cantidad).toLocaleString("es-CO")}</p>
+                          <p className="font-bold text-gray-800">
+                            ${Number(it.precio * it.cantidad).toLocaleString("es-CO")}
+                          </p>
                           <button
                             onClick={() => removeItem(it.id)}
                             className="text-xs text-red-500 hover:underline mt-0.5 sm:mt-1"
@@ -158,6 +180,7 @@ export default function Carrito() {
               ))}
             </div>
 
+            {/* Resumen */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 h-fit">
               <h3 className="text-lg font-bold text-gray-800 mb-4">Resumen</h3>
               <div className="space-y-2 text-sm">
@@ -166,7 +189,7 @@ export default function Carrito() {
                   <span>${Number(subtotal).toLocaleString("es-CO")}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
-                  <span>Envio</span>
+                  <span>Envío</span>
                   <span>{envio === 0 ? "Gratis" : `$${Number(envio).toLocaleString("es-CO")}`}</span>
                 </div>
                 <div className="pt-2 mt-2 border-t flex justify-between text-base font-extrabold text-gray-800">
@@ -176,18 +199,21 @@ export default function Carrito() {
               </div>
 
               {error && (
-                <div className="mt-4 px-3 py-2 rounded-xl text-xs border"
-                  style={{ backgroundColor: "#fee2e2", borderColor: "#fca5a5", color: "#991b1b" }}>
+                <div
+                  className="mt-4 px-3 py-2 rounded-xl text-xs border"
+                  style={{ backgroundColor: "#fee2e2", borderColor: "#fca5a5", color: "#991b1b" }}
+                >
                   {error}
                 </div>
               )}
+
               <button
-                onClick={handleFinalizarCompra}
+                onClick={abrirModal}
                 disabled={procesando}
                 className="w-full mt-5 text-white font-bold py-3 rounded-xl hover:opacity-90 transition disabled:opacity-50"
                 style={{ background: "linear-gradient(135deg,#6B8E4E,#3C5148)" }}
               >
-                {procesando ? "Procesando..." : "Finalizar compra →"}
+                Finalizar compra →
               </button>
               <Link
                 to="/tienda"
@@ -200,87 +226,192 @@ export default function Carrito() {
         )}
       </div>
 
-<<<<<<< HEAD
-=======
+      {/* ── Modal de checkout ── */}
       {mostrarModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-            <h2 className="text-lg font-extrabold text-gray-800 mb-1">Confirmar pedido</h2>
-            <p className="text-sm text-gray-500 mb-4">Elige cómo quieres realizar el pago.</p>
 
-            {error && (
-              <div className="mb-3 px-3 py-2 rounded-xl text-xs border" style={{ backgroundColor: "#fee2e2", borderColor: "#fca5a5", color: "#991b1b" }}>
-                {error}
-              </div>
-            )}
-
-            <div className="mb-5 space-y-2">
-              {METODOS_PAGO.map((m) => (
-                <button
-                  key={m.nombre}
-                  type="button"
-                  onClick={() => setMetodoPago(m.nombre)}
-                  disabled={procesando}
-                  className="w-full flex items-center gap-3 rounded-2xl border p-3 text-left transition disabled:opacity-50"
-                  style={metodoPago === m.nombre
-                    ? { borderColor: "#6B8E4E", backgroundColor: "rgba(107,142,78,0.06)" }
-                    : { borderColor: "#e5e7eb", backgroundColor: "white" }}
-                >
+            {/* ── Indicador de pasos ── */}
+            <div className="flex items-center gap-2 mb-5">
+              {[
+                { n: 1, label: "Entrega" },
+                { n: 2, label: "Pago" },
+              ].map((paso, idx) => (
+                <div key={paso.n} className="flex items-center gap-2 flex-1">
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0"
-                    style={metodoPago === m.nombre
-                      ? { background: "linear-gradient(135deg,#3C5148,#6B8E4E)", color: "white" }
-                      : { backgroundColor: "#f3f4f6", color: "#6b7280" }}
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                    style={
+                      pasoModal >= paso.n
+                        ? { background: "linear-gradient(135deg,#6B8E4E,#3C5148)", color: "white" }
+                        : { border: "1px solid #B2C5B2", color: "#3C5148", backgroundColor: "white" }
+                    }
                   >
-                    {m.icon}
+                    {paso.n}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-semibold text-gray-700">{m.nombre}</span>
-                    {m.nombre === "Simulado" && (
-                      <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ backgroundColor: "#dcfce7", color: "#166534" }}>
-                        Recomendado
-                      </span>
-                    )}
-                    <div className="text-[11px] text-gray-400 mt-0.5">{m.etiqueta} · {m.tipo}</div>
-                  </div>
-                  <div
-                    className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"
-                    style={{ borderColor: metodoPago === m.nombre ? "#6B8E4E" : "#d1d5db" }}
+                  <span
+                    className="text-xs font-semibold"
+                    style={{ color: pasoModal >= paso.n ? "#3C5148" : "#9ca3af" }}
                   >
-                    {metodoPago === m.nombre && (
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#6B8E4E" }} />
-                    )}
-                  </div>
-                </button>
+                    {paso.label}
+                  </span>
+                  {idx === 0 && (
+                    <div
+                      className="flex-1 h-px"
+                      style={{ backgroundColor: pasoModal >= 2 ? "#6B8E4E" : "#B2C5B2" }}
+                    />
+                  )}
+                </div>
               ))}
             </div>
 
-            <div className="flex items-center justify-between text-sm font-bold text-gray-800 mb-5">
-              <span>Total a pagar</span>
-              <span>${Number(total).toLocaleString("es-CO")}</span>
-            </div>
+            {/* ── Paso 1: Tipo de entrega ── */}
+            {pasoModal === 1 && (
+              <>
+                <h2 className="text-lg font-extrabold text-gray-800 mb-1">¿Cómo recibes tu pedido?</h2>
+                <p className="text-sm text-gray-500 mb-5">Selecciona una opción para continuar.</p>
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => { setMostrarModal(false); setError(""); }}
-                disabled={procesando}
-                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleFinalizarCompra}
-                disabled={procesando}
-                className="flex-1 py-2.5 rounded-xl text-white font-bold text-sm hover:opacity-90 transition disabled:opacity-50"
-                style={{ background: "linear-gradient(135deg,#6B8E4E,#3C5148)" }}
-              >
-                {procesando ? "Procesando..." : "Confirmar"}
-              </button>
-            </div>
+                <div className="space-y-3 mb-6">
+                  {OPCIONES_ENTREGA.map((op) => (
+                    <button
+                      key={op.id}
+                      type="button"
+                      onClick={() => setTipoEntrega(op.id)}
+                      className="w-full flex items-center gap-3 rounded-2xl border p-4 text-left transition"
+                      style={
+                        tipoEntrega === op.id
+                          ? { borderColor: "#6B8E4E", backgroundColor: "rgba(107,142,78,0.06)" }
+                          : { borderColor: "#e5e7eb", backgroundColor: "white" }
+                      }
+                    >
+                      <div
+                        className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0"
+                        style={
+                          tipoEntrega === op.id
+                            ? { background: "linear-gradient(135deg,#3C5148,#6B8E4E)", color: "white" }
+                            : { backgroundColor: "#f3f4f6" }
+                        }
+                      >
+                        {op.icono}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-gray-800">{op.titulo}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{op.descripcion}</p>
+                      </div>
+                      <div
+                        className="w-4 h-4 rounded-full border-2 shrink-0"
+                        style={{
+                          borderColor: tipoEntrega === op.id ? "#6B8E4E" : "#d1d5db",
+                          backgroundColor: tipoEntrega === op.id ? "#6B8E4E" : "transparent",
+                        }}
+                      />
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={cerrarModal}
+                    className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={() => tipoEntrega && setPasoModal(2)}
+                    disabled={!tipoEntrega}
+                    className="flex-1 py-2.5 rounded-xl text-white font-bold text-sm hover:opacity-90 transition disabled:opacity-40"
+                    style={{ background: "linear-gradient(135deg,#6B8E4E,#3C5148)" }}
+                  >
+                    Continuar →
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* ── Paso 2: Confirmar pago ── */}
+            {pasoModal === 2 && (
+              <>
+                <button
+                  onClick={() => setPasoModal(1)}
+                  className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 mb-4"
+                  disabled={procesando}
+                >
+                  ← Cambiar tipo de entrega
+                </button>
+
+                <h2 className="text-lg font-extrabold text-gray-800 mb-1">Confirmar pedido</h2>
+
+                {/* Resumen de entrega elegida */}
+                <div
+                  className="flex items-center gap-2 rounded-xl px-3 py-2 mb-4"
+                  style={{ backgroundColor: "rgba(107,142,78,0.08)", border: "1px solid #B2C5B2" }}
+                >
+                  <span className="text-lg">
+                    {tipoEntrega === "domicilio" ? "🛵" : "🏪"}
+                  </span>
+                  <span className="text-sm font-semibold" style={{ color: "#3C5148" }}>
+                    {tipoEntrega === "domicilio" ? "Envío a domicilio" : "Recojo en tienda"}
+                  </span>
+                </div>
+
+                {/* Método de pago (solo Simulador) */}
+                <div
+                  className="flex items-center gap-3 rounded-2xl border p-3 mb-5"
+                  style={{ borderColor: "#6B8E4E", backgroundColor: "rgba(107,142,78,0.06)" }}
+                >
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0"
+                    style={{ background: "linear-gradient(135deg,#3C5148,#6B8E4E)", color: "white" }}
+                  >
+                    🏦
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-semibold text-gray-700">Pasarela de pagos</span>
+                    <span
+                      className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded"
+                      style={{ backgroundColor: "#dcfce7", color: "#166534" }}
+                    >
+                      Tarjeta · Nequi · Daviplata
+                    </span>
+                    <div className="text-[11px] text-gray-400 mt-0.5">Simulador local · Pago seguro</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-sm font-bold text-gray-800 mb-5">
+                  <span>Total a pagar</span>
+                  <span>${Number(total).toLocaleString("es-CO")}</span>
+                </div>
+
+                {error && (
+                  <div
+                    className="mb-4 px-3 py-2 rounded-xl text-xs border"
+                    style={{ backgroundColor: "#fee2e2", borderColor: "#fca5a5", color: "#991b1b" }}
+                  >
+                    {error}
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={cerrarModal}
+                    disabled={procesando}
+                    className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleConfirmar}
+                    disabled={procesando}
+                    className="flex-1 py-2.5 rounded-xl text-white font-bold text-sm hover:opacity-90 transition disabled:opacity-50"
+                    style={{ background: "linear-gradient(135deg,#6B8E4E,#3C5148)" }}
+                  >
+                    {procesando ? "Procesando..." : "Ir a pagar →"}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
->>>>>>> 1d86c12 (pasarela de pagos)
     </div>
   );
 }

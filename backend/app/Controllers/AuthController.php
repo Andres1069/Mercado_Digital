@@ -8,7 +8,7 @@ require_once __DIR__ . '/../../config/Mailer.php';
 
 class AuthController {
     private UsuarioModel $model;
-    private const BARRIO_UNICO = 'Chicala del Sur';
+    private const BARRIO_UNICO = 'Bosa Brasil';
     private const RESET_TTL_SECONDS = 900; // 15 minutos
     private const RESET_STORE_FILE = __DIR__ . '/../../storage/reset_codes.json';
 
@@ -91,8 +91,8 @@ class AuthController {
         }
 
         $normalizado = $this->normalizarTexto($barrio);
-        if ($normalizado !== $this->normalizarTexto(self::BARRIO_UNICO) && $normalizado !== 'chicala') {
-            $this->error('Barrio no permitido. Solo se acepta: ' . self::BARRIO_UNICO . '.', 400);
+        if ($normalizado !== $this->normalizarTexto(self::BARRIO_UNICO)) {
+            $this->error('Esta fuera del rango permitido por esta aplicacion. Solo se presta servicio en el barrio ' . self::BARRIO_UNICO . ' (Bogota D.C.).', 400);
         }
 
         $body['barrio']    = self::BARRIO_UNICO;
