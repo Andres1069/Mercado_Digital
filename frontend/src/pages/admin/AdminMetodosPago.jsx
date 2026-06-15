@@ -153,7 +153,7 @@ function TarjetaMetodo({ cfg, onActualizar }) {
           </form>
 
           <div className="mt-5 rounded-xl p-4" style={{ border: "1px dashed rgba(107,142,78,0.18)" }}>
-            <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#6B8E4E" }}>Informacion</p>
+            <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#6B8E4E" }}>Información</p>
             <ul className="text-xs space-y-1.5" style={{ color: "#6B8E4E" }}>
               <li>• El QR y el numero son visibles por los clientes al pagar.</li>
               <li>• Formatos de QR aceptados: PNG, JPG, JPEG.</li>
@@ -202,7 +202,7 @@ export default function AdminMetodosPago() {
           )}
 
           {cargando ? (
-            <div className="text-center py-24 text-sm" style={{ color: "#6B8E4E" }}>Cargando configuracion...</div>
+            <div className="text-center py-24 text-sm" style={{ color: "#6B8E4E" }}>Cargando configuración...</div>
           ) : (
             <div className="space-y-6">
               {configs.map((cfg) => (

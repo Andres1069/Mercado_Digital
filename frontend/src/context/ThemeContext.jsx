@@ -16,6 +16,9 @@ export function ThemeProvider({ children }) {
 
   useEffect(() => {
     const html = document.documentElement;
+    // Tailwind usa la clase `dark` (darkMode: "class").
+    // Mantenemos también nuestras clases legacy `theme-dark/theme-light` para estilos custom en index.css.
+    html.classList.toggle("dark", tema === "dark");
     html.classList.toggle("theme-dark", tema === "dark");
     html.classList.toggle("theme-light", tema === "light");
     try {

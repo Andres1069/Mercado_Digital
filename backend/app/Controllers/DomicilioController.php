@@ -121,7 +121,7 @@ class DomicilioController {
         $this->ok(['domicilios' => $domicilios]);
     }
 
-    // PUT /domicilio/{id}/estado  body: {estado}
+    // PUT /domicilio/{id}/estado  body: {estado, recibido_por?, documento_recibe?, observaciones_entrega?, comprobante_entrega?}
     public function actualizarEstado(int $id): void {
         AuthMiddleware::requireRole(['Administrador', 'Empleado']);
         $body   = $this->body();
@@ -130,7 +130,20 @@ class DomicilioController {
         if (!in_array($estado, $validos, true)) {
             $this->error('Estado invalido. Valores permitidos: ' . implode(', ', $validos));
         }
-        $this->model->actualizarEstado($id, $estado);
+
+        $comprobanteEntrega = trim((string)($body['comprobante_entrega'] ?? ''));
+        $comprobante = [
+            'recibido_por' => trim((string)($body['recibido_por'] ?? '')),
+            'documento_recibe' => trim((string)($body['documento_recibe'] ?? '')),
+            'observaciones_entrega' => trim((string)($body['observaciones_entrega'] ?? '')),
+            'comprobante_entrega' => $comprobanteEntrega !== '' ? $comprobanteEntrega : null,
+        ];
+
+        if ($estado === 'Entregado' && $comprobante['recibido_por'] === '' && $comprobante['comprobante_entrega'] === null) {
+            $this->error('Para marcar como entregado registra al menos quien recibio o un comprobante de entrega.');
+        }
+
+        $this->model->actualizarEstado($id, $estado, $comprobante);
         $this->ok([], 'Estado actualizado.');
     }
 

@@ -34,6 +34,7 @@ set_exception_handler(function (Throwable $e): void {
 
 require_once __DIR__ . '/../config/Database.php';
 require_once __DIR__ . '/../config/JWT.php';
+require_once __DIR__ . '/../config/mercadopago.php';
 require_once __DIR__ . '/../app/Middleware/AuthMiddleware.php';
 require_once __DIR__ . '/../app/Models/UsuarioModel.php';
 require_once __DIR__ . '/../app/Models/ProductoModel.php';
@@ -55,6 +56,8 @@ require_once __DIR__ . '/../app/Controllers/InventarioController.php';
 require_once __DIR__ . '/../app/Models/CategoriaModel.php';
 require_once __DIR__ . '/../app/Controllers/CategoriaController.php';
 require_once __DIR__ . '/../app/Controllers/PagoController.php';
+require_once __DIR__ . '/../app/Models/MetodoPagoConfigModel.php';
+require_once __DIR__ . '/../app/Controllers/MetodoPagoConfigController.php';
 require_once __DIR__ . '/../app/Models/ProveedorModel.php';
 require_once __DIR__ . '/../app/Controllers/ProveedorController.php';
 require_once __DIR__ . '/../app/Controllers/ContactoController.php';
@@ -147,6 +150,16 @@ switch ($modulo) {
             $metodo === 'POST' && $accion === ''                                        => $ctrl->crear(),
             $metodo === 'GET'  && is_numeric($accion)                                  => $ctrl->obtener((int)$accion),
             $metodo === 'PUT'  && is_numeric($accion) && ($partes[2] ?? '') === 'estado' => $ctrl->cambiarEstado((int)$accion),
+            $metodo === 'PUT'  && is_numeric($accion) && ($partes[2] ?? '') === 'entrega' => $ctrl->actualizarTipoEntrega((int)$accion),
+            $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'notificar-domicilio' => $ctrl->notificarDomicilio((int)$accion),
+            default => ruta404()
+        };
+        break;
+
+    case 'ventas':
+        $ctrl = new PedidoController();
+        match(true) {
+            $metodo === 'POST' && in_array($accion, ['presencial', 'presenciales'], true) => $ctrl->crearVentaPresencial(),
             default => ruta404()
         };
         break;
@@ -221,10 +234,24 @@ switch ($modulo) {
     case 'pago':
         $ctrl = new PagoController();
         match(true) {
-            $metodo === 'GET'  && $accion === ''                                           => $ctrl->todos(),
-            $metodo === 'GET'  && is_numeric($accion)                                      => $ctrl->obtener((int)$accion),
-            $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'simulado' => $ctrl->simular((int)$accion),
-            $metodo === 'PUT'  && is_numeric($accion) && ($partes[2] ?? '') === 'verificar'=> $ctrl->verificar((int)$accion),
+            $metodo === 'GET'  && $accion === ''                                                       => $ctrl->todos(),
+            in_array($metodo, ['POST','GET'], true) && $accion === 'webhook'                            => $ctrl->webhook(),
+            $metodo === 'GET'  && is_numeric($accion) && ($partes[2] ?? '') === ''                     => $ctrl->obtener((int)$accion),
+            $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'preferencia'          => $ctrl->crearPreferencia((int)$accion),
+            $metodo === 'GET'  && is_numeric($accion) && ($partes[2] ?? '') === 'verificar-mp'         => $ctrl->verificarMP((int)$accion),
+            $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'simulado'             => $ctrl->simular((int)$accion),
+            $metodo === 'PUT'  && is_numeric($accion) && ($partes[2] ?? '') === 'verificar'            => $ctrl->verificar((int)$accion),
+            default => ruta404()
+        };
+        break;
+
+    case 'metodos-pago':
+        $ctrl = new MetodoPagoConfigController();
+        match(true) {
+            $metodo === 'GET'  && $accion === ''                                              => $ctrl->listar(),
+            $metodo === 'GET'  && !is_numeric($accion) && $accion !== ''                      => $ctrl->obtenerPorMetodo($accion),
+            $metodo === 'PUT'  && is_numeric($accion)                                         => $ctrl->actualizar((int)$accion),
+            $metodo === 'POST' && is_numeric($accion) && ($partes[2] ?? '') === 'upload-qr'   => $ctrl->uploadQR((int)$accion),
             default => ruta404()
         };
         break;

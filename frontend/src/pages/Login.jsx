@@ -25,7 +25,7 @@ function OjoIcon({ abierto }) {
 
 const loginInicial = { correo: "", contrasena: "" };
 const resetInicial = { correo: "", token: "", nueva_contrasena: "", confirmar_contrasena: "" };
-const LOGIN_ARTWORK = "/DiseÃ±o sin tÃ­tulo.png";
+const LOGIN_ARTWORK = "/Diseño sin título.png";
 
 export default function Login() {
   const { iniciarSesion } = useAuth();
@@ -86,7 +86,7 @@ export default function Login() {
 
     try {
       const res = await authService.resetRequest(formReset.correo);
-      setMensajeReset(res.message || "Si el correo existe, enviaremos un codigo para restablecer la contrasena.");
+      setMensajeReset(res.message || "Si el correo existe, enviaremos un código para restablecer la contraseña.");
       setPasoReset(2);
     } catch (err) {
       setErrorReset(err.message);
@@ -101,19 +101,19 @@ export default function Login() {
     setMensajeReset("");
 
     if (!resetToken) {
-      setErrorReset("Debes ingresar el codigo o token que llego a tu correo.");
+      setErrorReset("Debes ingresar el código o token que llegó a tu correo.");
       return;
     }
 
     if (formReset.nueva_contrasena !== formReset.confirmar_contrasena) {
-      setErrorReset("Las contrasenas no coinciden.");
+      setErrorReset("Las contraseñas no coinciden.");
       return;
     }
 
     setCambiandoPassword(true);
     try {
       const res = await authService.resetConfirm(resetToken, formReset.nueva_contrasena);
-      setMensajeReset(res.message || "Contrasena actualizada correctamente.");
+      setMensajeReset(res.message || "Contraseña actualizada correctamente.");
       setFormReset(resetInicial);
       setPasoReset(1);
       setMostrarReset(false);
@@ -157,7 +157,7 @@ export default function Login() {
             <div className="relative w-full max-w-[420px] min-h-[260px] sm:min-h-[320px] md:min-h-[360px] overflow-hidden rounded-[2rem] border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.18)] bg-slate-900">
               <img
                 src="/chicasofa.png"
-                alt="IlustraciÃ³n de acceso"
+                alt="Ilustración de acceso"
                 className="w-full h-full object-cover object-center"
               />
             </div>
@@ -173,7 +173,7 @@ export default function Login() {
 
           {reason === "session" && (
             <div className="px-4 py-3 rounded-2xl mb-6 text-sm border border-amber-200 bg-amber-50 text-amber-800">
-              Tu sesion fue cerrada porque iniciaste en otro dispositivo o el token expiro. Inicia sesion nuevamente.
+              Tu sesión fue cerrada porque iniciaste en otro dispositivo o el token expiró. Inicia sesión nuevamente.
             </div>
           )}
 
@@ -181,8 +181,8 @@ export default function Login() {
             <div className="max-w-xl mx-auto w-full">
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="text-center mb-6">
-                  <h2 className="text-2xl font-black text-slate-800">Iniciar sesion</h2>
-                  <p className="text-sm text-slate-500 mt-2">Accede con tu correo y contrasena.</p>
+                  <h2 className="text-2xl font-black text-slate-800">Iniciar sesión</h2>
+                  <p className="text-sm text-slate-500 mt-2">Accede con tu correo y contraseña.</p>
                 </div>
 
                 <div>
@@ -199,7 +199,7 @@ export default function Login() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Contrasena</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Contraseña</label>
                   <div className="relative">
                     <input
                       type={verContrasena ? "text" : "password"}
@@ -215,7 +215,7 @@ export default function Login() {
                       onClick={() => setVerContrasena((v) => !v)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition p-1"
                       tabIndex={-1}
-                      aria-label={verContrasena ? "Ocultar contrasena" : "Ver contrasena"}
+                      aria-label={verContrasena ? "Ocultar contraseña" : "Ver contraseña"}
                     >
                       <OjoIcon abierto={verContrasena} />
                     </button>
@@ -238,7 +238,7 @@ export default function Login() {
                   onClick={abrirReset}
                   className="text-sm font-semibold md-accent-text hover:opacity-80 transition"
                 >
-                  Olvide mi contrasena
+                  Olvidé mi contraseña
                 </button>
               </div>
             </div>
@@ -247,11 +247,11 @@ export default function Login() {
           {mostrarReset && (
             <div className="max-w-md mx-auto w-full">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-black text-slate-800">Restablecer contrasena</h2>
+                <h2 className="text-2xl font-black text-slate-800">Restablecer contraseña</h2>
                 <p className="text-sm text-slate-500 mt-2">
                   {pasoReset === 1
-                    ? "Te enviaremos un codigo a tu correo para continuar."
-                    : "Ingresa el codigo recibido y define tu nueva contrasena."}
+                    ? "Te enviaremos un código a tu correo para continuar."
+                    : "Ingresa el código recibido y define tu nueva contraseña."}
                 </p>
               </div>
 
@@ -289,20 +289,20 @@ export default function Login() {
                       className="w-full text-white font-semibold py-3 rounded-xl transition disabled:opacity-60"
                       style={{ backgroundColor: "#3C5148" }}
                     >
-                      {cambiandoPassword ? "Enviando..." : "Enviar codigo"}
+                      {cambiandoPassword ? "Enviando..." : "Enviar código"}
                     </button>
                   </form>
                 ) : (
                   <form onSubmit={handleResetConfirm} className="space-y-4">
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">Codigo o token</label>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Código o token</label>
                       <input
                         type="text"
                         name="token"
                         value={formReset.token}
                         onChange={handleChangeReset}
                         required={!tokenFromUrl}
-                        placeholder="Codigo recibido"
+                        placeholder="Código recibido"
                         className="md-input"
                       />
                     </div>
@@ -316,7 +316,7 @@ export default function Login() {
                           onChange={handleChangeReset}
                           required
                           minLength={8}
-                          placeholder="Nueva contrasena"
+                          placeholder="Nueva contraseña"
                           className="md-input pr-12"
                         />
                         <button
@@ -324,7 +324,7 @@ export default function Login() {
                           onClick={() => setVerNueva((v) => !v)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition p-1"
                           tabIndex={-1}
-                          aria-label={verNueva ? "Ocultar contrasena" : "Ver contrasena"}
+                          aria-label={verNueva ? "Ocultar contraseña" : "Ver contraseña"}
                         >
                           <OjoIcon abierto={verNueva} />
                         </button>
@@ -338,7 +338,7 @@ export default function Login() {
                           onChange={handleChangeReset}
                           required
                           minLength={8}
-                          placeholder="Confirmar contrasena"
+                          placeholder="Confirmar contraseña"
                           className="md-input pr-12"
                         />
                         <button
@@ -346,7 +346,7 @@ export default function Login() {
                           onClick={() => setVerConfirmar((v) => !v)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition p-1"
                           tabIndex={-1}
-                          aria-label={verConfirmar ? "Ocultar contrasena" : "Ver contrasena"}
+                          aria-label={verConfirmar ? "Ocultar contraseña" : "Ver contraseña"}
                         >
                           <OjoIcon abierto={verConfirmar} />
                         </button>
@@ -359,7 +359,7 @@ export default function Login() {
                       className="w-full text-white font-semibold py-3 rounded-xl transition disabled:opacity-60"
                       style={{ backgroundColor: "#3C5148" }}
                     >
-                      {cambiandoPassword ? "Actualizando..." : "Guardar nueva contrasena"}
+                      {cambiandoPassword ? "Actualizando..." : "Guardar nueva contraseña"}
                     </button>
                   </form>
                 )}
@@ -371,7 +371,7 @@ export default function Login() {
                   onClick={pasoReset === 2 && !tokenFromUrl ? () => setPasoReset(1) : cerrarReset}
                   className="text-sm font-semibold text-slate-600 hover:underline"
                 >
-                  {pasoReset === 2 && !tokenFromUrl ? "Volver al correo" : "Volver al inicio de sesion"}
+                  {pasoReset === 2 && !tokenFromUrl ? "Volver al correo" : "Volver al inicio de sesión"}
                 </button>
               </div>
             </div>

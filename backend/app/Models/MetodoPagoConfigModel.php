@@ -28,29 +28,30 @@ class MetodoPagoConfigModel {
     }
 
     public function getAll(): array {
-        return $this->db->query("SELECT * FROM metodo_pago_config ORDER BY id")
-                        ->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $this->db->prepare("SELECT * FROM metodo_pago_config ORDER BY id");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function getByMetodo(string $metodo): ?array {
-        $stmt = $this->db->prepare("SELECT * FROM metodo_pago_config WHERE metodo = ?");
-        $stmt->execute([$metodo]);
+        $stmt = $this->db->prepare("SELECT * FROM metodo_pago_config WHERE metodo = :metodo");
+        $stmt->execute([':metodo' => $metodo]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
     public function getById(int $id): ?array {
-        $stmt = $this->db->prepare("SELECT * FROM metodo_pago_config WHERE id = ?");
-        $stmt->execute([$id]);
+        $stmt = $this->db->prepare("SELECT * FROM metodo_pago_config WHERE id = :id");
+        $stmt->execute([':id' => $id]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
     public function updateNumero(int $id, ?string $numero): bool {
-        $stmt = $this->db->prepare("UPDATE metodo_pago_config SET numero = ?, updated_at = NOW() WHERE id = ?");
-        return $stmt->execute([$numero, $id]);
+        $stmt = $this->db->prepare("UPDATE metodo_pago_config SET numero = :numero, updated_at = NOW() WHERE id = :id");
+        return $stmt->execute([':numero' => $numero, ':id' => $id]);
     }
 
     public function updateQR(int $id, string $qrUrl): bool {
-        $stmt = $this->db->prepare("UPDATE metodo_pago_config SET qr_url = ?, updated_at = NOW() WHERE id = ?");
-        return $stmt->execute([$qrUrl, $id]);
+        $stmt = $this->db->prepare("UPDATE metodo_pago_config SET qr_url = :qr_url, updated_at = NOW() WHERE id = :id");
+        return $stmt->execute([':qr_url' => $qrUrl, ':id' => $id]);
     }
 }

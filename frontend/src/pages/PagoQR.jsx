@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { pagoService } from "../services/api";
+import { pagoService, pedidoService } from "../services/api";
+
+const HORARIO_PEDIDOS = "Los pedidos se realizan de lunes a viernes de 10 AM a 5 PM. Fines de semana de 10 AM a 4 PM.";
 
 export default function PagoQR() {
   const [params]   = useSearchParams();
@@ -12,6 +14,7 @@ export default function PagoQR() {
   const [cargando,  setCargando]  = useState(true);
   const [error,     setError]     = useState("");
   const [redirigiendo, setRedirigiendo] = useState(false);
+  const [tipoEntrega, setTipoEntrega] = useState("Domicilio");
 
   useEffect(() => {
     if (!pedidoId) { setError("Pedido inválido."); setCargando(false); return; }
@@ -19,6 +22,7 @@ export default function PagoQR() {
     pagoService.obtener(pedidoId)
       .then((res) => {
         setPago(res.pago);
+        if (res.pago?.Tipo_Entrega) setTipoEntrega(res.pago.Tipo_Entrega);
         // Si ya está completado, ir directo al resultado
         if (res.pago?.Estado_Pago === "Completado") {
           navigate(`/pago/resultado?pedido=${pedidoId}&status=approved`);
@@ -31,11 +35,28 @@ export default function PagoQR() {
   async function handlePagar() {
     setError("");
     setRedirigiendo(true);
+    const ventanaPago = window.open("about:blank", "_blank");
+    if (ventanaPago) {
+      ventanaPago.opener = null;
+      ventanaPago.document.title = "Cargando MercadoPago...";
+      ventanaPago.document.body.innerHTML = "<p style=\"font-family: Arial, sans-serif; padding: 24px;\">Cargando pasarela de pago...</p>";
+    }
+
     try {
+      await pedidoService.actualizarEntrega(pedidoId, tipoEntrega);
       const res = await pagoService.crearPreferencia(pedidoId, window.location.origin);
-      // Redirigir al checkout de MercadoPago
-      window.location.href = res.init_point;
+      const checkoutUrl = res.init_point || res.sandbox_init_point;
+      if (!checkoutUrl) throw new Error("MercadoPago no devolvio una URL de pago.");
+
+      if (ventanaPago && !ventanaPago.closed) {
+        ventanaPago.location.href = checkoutUrl;
+      } else {
+        window.location.assign(checkoutUrl);
+        return;
+      }
+      setRedirigiendo(false);
     } catch (e) {
+      if (ventanaPago && !ventanaPago.closed) ventanaPago.close();
       setError(e.message || "No se pudo iniciar el pago.");
       setRedirigiendo(false);
     }
@@ -85,6 +106,47 @@ export default function PagoQR() {
           </div>
         )}
 
+        <div className="rounded-[1.5rem] border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold leading-relaxed text-green-800 mb-4">
+          {HORARIO_PEDIDOS}
+        </div>
+
+        <div className="rounded-[1.8rem] border border-[var(--md-border)] bg-[var(--md-surface)] p-5 mb-4">
+          <h2 className="font-extrabold text-slate-800 text-base mb-3">Como quieres recibir tu pedido?</h2>
+          <div className="grid gap-3">
+            {[
+              {
+                value: "Domicilio",
+                title: "Que lo lleven a mi casa",
+                text: "Despacharemos el pedido a la direccion que registres despues del pago.",
+              },
+              {
+                value: "Recoger_Tienda",
+                title: "Pasar por el pedido a tienda",
+                text: "Prepararemos tu pedido para recogerlo en tienda dentro del horario de atencion.",
+              },
+            ].map((opcion) => {
+              const activo = tipoEntrega === opcion.value;
+              return (
+                <button
+                  key={opcion.value}
+                  type="button"
+                  onClick={() => setTipoEntrega(opcion.value)}
+                  className="w-full rounded-2xl px-4 py-3 text-left transition"
+                  style={{
+                    border: `2px solid ${activo ? "#6B8E4E" : "#e5e7eb"}`,
+                    backgroundColor: activo ? "rgba(107,142,78,0.1)" : "#ffffff",
+                  }}
+                >
+                  <p className="font-extrabold text-sm" style={{ color: activo ? "#3C5148" : "#111827" }}>
+                    {opcion.title}
+                  </p>
+                  <p className="text-xs mt-1 leading-relaxed text-slate-500">{opcion.text}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Métodos aceptados */}
         <div className="rounded-[1.8rem] border border-[var(--md-border)] bg-[var(--md-surface)] p-5 mb-4">
           <h2 className="font-extrabold text-slate-800 text-base mb-4">Métodos de pago aceptados</h2>
@@ -112,10 +174,12 @@ export default function PagoQR() {
           <h2 className="font-extrabold text-slate-800 text-base mb-3">¿Cómo funciona?</h2>
           <ol className="space-y-3 text-sm text-slate-600">
             {[
-              "Haz clic en «Pagar con MercadoPago» para ser redirigido de forma segura.",
+              "Haz clic en «Pagar con MercadoPago» para abrir la pasarela en una pestana nueva.",
               "Elige tu método de pago: Nequi, Daviplata, tarjeta débito/crédito u otros.",
               `Confirma el pago de ${fmt(pago?.Monto_Pago)}.`,
-              "Serás redirigido de vuelta automáticamente con la confirmación.",
+              tipoEntrega === "Domicilio"
+                ? "Al aprobarse el pago, registra la direccion para el domicilio."
+                : "Al aprobarse el pago, tu pedido quedara listo para gestion de recogida en tienda.",
               "Si cancelas en MercadoPago, serás redirigido al carrito para continuar.",
             ].map((texto, i) => (
               <li key={i} className="flex gap-3">

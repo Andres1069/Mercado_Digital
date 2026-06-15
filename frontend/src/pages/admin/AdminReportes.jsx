@@ -53,7 +53,7 @@ export default function AdminReportes() {
     { id: "domicilios",  emoji: "🚚", label: "Domicilios",             desc: "Envios y estados de entrega" },
     { id: "clientes",    emoji: "👤", label: "Clientes",               desc: "Usuarios registrados como clientes" },
     { id: "proveedores", emoji: "🏭", label: "Proveedores",            desc: "Contactos y proveedores activos" },
-    { id: "productos",   emoji: "🛒", label: "Productos y Categorias", desc: "Catalogo completo con categorias" },
+    { id: "productos",   emoji: "🛒", label: "Productos y Categorías", desc: "Catálogo completo con categorías" },
   ];
 
   const toggleSeccion = (id) => {
@@ -76,6 +76,7 @@ export default function AdminReportes() {
     productos: [],
     estados: [],
     ingresos: [],
+    canales: [],
     reportes: [],
     resumen: [],
   });
@@ -100,6 +101,7 @@ export default function AdminReportes() {
         productos: productosRes.productos || [],
         estados: estadosRes.estados || [],
         ingresos: ingresosRes.ingresos || [],
+        canales: ventasRes.canales || [],
         reportes: registrosRes?.reportes || [],
         resumen: registrosRes?.resumen || [],
       });
@@ -358,7 +360,7 @@ export default function AdminReportes() {
           <Card titulo="Pedidos" valor={data.ventas.total_pedidos || 0} detalle="Pedidos detectados en la base" />
           {!esEmp && <Card titulo="Ingresos" valor={formatMoney(data.ventas.total_ingresos)} detalle="Pagos completados" />}
           {!esEmp && <Card titulo="Reportes" valor={totalRegistros} detalle={`${totalTipos} tipos registrados`} />}
-          {!esEmp && <Card titulo="Ultimo Reporte" valor={ultimoReporte ? "OK" : "-"} detalle={ultimoReporte ? formatDate(ultimoReporte) : "Sin registros"} />}
+          {!esEmp && <Card titulo="Último Reporte" valor={ultimoReporte ? "OK" : "-"} detalle={ultimoReporte ? formatDate(ultimoReporte) : "Sin registros"} />}
         </div>
 
         <div className={`grid grid-cols-1 ${!esEmp ? "xl:grid-cols-2" : ""} gap-6 mb-6`}>
@@ -411,6 +413,28 @@ export default function AdminReportes() {
           )}
         </div>
 
+        {!esEmp && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {["Online", "Tienda"].map((canal) => {
+              const item = data.canales.find((c) => c.canal === canal) || {};
+              return (
+                <div key={canal} className="rounded-2xl p-5" style={DARK_CARD}>
+                  <p className="text-xs uppercase tracking-wide font-semibold" style={{ color: "#6B8E4E" }}>
+                    Canal {canal === "Online" ? "en linea y domicilio" : "presencial"}
+                  </p>
+                  <div className="mt-3 flex items-end justify-between gap-4">
+                    <div>
+                      <p className="text-2xl font-black" style={{ color: "#1B2727" }}>{formatMoney(item.ingresos)}</p>
+                      <p className="text-sm" style={{ color: "#3C5148" }}>{item.pedidos || 0} ventas registradas</p>
+                    </div>
+                    <p className="text-sm font-bold" style={{ color: "#6B8E4E" }}>{item.articulos || 0} articulos</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
           <div className="rounded-2xl p-6" style={DARK_CARD}>
             <h2 className="text-lg font-bold mb-4" style={{ color: "#1B2727" }}>Pedidos por estado</h2>
@@ -433,7 +457,9 @@ export default function AdminReportes() {
                   style={{ backgroundColor: "rgba(107,142,78,0.06)", border: "1px solid rgba(107,142,78,0.12)" }}>
                   <div>
                     <p className="text-sm font-semibold" style={{ color: "#1B2727" }}>{item.Nombre}</p>
-                    <p className="text-xs" style={{ color: "#6B8E4E" }}>Ingresos: {formatMoney(item.ingresos_generados)}</p>
+                    <p className="text-xs" style={{ color: "#6B8E4E" }}>
+                      {item.canal_venta || "Online"} · Ingresos: {formatMoney(item.ingresos_generados)}
+                    </p>
                   </div>
                   <span className="text-sm font-bold" style={{ color: "#6B8E4E" }}>{item.total_vendido}</span>
                 </div>
@@ -453,7 +479,7 @@ export default function AdminReportes() {
               <table className="w-full text-sm">
                 <thead>
                   <tr style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
-                    {["Codigo","Fecha","Tipo","Usuario","Descripcion","Detalles"].map((h, i) => (
+                    {["Código","Fecha","Tipo","Usuario","Descripción","Detalles"].map((h, i) => (
                       <th key={h} className={`px-4 py-3 text-xs font-bold uppercase tracking-wider ${i === 5 ? "text-center" : "text-left"}`}
                         style={{ color: "#6B8E4E" }}>{h}</th>
                     ))}

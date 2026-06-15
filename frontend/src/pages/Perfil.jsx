@@ -68,7 +68,7 @@ export default function Perfil() {
         apellido: form.apellido.trim(),
         correo: form.correo.trim(),
         telefono: form.telefono.trim(),
-        barrio: form.barrio.trim(),
+        barrio: "Chicala del Sur",
         direccion: form.direccion.trim(),
       });
 
@@ -97,7 +97,7 @@ export default function Perfil() {
       <div className="mb-6">
         <h1 className="text-4xl font-black md-title-serif text-slate-900">Mi perfil</h1>
         <p className="text-sm text-slate-500 mt-2">
-          Revisa y actualiza tu informacion personal.
+          Revisa y actualiza tu información personal.
         </p>
       </div>
 
@@ -170,7 +170,7 @@ export default function Perfil() {
                   <input type="email" name="correo" value={form.correo} onChange={handleChange} required className="md-input" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Telefono</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Teléfono</label>
                   <input type="text" name="telefono" value={form.telefono} onChange={handleChange} className="md-input" />
                 </div>
               </div>
@@ -178,10 +178,11 @@ export default function Perfil() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Barrio</label>
-                  <input type="text" name="barrio" value={form.barrio} onChange={handleChange} className="md-input" />
+                  <input type="text" value="Chicala del Sur" disabled className="md-input bg-[var(--md-surface-soft)] text-gray-500" />
+                  <p className="mt-1 text-xs text-gray-500">Servicio exclusivo para este barrio.</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Direccion</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Dirección</label>
                   <input type="text" name="direccion" value={form.direccion} onChange={handleChange} className="md-input" />
                 </div>
               </div>

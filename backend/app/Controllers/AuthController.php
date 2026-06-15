@@ -90,8 +90,7 @@ class AuthController {
             $this->error('La direccion es requerida.', 400);
         }
 
-        $normalizado = $this->normalizarTexto($barrio);
-        if ($normalizado !== $this->normalizarTexto(self::BARRIO_UNICO)) {
+        if (!$this->barrioPermitido($barrio)) {
             $this->error('Esta fuera del rango permitido por esta aplicacion. Solo se presta servicio en el barrio ' . self::BARRIO_UNICO . ' (Bogota D.C.).', 400);
         }
 
@@ -154,12 +153,17 @@ class AuthController {
             $this->error('Ya existe otro usuario con ese correo.', 409);
         }
 
+        $barrio = trim((string)($body['barrio'] ?? self::BARRIO_UNICO));
+        if ($barrio !== '' && !$this->barrioPermitido($barrio)) {
+            $this->error('Barrio no permitido. Solo se acepta: ' . self::BARRIO_UNICO . '.', 400);
+        }
+
         $this->model->actualizarPerfil($doc, [
             'nombre'    => trim((string)$body['nombre']),
             'apellido'  => trim((string)$body['apellido']),
             'correo'    => trim((string)$body['correo']),
             'telefono'  => trim((string)($body['telefono']  ?? '')),
-            'barrio'    => trim((string)($body['barrio']    ?? '')),
+            'barrio'    => self::BARRIO_UNICO,
             'direccion' => trim((string)($body['direccion'] ?? '')),
         ]);
 
@@ -403,6 +407,10 @@ class AuthController {
         ]);
         $t = preg_replace('/\s+/', ' ', $t) ?? $t;
         return $t;
+    }
+
+    private function barrioPermitido(string $barrio): bool {
+        return $this->normalizarTexto($barrio) === $this->normalizarTexto(self::BARRIO_UNICO);
     }
 
     private function enviarCorreoReset(string $correo, string $codigo, string $origin): bool {

@@ -84,7 +84,7 @@ export default function MisPedidos() {
                 <th className="px-4 py-3 text-right font-semibold">Total</th>
                 <th className="px-4 py-3 text-center font-semibold hidden lg:table-cell">Pago</th>
                 <th className="px-4 py-3 text-center font-semibold">Estado</th>
-                <th className="px-4 py-3 text-center font-semibold hidden md:table-cell">Envio</th>
+                <th className="px-4 py-3 text-center font-semibold hidden md:table-cell">Envío</th>
               </tr>
             </thead>
             <tbody>
@@ -110,7 +110,7 @@ export default function MisPedidos() {
                     <tr key={p.Cod_Pedido} className="border-t border-gray-50 hover:bg-gray-50 transition">
                       <td className="px-4 py-3">
                         <p className="font-semibold text-gray-800">Pedido #{p.Cod_Pedido}</p>
-                        <p className="text-xs text-gray-500">{Number(p.Cantidad_articulos || 0)} articulos</p>
+                        <p className="text-xs text-gray-500">{Number(p.Cantidad_articulos || 0)} artículos</p>
                       </td>
                       <td className="px-4 py-3 hidden md:table-cell text-gray-600">{formatFecha(p.Fecha_Pedido)}</td>
                       <td className="px-4 py-3 text-right font-bold" style={{ color: "#6B8E4E" }}>
@@ -135,7 +135,7 @@ export default function MisPedidos() {
                             to={`/domicilio/seguimiento?pedido=${p.Cod_Pedido}`}
                             className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-blue-200 text-blue-600 hover:bg-blue-50 transition"
                           >
-                            🛵 Seguimiento
+                            Seguimiento
                           </Link>
                         ) : (
                           <span className="text-xs text-gray-400">-</span>

@@ -57,7 +57,7 @@ export default function Registro() {
     const updated = { ...form, [e.target.name]: e.target.value };
     setForm(updated);
     
-    // Validar coincidencia de contraseñas en tiempo real
+    // Validar coincidencia de contrase�as en tiempo real
     if (e.target.name === "confirmar" || e.target.name === "contrasena") {
       if (updated.confirmar && updated.contrasena) {
         setCoinciden(updated.contrasena === updated.confirmar);
@@ -75,7 +75,7 @@ export default function Registro() {
       { texto: "Debe incluir al menos 1 numero.", cumple: (valor) => /\d/.test(valor) },
     ];
     const pendiente = requisitos.find((item) => !item.cumple(contrasena));
-    return pendiente ? `La contraseña debe cumplir: ${pendiente.texto}` : "";
+    return pendiente ? `La contrase�a debe cumplir: ${pendiente.texto}` : "";
   };
 
   const handleSubmit = async (e) => {
@@ -83,7 +83,7 @@ export default function Registro() {
     setError("");
 
     if (form.contrasena !== form.confirmar) {
-      setError("Las contraseñas no coinciden.");
+      setError("Las contrase�as no coinciden.");
       return;
     }
     const errorPassword = validarContrasena(form.contrasena);
@@ -147,7 +147,7 @@ export default function Registro() {
 
             <div className="grid sm:grid-cols-2 gap-4 lg:gap-3">
               <input type="email" name="correo" value={form.correo} onChange={handleChange} required placeholder="Correo electronico" className="md-input sm:col-span-2" />
-              <input type="tel" name="telefono" value={form.telefono} onChange={handleChange} placeholder="Telefono" className="md-input" />
+              <input type="tel" name="telefono" value={form.telefono} onChange={handleChange} placeholder="Teléfono" className="md-input" />
               <select name="barrio" value={form.barrio} onChange={handleChange} required className="md-input">
                 <option value="Bosa Brasil">Bosa Brasil (Bogotá D.C.)</option>
               </select>
@@ -170,7 +170,7 @@ export default function Registro() {
                   onFocus={() => setMostrarRequisitos(true)}
                   onBlur={() => setTimeout(() => setMostrarRequisitos(false), 200)}
                   required 
-                  placeholder="Contraseña" 
+                  placeholder="Contrase�a" 
                   className="md-input pr-12" 
                   aria-describedby="requisitos-contrasena-registro" 
                 />
@@ -185,7 +185,7 @@ export default function Registro() {
                   value={form.confirmar} 
                   onChange={handleChange} 
                   required 
-                  placeholder="Confirmar contraseña" 
+                  placeholder="Confirmar contrase�a" 
                   className={`md-input pr-12 transition-all ${
                     coinciden === true 
                       ? 'border-emerald-500' 
@@ -196,10 +196,10 @@ export default function Registro() {
                 />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                   {coinciden === true && (
-                    <span className="text-emerald-500 text-xl animate-pulse">✓</span>
+                    <span className="text-emerald-500 text-xl animate-pulse">?</span>
                   )}
                   {coinciden === false && (
-                    <span className="text-rose-500 text-xl animate-bounce" style={{animationDuration: '0.5s'}}>✕</span>
+                    <span className="text-rose-500 text-xl animate-bounce" style={{animationDuration: '0.5s'}}>?</span>
                   )}
                   <button type="button" onClick={() => setVerConfirmar((v) => !v)} className="text-slate-400 hover:text-slate-600 transition p-1" tabIndex={-1} aria-label={verConfirmar ? "Ocultar" : "Ver"}>
                     <OjoIcon abierto={verConfirmar} />
@@ -216,11 +216,11 @@ export default function Registro() {
               }`}>
                 {coinciden === true ? (
                   <span className="flex items-center gap-1">
-                    <span className="text-lg">✓</span> Las contraseñas coinciden perfectamente
+                    <span className="text-lg">?</span> Las contrase�as coinciden perfectamente
                   </span>
                 ) : (
                   <span className="flex items-center gap-1">
-                    <span className="text-lg">⚠</span> Las contraseñas no coinciden
+                    <span className="text-lg">?</span> Las contrase�as no coinciden
                   </span>
                 )}
               </div>
@@ -239,7 +239,7 @@ export default function Registro() {
               className="w-full flex items-center justify-center gap-2 py-3 rounded-[0.85rem] border-2 text-sm font-bold transition hover:opacity-90"
               style={{ borderColor: "#3C5148", color: "#3C5148", backgroundColor: "rgba(107,142,78,0.08)" }}
             >
-              ¿Ya tienes cuenta? Inicia sesión
+              �Ya tienes cuenta? Inicia sesi�n
             </Link>
             <Link
               to="/"

@@ -10,7 +10,7 @@ class ProveedorModel {
     }
 
     public function getAll(): array {
-        $stmt = $this->db->query("
+        $stmt = $this->db->prepare("
             SELECT
                 p.Cod_Proveedor,
                 p.Nombre_proveedor,
@@ -24,12 +24,13 @@ class ProveedorModel {
             GROUP BY p.Cod_Proveedor, p.Nombre_proveedor, p.Telefono_proveedor, p.Correo_proveedor
             ORDER BY p.Nombre_proveedor ASC
         ");
+        $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function getById(int $id): ?array {
-        $stmt = $this->db->prepare("SELECT * FROM proveedor WHERE Cod_Proveedor = ?");
-        $stmt->execute([$id]);
+        $stmt = $this->db->prepare("SELECT * FROM proveedor WHERE Cod_Proveedor = :id");
+        $stmt->execute([':id' => $id]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
@@ -38,34 +39,45 @@ class ProveedorModel {
             SELECT pr.Cod_Producto, pr.Nombre, COALESCE(i.Stock, pr.Cantidad) AS Stock
             FROM producto pr
             LEFT JOIN inventario i ON i.Cod_Producto = pr.Cod_Producto
-            WHERE pr.Cod_Proveedor = ?
+            WHERE pr.Cod_Proveedor = :id
               AND COALESCE(i.Stock, pr.Cantidad) <= 10
             ORDER BY COALESCE(i.Stock, pr.Cantidad) ASC
         ");
-        $stmt->execute([$id]);
+        $stmt->execute([':id' => $id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function crear(array $d): int {
         $stmt = $this->db->prepare(
             "INSERT INTO proveedor (Nombre_proveedor, Telefono_proveedor, Correo_proveedor)
-             VALUES (?, ?, ?)"
+             VALUES (:nombre, :telefono, :correo)"
         );
-        $stmt->execute([trim($d['nombre']), trim($d['telefono']), trim($d['correo'])]);
+        $stmt->execute([
+            ':nombre' => trim($d['nombre']),
+            ':telefono' => trim($d['telefono']),
+            ':correo' => trim($d['correo']),
+        ]);
         return (int) $this->db->lastInsertId();
     }
 
     public function actualizar(int $id, array $d): bool {
         $stmt = $this->db->prepare(
             "UPDATE proveedor
-             SET Nombre_proveedor=?, Telefono_proveedor=?, Correo_proveedor=?
-             WHERE Cod_Proveedor=?"
+             SET Nombre_proveedor = :nombre,
+                 Telefono_proveedor = :telefono,
+                 Correo_proveedor = :correo
+             WHERE Cod_Proveedor = :id"
         );
-        return $stmt->execute([trim($d['nombre']), trim($d['telefono']), trim($d['correo']), $id]);
+        return $stmt->execute([
+            ':nombre' => trim($d['nombre']),
+            ':telefono' => trim($d['telefono']),
+            ':correo' => trim($d['correo']),
+            ':id' => $id,
+        ]);
     }
 
     public function eliminar(int $id): bool {
-        $stmt = $this->db->prepare("DELETE FROM proveedor WHERE Cod_Proveedor = ?");
-        return $stmt->execute([$id]);
+        $stmt = $this->db->prepare("DELETE FROM proveedor WHERE Cod_Proveedor = :id");
+        return $stmt->execute([':id' => $id]);
     }
 }

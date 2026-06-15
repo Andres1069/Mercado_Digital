@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { resolverImagen } from "../services/api";
 
-export default function ProductoCard({ producto, onAgregar }) {
+export default function ProductoCard({ producto, onAgregar, esFavorito = false, onToggleFavorito }) {
   const tieneOferta  = !!producto.Porcentaje_Descuento;
   const precioFinal  = tieneOferta ? producto.precio_oferta : producto.Precio;
   const stock        = Number(producto.Cantidad ?? producto.Stock ?? 0);
@@ -58,17 +58,34 @@ export default function ProductoCard({ producto, onAgregar }) {
             />
           : <span className="text-6xl">{emoji}</span>
         }
+
+        {/* Favorito (solo UI) + Badge de descuento */}
+        <button
+          type="button"
+          className="absolute top-2 right-2 z-20 w-9 h-9 rounded-full bg-white/90 border border-black/5 shadow-sm flex items-center justify-center transition"
+          style={esFavorito ? { color: "#e11d48" } : { color: "#6b7280" }}
+          aria-label={esFavorito ? "Quitar de favoritos" : "Agregar a favoritos"}
+          title={esFavorito ? "Quitar de favoritos" : "Agregar a favoritos"}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggleFavorito?.();
+          }}
+        >
+          <svg viewBox="0 0 24 24" fill={esFavorito ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+            <path d="M12 21s-6.7-4.35-9.33-7.74C.55 10.38 2.1 6.9 5.7 6.25A5.2 5.2 0 0 1 12 8.9a5.2 5.2 0 0 1 6.3-2.65c3.6.65 5.15 4.13 3.03 7.01C18.7 16.65 12 21 12 21z" />
+          </svg>
+        </button>
+
         {tieneOferta && (
-          <>
-            <span className="absolute top-2 left-2 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow"
-              style={{ background: "linear-gradient(135deg,#6B8E4E,#3C5148)" }}>
-              -{producto.Porcentaje_Descuento}%
-            </span>
-            <span className="absolute top-2 right-2 text-white text-[10px] font-extrabold px-2 py-1 rounded-full shadow"
-              style={{ background: "linear-gradient(135deg,#f87171,#3C5148)" }}>
-              FLASH
-            </span>
-          </>
+          <span
+            className="absolute top-14 right-2 z-20 w-11 h-11 rounded-full text-white text-sm font-extrabold shadow flex items-center justify-center"
+            style={{ backgroundColor: "#e11d48" }}
+            aria-label={`Descuento ${producto.Porcentaje_Descuento}%`}
+            title={`-${producto.Porcentaje_Descuento}%`}
+          >
+            -{producto.Porcentaje_Descuento}%
+          </span>
         )}
         {sinStock && (
           <span className="absolute top-2 right-2 bg-gray-400 text-white text-xs font-bold px-2 py-1 rounded-full">Agotado</span>
@@ -85,7 +102,7 @@ export default function ProductoCard({ producto, onAgregar }) {
         )}
         <div className="mt-auto">
           <div className="flex items-baseline gap-2 mb-3">
-            <span className="text-lg font-extrabold" style={{ color: "#6B8E4E" }}>
+            <span className="text-lg font-extrabold" style={{ color: tieneOferta ? "#dc2626" : "#6B8E4E" }}>
               ${Number(precioFinal).toLocaleString("es-CO")}
             </span>
             {tieneOferta && (

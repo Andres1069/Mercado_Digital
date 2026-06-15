@@ -19,6 +19,13 @@ const OPCIONES_ENTREGA = [
   },
 ];
 
+const METODOS_PAGO = [
+  { nombre: "MercadoPago", etiqueta: "Pago con QR", tipo: "Pasarela", icon: "QR" },
+  { nombre: "Simulado", etiqueta: "Prueba de desarrollo", tipo: "Simulador", icon: "$" },
+];
+
+const HORARIO_PEDIDOS = "Los pedidos se realizan de lunes a viernes de 10 AM a 5 PM. Fines de semana de 10 AM a 4 PM.";
+
 export default function Carrito() {
   const { items, updateQty, removeItem, clearCart, itemsCount, subtotal } = useCart();
   const navigate = useNavigate();
@@ -26,6 +33,7 @@ export default function Carrito() {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [pasoModal, setPasoModal]       = useState(1);
   const [tipoEntrega, setTipoEntrega]   = useState("");
+  const [metodoPago, setMetodoPago]     = useState("MercadoPago");
   const [procesando, setProcesando]     = useState(false);
   const [error, setError]               = useState("");
   const enviandoRef = useRef(false);
@@ -52,6 +60,7 @@ export default function Carrito() {
     setError("");
     enviandoRef.current = true;
     setProcesando(true);
+
     try {
       const res = await pedidoService.crear({
         items: items.map((it) => ({
@@ -60,13 +69,17 @@ export default function Carrito() {
           precio: it.precio,
           cantidad: it.cantidad,
         })),
-        metodo_pago: "Simulado",
+        metodo_pago: metodoPago,
         monto_total: total,
       });
       setMostrarModal(false);
-      navigate(`/pago/simulado?pedido=${res.cod_pedido}&entrega=${tipoEntrega}`);
+      const ruta = metodoPago === "Simulado"
+        ? `/pago/simulado?pedido=${res.cod_pedido}&entrega=${tipoEntrega}`
+        : `/pago/qr?pedido=${res.cod_pedido}&entrega=${tipoEntrega}`;
+      navigate(ruta);
     } catch (e) {
       setError(e.message || "No se pudo procesar el pedido.");
+    } finally {
       setProcesando(false);
       enviandoRef.current = false;
     }
@@ -87,20 +100,24 @@ export default function Carrito() {
               onClick={clearCart}
               className="px-4 py-2 rounded-xl text-sm font-semibold border border-red-200 text-red-500 hover:bg-red-50 transition"
             >
-              Vaciar carrito
+               Vaciar bolsa
             </button>
           )}
         </div>
 
+        <div className="mb-5 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800">
+          {HORARIO_PEDIDOS}
+        </div>
+
         {items.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-14 text-center">
+          <div className="cart-empty-modern bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-14 text-center">
             <div
               className="mx-auto w-24 h-24 rounded-2xl flex items-center justify-center shadow-sm mb-4"
               style={{ background: "rgba(107,142,78,0.14)", color: "#6B8E4E" }}
             >
               <i className="fa-solid fa-cart-shopping text-4xl" aria-hidden="true" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-800">Tu carrito está vacío</h2>
+            <h2 className="mt-6 text-xl font-semibold text-gray-800">Tu carrito está vacío</h2>
             <p className="mt-2 text-gray-500 text-sm">Agrega productos desde la tienda para continuar.</p>
             <Link
               to="/tienda"
@@ -121,7 +138,9 @@ export default function Carrito() {
                       {it.imagen ? (
                         <img src={resolverImagen(it.imagen)} alt={it.nombre} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>
+                        <div className="w-full h-full flex items-center justify-center text-2xl">
+                          <i className="fa-solid fa-box" aria-hidden="true" />
+                        </div>
                       )}
                     </div>
 
@@ -183,6 +202,9 @@ export default function Carrito() {
             {/* Resumen */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 h-fit">
               <h3 className="text-lg font-bold text-gray-800 mb-4">Resumen</h3>
+              <div className="mb-4 rounded-2xl border border-green-200 bg-green-50 px-3 py-3 text-xs font-semibold leading-relaxed text-green-800">
+                {HORARIO_PEDIDOS}
+              </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal</span>
@@ -213,7 +235,7 @@ export default function Carrito() {
                 className="w-full mt-5 text-white font-bold py-3 rounded-xl hover:opacity-90 transition disabled:opacity-50"
                 style={{ background: "linear-gradient(135deg,#6B8E4E,#3C5148)" }}
               >
-                Finalizar compra →
+                {procesando ? "Procesando..." : "Finalizar compra →"}
               </button>
               <Link
                 to="/tienda"
@@ -353,27 +375,46 @@ export default function Carrito() {
                   </span>
                 </div>
 
-                {/* Método de pago (solo Simulador) */}
-                <div
-                  className="flex items-center gap-3 rounded-2xl border p-3 mb-5"
-                  style={{ borderColor: "#6B8E4E", backgroundColor: "rgba(107,142,78,0.06)" }}
-                >
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0"
-                    style={{ background: "linear-gradient(135deg,#3C5148,#6B8E4E)", color: "white" }}
-                  >
-                    🏦
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-semibold text-gray-700">Pasarela de pagos</span>
-                    <span
-                      className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded"
-                      style={{ backgroundColor: "#dcfce7", color: "#166534" }}
+                {/* Método de pago */}
+                <div className="mb-5 space-y-2">
+                  {METODOS_PAGO.map((m) => (
+                    <button
+                      key={m.nombre}
+                      type="button"
+                      onClick={() => setMetodoPago(m.nombre)}
+                      disabled={procesando}
+                      className="w-full flex items-center gap-3 rounded-2xl border p-3 text-left transition disabled:opacity-50"
+                      style={metodoPago === m.nombre
+                        ? { borderColor: "#6B8E4E", backgroundColor: "rgba(107,142,78,0.06)" }
+                        : { borderColor: "#e5e7eb", backgroundColor: "white" }}
                     >
-                      Tarjeta · Nequi · Daviplata
-                    </span>
-                    <div className="text-[11px] text-gray-400 mt-0.5">Simulador local · Pago seguro</div>
-                  </div>
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shrink-0"
+                        style={metodoPago === m.nombre
+                          ? { background: "linear-gradient(135deg,#3C5148,#6B8E4E)", color: "white" }
+                          : { backgroundColor: "#f3f4f6", color: "#6b7280" }}
+                      >
+                        {m.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm font-semibold text-gray-700">{m.nombre}</span>
+                        {m.nombre === "MercadoPago" && (
+                          <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ backgroundColor: "#dcfce7", color: "#166534" }}>
+                            Recomendado
+                          </span>
+                        )}
+                        <div className="text-[11px] text-gray-400 mt-0.5">{m.etiqueta} · {m.tipo}</div>
+                      </div>
+                      <div
+                        className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"
+                        style={{ borderColor: metodoPago === m.nombre ? "#6B8E4E" : "#d1d5db" }}
+                      >
+                        {metodoPago === m.nombre && (
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#6B8E4E" }} />
+                        )}
+                      </div>
+                    </button>
+                  ))}
                 </div>
 
                 <div className="flex items-center justify-between text-sm font-bold text-gray-800 mb-5">

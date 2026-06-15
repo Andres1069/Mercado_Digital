@@ -38,7 +38,9 @@ class OfertaModel {
                 LEFT JOIN producto p ON p.Cod_Producto = o.Cod_Producto
                 WHERE o.activo = 1 AND NOW() BETWEEN o.Fecha_Inicio AND o.Fecha_Fin
                 ORDER BY o.Porcentaje_Descuento DESC";
-        return $this->db->query($sql)->fetchAll();
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll();
     }
 
     public function getAll(): array {
@@ -47,7 +49,9 @@ class OfertaModel {
                 FROM oferta o
                 LEFT JOIN producto p ON p.Cod_Producto = o.Cod_Producto
                 ORDER BY o.Fecha_Fin DESC";
-        return $this->db->query($sql)->fetchAll();
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll();
     }
 
     public function crear(array $d): int {

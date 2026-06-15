@@ -100,9 +100,9 @@ export default function AdminUsuarios() {
       return "Nombre, apellido, correo y rol son obligatorios.";
     if (!editando) {
       if (!form.num_documento.trim() || !form.contrasena)
-        return "Documento y contrasena son obligatorios para crear el usuario.";
-      if (form.contrasena.length < 6) return "La contrasena debe tener al menos 6 caracteres.";
-      if (form.contrasena !== form.confirmar) return "Las contrasenas no coinciden.";
+        return "Documento y contraseña son obligatorios para crear el usuario.";
+      if (form.contrasena.length < 6) return "La contraseña debe tener al menos 6 caracteres.";
+      if (form.contrasena !== form.confirmar) return "Las contraseñas no coinciden.";
     }
     return "";
   };
@@ -205,7 +205,7 @@ export default function AdminUsuarios() {
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
             <div>
-              <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Gestion de Usuarios</h1>
+              <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Gestión de Usuarios</h1>
               <p className="text-sm mt-1" style={{ color: "#3C5148" }}>{usuarios.length} usuarios registrados</p>
             </div>
             <button onClick={abrirCrear}
@@ -274,7 +274,7 @@ export default function AdminUsuarios() {
                         </td>
                         <td className="px-4 py-3 hidden lg:table-cell">
                           <p style={{ color: "#3C5148" }}>{item.Correo}</p>
-                          <p className="text-xs" style={{ color: "#6B8E4E" }}>{item.Telefono || "Sin telefono"}</p>
+                          <p className="text-xs" style={{ color: "#6B8E4E" }}>{item.Telefono || "Sin teléfono"}</p>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
@@ -405,7 +405,7 @@ export default function AdminUsuarios() {
                       className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={INPUT_STYLE} />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold mb-1" style={LABEL}>Telefono</label>
+                    <label className="block text-sm font-semibold mb-1" style={LABEL}>Teléfono</label>
                     <input type="text" name="telefono" value={form.telefono} onChange={handleChange}
                       className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={INPUT_STYLE} />
                   </div>
@@ -418,7 +418,7 @@ export default function AdminUsuarios() {
                       className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={INPUT_STYLE} />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold mb-1" style={LABEL}>Direccion</label>
+                    <label className="block text-sm font-semibold mb-1" style={LABEL}>Dirección</label>
                     <input type="text" name="direccion" value={form.direccion} onChange={handleChange}
                       className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={INPUT_STYLE} />
                   </div>
@@ -427,12 +427,12 @@ export default function AdminUsuarios() {
                 {!editando && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold mb-1" style={LABEL}>Contrasena *</label>
+                      <label className="block text-sm font-semibold mb-1" style={LABEL}>Contraseña *</label>
                       <input type="password" name="contrasena" value={form.contrasena} onChange={handleChange} required
                         className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={INPUT_STYLE} />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold mb-1" style={LABEL}>Confirmar contrasena *</label>
+                      <label className="block text-sm font-semibold mb-1" style={LABEL}>Confirmar contraseña *</label>
                       <input type="password" name="confirmar" value={form.confirmar} onChange={handleChange} required
                         className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={INPUT_STYLE} />
                     </div>

@@ -182,14 +182,21 @@ class ProductoModel {
     }
 
     public function getCategorias(): array {
-        return $this->db->query("SELECT * FROM categoria ORDER BY Nombre")->fetchAll();
+        $stmt = $this->db->prepare("SELECT * FROM categoria ORDER BY Nombre");
+        $stmt->execute();
+        return $stmt->fetchAll();
     }
 
     public function getProveedores(): array {
-        return $this->db->query("SELECT Cod_Proveedor, Nombre_proveedor FROM proveedor ORDER BY Nombre_proveedor")->fetchAll();
+        $stmt = $this->db->prepare("SELECT Cod_Proveedor, Nombre_proveedor FROM proveedor ORDER BY Nombre_proveedor");
+        $stmt->execute();
+        return $stmt->fetchAll();
     }
 
     public function getMasVendidos(): array {
-        return $this->db->query("SELECT * FROM vista_productos_mas_vendidos LIMIT 5")->fetchAll();
+        $stmt = $this->db->prepare("SELECT * FROM vista_productos_mas_vendidos LIMIT :limite");
+        $stmt->bindValue(':limite', 5, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
     }
 }

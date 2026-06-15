@@ -8,19 +8,12 @@ const INPUT_STYLE = { backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", c
 
 function badgeEstado(estado) {
   const e = String(estado || "").toLowerCase();
-  if (e.includes("entregado"))   return { bg: "rgba(107,142,78,0.2)",  text: "#6B8E4E",  icon: "✅" };
-  if (e.includes("camino"))      return { bg: "rgba(107,142,78,0.18)",   text: "#3C5148",  icon: "🛵" };
-  if (e.includes("preparacion")) return { bg: "rgba(178,197,178,0.2)", text: "#3C5148",  icon: "📦" };
-  if (e.includes("cancel"))      return { bg: "rgba(239,68,68,0.15)",   text: "#f87171",  icon: "❌" };
-  return                                { bg: "rgba(245,158,11,0.15)",  text: "#fbbf24",  icon: "⏳" };
+  if (e.includes("entregado"))   return { bg: "rgba(107,142,78,0.2)",  text: "#6B8E4E" };
+  if (e.includes("camino"))      return { bg: "rgba(107,142,78,0.18)", text: "#3C5148" };
+  if (e.includes("preparacion")) return { bg: "rgba(178,197,178,0.2)", text: "#3C5148" };
+  if (e.includes("cancel"))      return { bg: "rgba(239,68,68,0.15)",  text: "#f87171" };
+  return                                { bg: "rgba(245,158,11,0.15)", text: "#fbbf24" };
 }
-
-const RESUMEN_CONFIG = [
-  { label: "Pendiente",      icon: "⏳", bg: "rgba(245,158,11,0.15)",  border: "rgba(245,158,11,0.4)",  text: "#fbbf24" },
-  { label: "En preparacion", icon: "📦", bg: "rgba(178,197,178,0.2)", border: "rgba(178,197,178,0.4)", text: "#3C5148" },
-  { label: "En camino",      icon: "🛵", bg: "rgba(107,142,78,0.18)",  border: "rgba(107,142,78,0.4)",  text: "#3C5148" },
-  { label: "Entregado",      icon: "✅", bg: "rgba(107,142,78,0.2)",  border: "rgba(107,142,78,0.4)",  text: "#6B8E4E" },
-];
 
 const RESUMEN_CONFIG_FA = [
   { label: "Pendiente",      iconClass: "fa-solid fa-hourglass-half", bg: "rgba(245,158,11,0.15)",  border: "rgba(245,158,11,0.4)",  text: "#fbbf24" },
@@ -43,6 +36,13 @@ export default function AdminDomicilios() {
   const [buscar, setBuscar]         = useState("");
   const [filtroEstado, setFiltroEstado] = useState("Todos");
   const [cambiando, setCambiando]   = useState(null);
+  const [comprobanteTarget, setComprobanteTarget] = useState(null);
+  const [comprobante, setComprobante] = useState({
+    recibido_por: "",
+    documento_recibe: "",
+    observaciones_entrega: "",
+    comprobante_entrega: "",
+  });
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -60,6 +60,18 @@ export default function AdminDomicilios() {
   useEffect(() => { cargar(); }, [cargar]);
 
   async function handleCambiarEstado(codDomicilio, nuevoEstado) {
+    if (nuevoEstado === "Entregado") {
+      const domicilio = domicilios.find((d) => d.Cod_Domicilio === codDomicilio);
+      setComprobanteTarget(domicilio || { Cod_Domicilio: codDomicilio });
+      setComprobante({
+        recibido_por: domicilio?.Recibido_Por || "",
+        documento_recibe: domicilio?.Documento_Recibe || "",
+        observaciones_entrega: domicilio?.Observaciones_Entrega || "",
+        comprobante_entrega: domicilio?.Comprobante_Entrega || "",
+      });
+      return;
+    }
+
     setCambiando(codDomicilio);
     try {
       await domicilioService.actualizarEstado(codDomicilio, nuevoEstado);
@@ -72,6 +84,35 @@ export default function AdminDomicilios() {
       );
     } catch (e) {
       alert(e.message || "Error al cambiar estado.");
+    } finally {
+      setCambiando(null);
+    }
+  }
+
+  async function confirmarEntrega() {
+    if (!comprobanteTarget) return;
+    setCambiando(comprobanteTarget.Cod_Domicilio);
+    try {
+      await domicilioService.actualizarEstado(comprobanteTarget.Cod_Domicilio, "Entregado", comprobante);
+      setDomicilios((prev) =>
+        prev.map((d) =>
+          d.Cod_Domicilio === comprobanteTarget.Cod_Domicilio
+            ? {
+                ...d,
+                Estado_Domicilio: "Entregado",
+                Estado_Pedido: "Entregado",
+                Recibido_Por: comprobante.recibido_por,
+                Documento_Recibe: comprobante.documento_recibe,
+                Observaciones_Entrega: comprobante.observaciones_entrega,
+                Comprobante_Entrega: comprobante.comprobante_entrega,
+                Fecha_Entrega: d.Fecha_Entrega || new Date().toISOString(),
+              }
+            : d
+        )
+      );
+      setComprobanteTarget(null);
+    } catch (e) {
+      alert(e.message || "Error al registrar el comprobante.");
     } finally {
       setCambiando(null);
     }
@@ -91,13 +132,14 @@ export default function AdminDomicilios() {
   const countPorEstado = (e) => domicilios.filter((d) => d.Estado_Domicilio === e).length;
 
   return (
+    <>
     <div className="flex min-h-screen" style={{ backgroundColor: "#D5DDDF" }}>
       <Sidebar />
       <div className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3 mb-6">
             <div>
-              <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Gestion de Domicilios</h1>
+              <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Gestión de Domicilios</h1>
               <p className="text-sm mt-1" style={{ color: "#3C5148" }}>{domicilios.length} domicilios registrados</p>
             </div>
             <button onClick={cargar}
@@ -131,7 +173,7 @@ export default function AdminDomicilios() {
 
           {/* Filtros */}
           <div className="flex flex-col sm:flex-row gap-3 mb-5">
-            <input type="text" placeholder="Buscar por # pedido, documento, nombre o direccion..."
+            <input type="text" placeholder="Buscar por # pedido, documento, nombre o dirección..."
               value={buscar} onChange={(e) => setBuscar(e.target.value)}
               className="flex-1 px-4 py-2.5 rounded-xl text-sm focus:outline-none"
               style={INPUT_STYLE} />
@@ -154,9 +196,9 @@ export default function AdminDomicilios() {
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
-                  {["Pedido", "Cliente", "Direccion", "Pago", "Estado", "Cambiar estado"].map((h, i) => (
+                  {["Pedido", "Cliente", "Dirección", "Pago", "Estado", "Cambiar estado"].map((h, i) => (
                     <th key={h}
-                      className={`px-4 py-3 text-xs font-bold uppercase tracking-wider ${i === 1 ? "hidden md:table-cell text-left" : ""} ${i === 2 ? "hidden lg:table-cell text-left" : ""} ${i === 3 ? "hidden md:table-cell text-center" : ""} ${i === 4 || i === 5 ? "text-center" : ""} ${i === 0 ? "text-left" : ""}`}
+                      className={`px-4 py-3 text-xs font-bold uppercase tracking-wider ${i === 1 ? "hidden md:table-cell text-left" : ""} ${i === 2 ? "hidden lg:table-cell text-left" : ""} ${i === 3 ? "hidden md:table-cell text-center" : ""} ${i >= 4 ? "text-center" : ""} ${i === 0 ? "text-left" : ""}`}
                       style={{ color: "#6B8E4E" }}>
                       {h}
                     </th>
@@ -167,14 +209,14 @@ export default function AdminDomicilios() {
                 {cargando ? (
                   [...Array(6)].map((_, i) => (
                     <tr key={i} style={{ borderTop: "1px solid rgba(107,142,78,0.08)" }}>
-                      <td colSpan={6} className="px-4 py-3">
+                    <td colSpan={7} className="px-4 py-3">
                         <div className="h-4 rounded animate-pulse" style={{ backgroundColor: "rgba(107,142,78,0.1)" }} />
                       </td>
                     </tr>
                   ))
                 ) : filtrados.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-12 text-center" style={{ color: "#6B8E4E" }}>
+                    <td colSpan={7} className="px-4 py-12 text-center" style={{ color: "#6B8E4E" }}>
                       No hay domicilios que coincidan.
                     </td>
                   </tr>
@@ -215,8 +257,30 @@ export default function AdminDomicilios() {
                         <td className="px-4 py-3 text-center">
                           <span className="px-2 py-1 rounded-full text-xs font-semibold"
                             style={{ backgroundColor: badge.bg, color: badge.text }}>
-                            {badge.icon} {d.Estado_Domicilio || "Pendiente"}
+                            {d.Estado_Domicilio || "Pendiente"}
                           </span>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {d.Comprobante_Entrega || d.Recibido_Por ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setComprobanteTarget(d);
+                                setComprobante({
+                                  recibido_por: d.Recibido_Por || "",
+                                  documento_recibe: d.Documento_Recibe || "",
+                                  observaciones_entrega: d.Observaciones_Entrega || "",
+                                  comprobante_entrega: d.Comprobante_Entrega || "",
+                                });
+                              }}
+                              className="px-2.5 py-1 rounded-lg text-xs font-bold"
+                              style={{ backgroundColor: "rgba(107,142,78,0.16)", color: "#3C5148" }}
+                            >
+                              Ver
+                            </button>
+                          ) : (
+                            <span className="text-xs" style={{ color: "#92400e" }}>Pendiente</span>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-center">
                           <select
@@ -238,5 +302,66 @@ export default function AdminDomicilios() {
         </div>
       </div>
     </div>
+
+    {comprobanteTarget && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ backgroundColor: "rgba(0,0,0,0.55)" }}
+        onClick={(e) => { if (e.target === e.currentTarget) setComprobanteTarget(null); }}>
+        <div className="w-full max-w-lg rounded-2xl p-6 shadow-2xl"
+          style={{ backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2" }}>
+          <h2 className="text-xl font-black mb-1" style={{ color: "#1B2727" }}>Comprobante de entrega</h2>
+          <p className="text-sm mb-5" style={{ color: "#3C5148" }}>
+            Pedido #{comprobanteTarget.Cod_Pedido || "-"} · guarda evidencia para reclamos futuros.
+          </p>
+
+          <div className="space-y-3">
+            <input
+              value={comprobante.recibido_por}
+              onChange={(e) => setComprobante((p) => ({ ...p, recibido_por: e.target.value }))}
+              placeholder="Nombre de quien recibe"
+              className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none"
+              style={INPUT_STYLE}
+            />
+            <input
+              value={comprobante.documento_recibe}
+              onChange={(e) => setComprobante((p) => ({ ...p, documento_recibe: e.target.value }))}
+              placeholder="Documento o telefono de quien recibe"
+              className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none"
+              style={INPUT_STYLE}
+            />
+            <textarea
+              value={comprobante.observaciones_entrega}
+              onChange={(e) => setComprobante((p) => ({ ...p, observaciones_entrega: e.target.value }))}
+              rows={3}
+              placeholder="Observaciones de entrega"
+              className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none resize-none"
+              style={INPUT_STYLE}
+            />
+            <textarea
+              value={comprobante.comprobante_entrega}
+              onChange={(e) => setComprobante((p) => ({ ...p, comprobante_entrega: e.target.value }))}
+              rows={3}
+              placeholder="Comprobante: URL de foto, nota de firma o codigo de evidencia"
+              className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none resize-none"
+              style={INPUT_STYLE}
+            />
+          </div>
+
+          <div className="flex gap-3 mt-5">
+            <button onClick={() => setComprobanteTarget(null)}
+              className="flex-1 py-2.5 rounded-xl text-sm font-semibold"
+              style={{ border: "1px solid rgba(107,142,78,0.18)", color: "#3C5148" }}>
+              Cerrar
+            </button>
+            <button onClick={confirmarEntrega} disabled={cambiando === comprobanteTarget.Cod_Domicilio}
+              className="flex-1 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-50"
+              style={{ backgroundColor: "#6B8E4E" }}>
+              Guardar y marcar entregado
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

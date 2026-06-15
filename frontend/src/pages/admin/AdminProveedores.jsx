@@ -51,7 +51,7 @@ function Modal({ proveedor, onGuardar, onCerrar, guardando, error }) {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wide mb-1" style={LABEL}>Telefono</label>
+            <label className="block text-xs font-semibold uppercase tracking-wide mb-1" style={LABEL}>Teléfono</label>
             <input required value={form.telefono} onChange={(e) => set("telefono", e.target.value)}
               placeholder="Ej: 6017458900"
               className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={INPUT_STYLE} />
@@ -93,7 +93,7 @@ function PanelBajoStock({ proveedor, productos, onCerrar }) {
           <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: "#f87171" }}>Alerta de inventario</p>
           <h2 className="text-xl font-black mt-1" style={{ color: "#1B2727" }}>{proveedor.Nombre_proveedor}</h2>
           <p className="text-sm mt-1" style={{ color: "#3C5148" }}>
-            {productos.length} producto{productos.length !== 1 ? "s" : ""} con stock critico — considera contactar al proveedor.
+            {productos.length} producto{productos.length !== 1 ? "s" : ""} con stock crítico — considera contactar al proveedor.
           </p>
         </div>
 
@@ -235,7 +235,7 @@ export default function AdminProveedores() {
             <div className="w-full max-w-sm rounded-2xl shadow-2xl p-6"
               style={{ backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2" }}>
               <h2 className="text-lg font-black mb-2" style={{ color: "#1B2727" }}>Eliminar proveedor</h2>
-              <p className="text-sm mb-6" style={{ color: "#6B8E4E" }}>Esta accion no se puede deshacer. Los productos vinculados quedaran sin proveedor asignado.</p>
+              <p className="text-sm mb-6" style={{ color: "#6B8E4E" }}>Esta acción no se puede deshacer. Los productos vinculados quedarán sin proveedor asignado.</p>
               <div className="flex gap-3">
                 <button onClick={() => setConfirmar(null)}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition"
@@ -257,14 +257,14 @@ export default function AdminProveedores() {
           <div className="rounded-2xl px-7 py-6 text-white mb-7 overflow-hidden"
             style={{ background: "linear-gradient(135deg, #3C5148 0%, #6B8E4E 100%)" }}>
             <p className="text-xs uppercase tracking-widest text-white/60 font-bold">Panel administrativo</p>
-            <h1 className="text-3xl font-black mt-2">Gestion de proveedores</h1>
+            <h1 className="text-3xl font-black mt-2">Gestión de proveedores</h1>
             <p className="text-white/75 mt-2 text-sm max-w-xl">
               Administra los proveedores de tus productos. Puedes contactarlos directamente cuando el stock este bajo.
             </p>
             <div className="grid sm:grid-cols-3 gap-3 mt-6">
               {[
                 { label: "Total proveedores", val: proveedores.length },
-                { label: "Con stock critico",  val: totalAlertas },
+                { label: "Con stock crítico",  val: totalAlertas },
                 { label: "Estado",             val: totalAlertas > 0 ? "Requiere atencion" : "Sin alertas" },
               ].map(({ label, val }) => (
                 <div key={label} className="rounded-2xl px-4 py-3 border border-white/20 bg-white/10">
@@ -321,7 +321,7 @@ export default function AdminProveedores() {
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
-                  {["Proveedor", "Telefono", "Correo", "Productos", "Stock critico", "Acciones"].map((h) => (
+                  {["Proveedor", "Teléfono", "Correo", "Productos", "Stock crítico", "Acciones"].map((h) => (
                     <th key={h} className="px-5 py-3.5 text-left text-xs font-bold uppercase tracking-wider" style={{ color: "#6B8E4E" }}>
                       {h}
                     </th>

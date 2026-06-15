@@ -128,11 +128,11 @@ export default function Seguimiento() {
                 {data.domicilio?.Cod_Domicilio && (
                   <>
                     <div>
-                      <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">Estado envio</p>
+                      <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">Estado envío</p>
                       <p className="font-semibold text-gray-800">{data.domicilio.Estado_Domicilio || "-"}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">Fecha envio</p>
+                      <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">Fecha envío</p>
                       <p className="text-gray-700">{formatFecha(data.domicilio.Fecha_Domicilio)}</p>
                     </div>
                   </>
@@ -151,7 +151,7 @@ export default function Seguimiento() {
                 className="rounded-2xl p-4 text-center"
                 style={{ background: "linear-gradient(135deg, #3C5148, #1B2727)", color: "white" }}
               >
-                <p className="text-3xl mb-1">🛵</p>
+                <p className="text-3xl mb-1" aria-hidden="true" />
                 <p className="font-extrabold text-lg">¡Tu pedido está en camino!</p>
                 <p className="text-sm text-white/80 mt-1">El domiciliario ya salió hacia tu dirección.</p>
               </div>
@@ -226,7 +226,7 @@ export default function Seguimiento() {
           </div>
         ) : !error && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 text-center">
-            <p className="text-gray-400">No se encontro informacion para este pedido.</p>
+            <p className="text-gray-400">No se encontró información para este pedido.</p>
           </div>
         )}
       </div>
