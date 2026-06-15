@@ -1,5 +1,12 @@
 # Mejoras visuales — Pasarela de Pagos (Simulador)
 
+> ✅ **Actualización:** las propuestas 1 a 9 de este documento ya fueron implementadas en
+> `PagoSimulado.jsx` y `Carrito.jsx` (stepper, tarjeta visual en vivo, resumen de monto,
+> pasos de "procesando", número de referencia, microanimaciones, checks en tiempo real y
+> trust badge). Ver la sección **"Parte 2"** al final para nuevas propuestas que cubren
+> `PagoQR.jsx` y `PagoResultado.jsx` (pasarela MercadoPago real) y el autocompletado de
+> dirección por usuario.
+
 Revisión de `frontend/src/pages/PagoSimulado.jsx` y `frontend/src/pages/Carrito.jsx` (modal de checkout), con propuestas para que el simulador se vea más profesional y "real" sin salir de la paleta de colores actual del proyecto:
 
 ```
@@ -197,3 +204,94 @@ Comunica claramente que es un entorno simulado (transparencia) sin perder la est
 | 9 | Trust badge | Muy bajo | Bajo |
 
 Todas las propuestas usan únicamente los colores y gradientes ya definidos en `index.css` y los patrones de componentes existentes (tarjetas con `var(--md-surface)` / `var(--md-border)`, gradiente `#3C5148 → #6B8E4E`, badges `rgba(107,142,78,0.0x)`), por lo que no rompen la identidad visual del proyecto.
+
+---
+
+# Parte 2 — PagoQR, PagoResultado y autocompletado de dirección
+
+Esta segunda revisión cubre lo que se agregó después de la Parte 1: el flujo real de MercadoPago
+(`PagoQR.jsx` → `PagoResultado.jsx`) y el selector de método de pago en el modal del carrito
+(`METODOS_PAGO`).
+
+## 10. Logos reales en vez de emojis
+
+**Estado actual:** `PagoQR.jsx` usa 💳 para MercadoPago y 💜/🟡/💳 para Nequi/Daviplata/Tarjeta
+en "Métodos de pago aceptados". El selector de `Carrito.jsx` usa los textos `QR` y `$` como ícono.
+
+**Propuesta:**
+- Agregar carpeta `frontend/public/pagos/` con SVG livianos: `mercadopago.svg`, `nequi.svg`,
+  `daviplata.svg`, `visa.svg`, `mastercard.svg`.
+- Reemplazar los emojis por `<img src="/pagos/xxx.svg" className="h-6" />` en:
+  - Encabezado de `PagoQR.jsx` (logo de MercadoPago junto al título).
+  - Grid de "Métodos de pago aceptados".
+  - `METODOS_PAGO` en `Carrito.jsx` (ícono `m.icon`).
+  - Selector de método y vista previa de app en `PagoSimulado.jsx`.
+
+Impacto alto / esfuerzo bajo — es el cambio que más "profesionaliza" la vista de un vistazo.
+
+## 11. PagoResultado — ícono animado y sello de seguridad
+
+**Estado actual:** ícono emoji grande (✅ / ❌ / ⏳) y caja de detalles con fondo gris.
+
+**Propuesta:**
+- Reemplazar el ✅ por un **check SVG con animación de trazo** (`stroke-dasharray` +
+  `stroke-dashoffset` con transición CSS), reutilizable también en `PagoSimulado.jsx` cuando
+  `resultado.aprobado === true`.
+- Agregar debajo de la caja de detalles una línea de confianza:
+  `🔒 Pago verificado y procesado por MercadoPago · Conexión segura SSL`.
+- Botón "Copiar" junto al `mp_payment_id` / referencia, con feedback "Copiado ✓" (usa
+  `navigator.clipboard.writeText`, sin librerías nuevas).
+
+## 12. Unificar bordes y espaciados entre pantallas de pago
+
+**Estado actual:** `PagoSimulado.jsx` usa `rounded-[1.8rem]` para el formulario y
+`rounded-[2rem]` para el encabezado; `PagoQR.jsx` y `PagoResultado.jsx` mezclan
+`rounded-[1.5rem]`, `rounded-[1.8rem]` y `rounded-[2rem]` con `mb-4`/`mb-5` inconsistentes.
+
+**Propuesta:** estandarizar:
+- Encabezados de pasarela → `rounded-[2rem]` + `mb-5`.
+- Tarjetas de contenido (resumen, instrucciones, formulario) → `rounded-[1.8rem]` + `mb-4`.
+
+Esto evita el efecto de "saltos" de tamaño al pasar de `Carrito` → `PagoQR`/`PagoSimulado` →
+`PagoResultado`.
+
+## 13. Stepper compartido entre Carrito y pantallas de pago
+
+**Estado actual:** el stepper "① Entrega — ② Pago" solo vive en el modal de `Carrito.jsx`.
+
+**Propuesta:** extraer un componente `CheckoutStepper` (`frontend/src/components/CheckoutStepper.jsx`)
+reutilizable, con un tercer paso "Confirmación", y mostrarlo en la parte superior de
+`PagoQR.jsx`, `PagoSimulado.jsx` y `PagoResultado.jsx`. Da continuidad visual de "flujo de
+checkout" de extremo a extremo.
+
+---
+
+## 14. Autocompletado de dirección por usuario (verificado)
+
+Se revisó el flujo solicitado — **ya está implementado de extremo a extremo**:
+
+- `AuthController::registro()` guarda el campo `direccion` del formulario de registro como
+  parte del usuario (`backend/app/Controllers/AuthController.php:87-98`).
+- El `usuario` devuelto por `login`/`registro`/`me` incluye `Direccion` y `Telefono`.
+- `Registro.jsx` además guarda la última dirección/teléfono usados en `localStorage`
+  (`md_ultima_direccion_registro`) y los precarga si el usuario vuelve a registrarse desde
+  el mismo dispositivo.
+- `CrearDomicilio.jsx` usa `usuario?.Direccion` / `usuario?.Telefono` (los valores guardados
+  al registrarse) para mostrar la pantalla "¿Enviamos a tu dirección registrada?" con un
+  botón **"Sí, enviar aquí →"** que registra el domicilio sin volver a escribir nada; si el
+  usuario quiere cambiarla, puede pasar a "Nueva dirección de entrega".
+
+No se requieren cambios adicionales para que cada usuario tenga su dirección autocompletada
+a partir de la que registró por primera vez.
+
+---
+
+## Resumen de prioridad (Parte 2)
+
+| # | Mejora | Esfuerzo | Impacto visual |
+|---|--------|----------|-----------------|
+| 10 | Logos reales (MercadoPago/Nequi/Daviplata/Visa/Mastercard) | Bajo | Alto |
+| 11 | Check animado + sello de seguridad en resultado | Medio | Alto |
+| 12 | Unificar bordes/espaciados entre pantallas | Bajo | Medio |
+| 13 | Stepper compartido (Carrito → Pago → Confirmación) | Medio | Medio |
+| 14 | Autocompletado de dirección por usuario | — | ✅ Ya implementado |
