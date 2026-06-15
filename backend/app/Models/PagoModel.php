@@ -31,24 +31,27 @@ class PagoModel {
         ];
 
         foreach ($nuevas as $col => $def) {
-            $chk = $this->db->prepare("SHOW COLUMNS FROM pago LIKE :columna");
-            $chk->execute([':columna' => $col]);
-            if ($chk->rowCount() === 0) {
+            if (!$this->columnaExiste('pago', $col)) {
                 $this->db->exec("ALTER TABLE pago ADD COLUMN `$col` $def");
             }
         }
 
-        $chkPedido = $this->db->prepare("SHOW COLUMNS FROM pedido LIKE :columna");
-        $chkPedido->execute([':columna' => 'Tipo_Entrega']);
-        if ($chkPedido->rowCount() === 0) {
+        if (!$this->columnaExiste('pedido', 'Tipo_Entrega')) {
             $this->db->exec("ALTER TABLE pedido ADD COLUMN `Tipo_Entrega` VARCHAR(20) NOT NULL DEFAULT 'Domicilio'");
         }
 
-        $chkCanal = $this->db->prepare("SHOW COLUMNS FROM pedido LIKE :columna");
-        $chkCanal->execute([':columna' => 'Canal_Venta']);
-        if ($chkCanal->rowCount() === 0) {
+        if (!$this->columnaExiste('pedido', 'Canal_Venta')) {
             $this->db->exec("ALTER TABLE pedido ADD COLUMN `Canal_Venta` VARCHAR(20) NOT NULL DEFAULT 'Online'");
         }
+    }
+
+    private function columnaExiste(string $tabla, string $columna): bool {
+        $stmt = $this->db->prepare("
+            SELECT 1 FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :tabla AND COLUMN_NAME = :columna
+        ");
+        $stmt->execute([':tabla' => $tabla, ':columna' => $columna]);
+        return (bool)$stmt->fetch();
     }
 
     public function getByPedido(int $pedidoId): ?array {
