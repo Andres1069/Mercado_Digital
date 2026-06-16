@@ -27,6 +27,19 @@ function formatDate(value) {
   return date.toLocaleString("es-CO", { dateStyle: "medium", timeStyle: "short" });
 }
 
+function toInputDate(date) {
+  const offset = date.getTimezoneOffset();
+  const local = new Date(date.getTime() - offset * 60000);
+  return local.toISOString().slice(0, 10);
+}
+
+function formatDateOnly(value) {
+  if (!value) return "sin limite";
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("es-CO", { year: "numeric", month: "short", day: "numeric" });
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -42,6 +55,10 @@ export default function AdminReportes() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
   const [periodo, setPeriodo] = useState("mes");
+  const hoy = toInputDate(new Date());
+  const inicioMes = toInputDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [fechaDesde, setFechaDesde] = useState(inicioMes);
+  const [fechaHasta, setFechaHasta] = useState(hoy);
   const [modalExport, setModalExport] = useState(false);
   const [seccionesExport, setSeccionesExport] = useState(new Set());
   const [exportando, setExportando] = useState(false);
@@ -81,18 +98,53 @@ export default function AdminReportes() {
     resumen: [],
   });
 
-  const cargarDatos = async (periodoActivo = periodo) => {
+  const rangoActivo = useMemo(() => {
+    if (fechaDesde && fechaHasta && fechaDesde > fechaHasta) {
+      return { desde: fechaHasta, hasta: fechaDesde };
+    }
+    return { desde: fechaDesde, hasta: fechaHasta };
+  }, [fechaDesde, fechaHasta]);
+
+  const etiquetaRango = `${formatDateOnly(rangoActivo.desde)} - ${formatDateOnly(rangoActivo.hasta)}`;
+
+  const aplicarRangoRapido = (tipo) => {
+    const now = new Date();
+    if (tipo === "hoy") {
+      const d = toInputDate(now);
+      setFechaDesde(d);
+      setFechaHasta(d);
+      return;
+    }
+    if (tipo === "7d") {
+      const desde = new Date(now);
+      desde.setDate(now.getDate() - 6);
+      setFechaDesde(toInputDate(desde));
+      setFechaHasta(toInputDate(now));
+      return;
+    }
+    if (tipo === "mes") {
+      setFechaDesde(toInputDate(new Date(now.getFullYear(), now.getMonth(), 1)));
+      setFechaHasta(toInputDate(now));
+      return;
+    }
+    if (tipo === "anio") {
+      setFechaDesde(toInputDate(new Date(now.getFullYear(), 0, 1)));
+      setFechaHasta(toInputDate(now));
+    }
+  };
+
+  const cargarDatos = async (periodoActivo = periodo, rango = rangoActivo) => {
     setCargando(true);
     setError("");
 
     try {
       const llamadas = [
-        reporteService.ventas(),
-        reporteService.productosMasVendidos(),
-        reporteService.pedidosPorEstado(),
-        reporteService.ingresos(periodoActivo),
+        reporteService.ventas(rango),
+        reporteService.productosMasVendidos(rango),
+        reporteService.pedidosPorEstado(rango),
+        reporteService.ingresos(periodoActivo, rango),
       ];
-      if (!esEmp) llamadas.push(reporteService.registros());
+      if (!esEmp) llamadas.push(reporteService.registros(rango));
 
       const [ventasRes, productosRes, estadosRes, ingresosRes, registrosRes] = await Promise.all(llamadas);
 
@@ -113,8 +165,8 @@ export default function AdminReportes() {
   };
 
   useEffect(() => {
-    cargarDatos(periodo);
-  }, [periodo]);
+    cargarDatos(periodo, rangoActivo);
+  }, [periodo, rangoActivo]);
 
   const totalRegistros = data.reportes.length;
   const totalTipos = data.resumen.length;
@@ -323,7 +375,7 @@ export default function AdminReportes() {
           <div>
             <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Reportes y Validacion</h1>
             <p className="text-sm mt-1" style={{ color: "#3C5148" }}>
-              Consulta los registros almacenados y comparalos con los datos reales de la base.
+              Consulta ventas, ingresos y productos vendidos entre {etiquetaRango}.
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -334,7 +386,7 @@ export default function AdminReportes() {
                 <option value="dia">Ingresos por dia</option>
               </select>
             )}
-            <button onClick={() => cargarDatos(periodo)} disabled={cargando}
+            <button onClick={() => cargarDatos(periodo, rangoActivo)} disabled={cargando}
               className="text-white font-semibold px-4 py-2.5 rounded-xl text-sm disabled:opacity-60 transition"
               style={{ backgroundColor: "#6B8E4E" }}>
               {cargando ? "Actualizando..." : "Actualizar"}
@@ -349,6 +401,49 @@ export default function AdminReportes() {
           </div>
         </div>
 
+        {!esEmp && (
+          <div className="rounded-2xl p-4 mb-6"
+            style={{ backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2", boxShadow: "0 2px 8px rgba(27,39,39,0.06)" }}>
+            <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-wide font-bold" style={{ color: "#6B8E4E" }}>Rango del reporte</p>
+                <h2 className="text-lg font-black mt-1" style={{ color: "#1B2727" }}>{etiquetaRango}</h2>
+                <p className="text-sm mt-1" style={{ color: "#3C5148" }}>
+                  Este filtro aplica a ventas, ingresos, canales, estados y productos mas vendidos.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <label className="text-xs font-bold" style={{ color: "#3C5148" }}>
+                  Desde
+                  <input type="date" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)}
+                    className="block mt-1 rounded-xl px-3 py-2.5 text-sm focus:outline-none" style={INPUT_STYLE} />
+                </label>
+                <label className="text-xs font-bold" style={{ color: "#3C5148" }}>
+                  Hasta
+                  <input type="date" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)}
+                    className="block mt-1 rounded-xl px-3 py-2.5 text-sm focus:outline-none" style={INPUT_STYLE} />
+                </label>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2 mt-4">
+              {[
+                ["hoy", "Hoy"],
+                ["7d", "Ultimos 7 dias"],
+                ["mes", "Mes actual"],
+                ["anio", "Ano actual"],
+              ].map(([id, label]) => (
+                <button key={id} type="button" onClick={() => aplicarRangoRapido(id)}
+                  className="px-3 py-2 rounded-xl text-xs font-bold transition"
+                  style={{ backgroundColor: "rgba(107,142,78,0.1)", border: "1px solid rgba(107,142,78,0.18)", color: "#3C5148" }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {error && (
           <div className="mb-5 px-4 py-3 rounded-xl text-sm"
             style={{ backgroundColor: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.3)", color: "#fbbf24" }}>
@@ -357,8 +452,8 @@ export default function AdminReportes() {
         )}
 
         <div className={`grid grid-cols-1 sm:grid-cols-2 ${esEmp ? "lg:grid-cols-1" : "lg:grid-cols-4"} gap-4 mb-7`}>
-          <Card titulo="Pedidos" valor={data.ventas.total_pedidos || 0} detalle="Pedidos detectados en la base" />
-          {!esEmp && <Card titulo="Ingresos" valor={formatMoney(data.ventas.total_ingresos)} detalle="Pagos completados" />}
+          <Card titulo="Pedidos" valor={data.ventas.total_pedidos || 0} detalle="Pedidos dentro del rango" />
+          {!esEmp && <Card titulo="Ingresos" valor={formatMoney(data.ventas.total_ingresos)} detalle="Pagos completados en el rango" />}
           {!esEmp && <Card titulo="Reportes" valor={totalRegistros} detalle={`${totalTipos} tipos registrados`} />}
           {!esEmp && <Card titulo="Último Reporte" valor={ultimoReporte ? "OK" : "-"} detalle={ultimoReporte ? formatDate(ultimoReporte) : "Sin registros"} />}
         </div>
@@ -401,10 +496,23 @@ export default function AdminReportes() {
                   <p className="text-sm" style={{ color: "#6B8E4E" }}>No hay ingresos para mostrar.</p>
                 ) : (
                   data.ingresos.map((item) => (
-                    <div key={item.etiqueta} className="flex items-center justify-between px-4 py-3 rounded-xl"
+                    <div key={item.etiqueta} className="px-4 py-3 rounded-xl"
                       style={{ backgroundColor: "rgba(107,142,78,0.06)", border: "1px solid rgba(107,142,78,0.12)" }}>
-                      <span className="text-sm font-medium" style={{ color: "#3C5148" }}>{item.etiqueta}</span>
-                      <span className="text-sm font-bold" style={{ color: "#6B8E4E" }}>{formatMoney(item.total)}</span>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-sm font-bold" style={{ color: "#3C5148" }}>{item.etiqueta}</span>
+                        <span className="text-sm font-black" style={{ color: "#6B8E4E" }}>{formatMoney(item.total)}</span>
+                      </div>
+                      <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
+                        <span className="rounded-lg px-2 py-1" style={{ backgroundColor: "rgba(107,142,78,0.1)", color: "#3C5148" }}>
+                          Tienda: <strong>{formatMoney(item.tienda)}</strong>
+                        </span>
+                        <span className="rounded-lg px-2 py-1" style={{ backgroundColor: "rgba(107,142,78,0.1)", color: "#3C5148" }}>
+                          Online: <strong>{formatMoney(item.online)}</strong>
+                        </span>
+                        <span className="rounded-lg px-2 py-1 text-center" style={{ backgroundColor: "rgba(107,142,78,0.1)", color: "#3C5148" }}>
+                          {Number(item.pedidos || 0)} ventas
+                        </span>
+                      </div>
                     </div>
                   ))
                 )}

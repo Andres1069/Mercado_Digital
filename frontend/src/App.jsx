@@ -1,8 +1,11 @@
 // frontend/src/App.jsx
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { BellRing, Clock3, PackageCheck, X } from "lucide-react";
+import { pedidoService } from "./services/api";
 
 // Paginas publicas
 import Landing from "./pages/Landing";
@@ -41,6 +44,115 @@ import AdminProveedores from "./pages/admin/AdminProveedores";
 import RouteTitle from "./components/RouteTitle";
 import Footer from "./components/Footer";
 import WhatsAppButton from "./components/WhatsAppButton";
+
+const ESTADOS_PENDIENTES_ADMIN = ["pendiente", "preparando", "en preparacion", "en proceso", "procesando", "confirmado"];
+
+function esPedidoPendienteAdmin(pedido) {
+  const estado = String(pedido.Estado_Pedido || "Pendiente").trim().toLowerCase();
+  return ESTADOS_PENDIENTES_ADMIN.some((pendiente) => estado.includes(pendiente));
+}
+
+function AdminPendingOrdersNotice() {
+  const { usuario, token, esAdmin, cargando } = useAuth();
+  const [pedidosPendientes, setPedidosPendientes] = useState([]);
+  const [visible, setVisible] = useState(false);
+
+  const storageKey = useMemo(
+    () => `md_admin_pending_notice_${token || usuario?.Num_Documento || usuario?.correo || "admin"}`,
+    [token, usuario]
+  );
+
+  useEffect(() => {
+    if (cargando || !usuario || !esAdmin()) return;
+    if (sessionStorage.getItem(storageKey) === "visto") return;
+
+    let cancelado = false;
+
+    const cargarPendientes = async () => {
+      try {
+        const res = await pedidoService.todos();
+        if (cancelado) return;
+
+        const pendientes = (res.pedidos || [])
+          .filter(esPedidoPendienteAdmin)
+          .sort((a, b) => new Date(b.Fecha_Pedido || 0) - new Date(a.Fecha_Pedido || 0));
+
+        setPedidosPendientes(pendientes);
+        setVisible(pendientes.length > 0);
+        sessionStorage.setItem(storageKey, "visto");
+      } catch {
+        // Si falla la consulta, evitamos bloquear el ingreso del administrador.
+      }
+    };
+
+    const id = window.setTimeout(cargarPendientes, 450);
+    return () => {
+      cancelado = true;
+      window.clearTimeout(id);
+    };
+  }, [cargando, esAdmin, storageKey, token, usuario]);
+
+  if (!visible) return null;
+
+  const recientes = pedidosPendientes.slice(0, 3);
+  const total = pedidosPendientes.length;
+
+  return (
+    <div className="fixed right-4 top-4 z-[80] w-[calc(100vw-2rem)] max-w-sm overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-2xl shadow-slate-900/15 dark:border-[#5f7658]/60 dark:bg-[#1f2b21] dark:shadow-black/40">
+      <div className="flex items-start gap-3 bg-gradient-to-br from-amber-50 via-white to-white p-4 dark:from-[#263524] dark:via-[#1f2b21] dark:to-[#1f2b21]">
+        <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-400/15 dark:text-amber-300">
+          <BellRing className="h-5 w-5" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-black text-slate-900 dark:text-slate-100">
+                {total === 1 ? "Hay 1 pedido pendiente" : `Hay ${total} pedidos pendientes`}
+              </p>
+              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-300">
+                Revisa los pedidos que aun necesitan gestion.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setVisible(false)}
+              className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-[#263524] dark:hover:text-[#f3f7ed]"
+              aria-label="Cerrar notificacion"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="mt-3 space-y-2">
+            {recientes.map((pedido) => {
+              const nombre = `${pedido.Nombre || ""} ${pedido.Apellido || ""}`.trim() || "Cliente";
+              return (
+                <div key={pedido.Cod_Pedido} className="flex items-center gap-2 rounded-xl border border-slate-100 bg-white/80 px-3 py-2 dark:border-[#4f6a4b] dark:bg-[#263524]/80">
+                  <Clock3 className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-300" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-bold text-slate-800 dark:text-slate-100">
+                      Pedido #{pedido.Cod_Pedido} · {nombre}
+                    </p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">{pedido.Estado_Pedido || "Pendiente"}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <Link
+            to="/admin/pedidos"
+            onClick={() => setVisible(false)}
+            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#3C5148] px-3 py-2.5 text-sm font-bold text-white transition hover:brightness-110 dark:bg-lime-600 dark:text-slate-950"
+          >
+            <PackageCheck className="h-4 w-4" />
+            Ver pedidos pendientes
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function RutaPrivada({ children }) {
   const { estaLogueado, cargando } = useAuth();
@@ -176,6 +288,7 @@ function AppContent() {
         <AppRoutes />
       </div>
       {location.pathname === "/" && <Footer />}
+      <AdminPendingOrdersNotice />
       <WhatsAppButton />
     </div>
   );

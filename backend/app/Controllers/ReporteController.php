@@ -12,28 +12,33 @@ class ReporteController {
 
     public function registros(): void {
         AuthMiddleware::requireRole(['Administrador', 'Empleado']);
+        [$desde, $hasta] = $this->rangoFechas();
         $this->ok([
-            'reportes' => $this->model->getRegistrosReporte(),
-            'resumen' => $this->model->getResumenReportes(),
+            'reportes' => $this->model->getRegistrosReporte($desde, $hasta),
+            'resumen' => $this->model->getResumenReportes($desde, $hasta),
         ]);
     }
 
     public function ventas(): void {
         AuthMiddleware::requireRole(['Administrador', 'Empleado']);
+        [$desde, $hasta] = $this->rangoFechas();
         $this->ok([
-            'ventas' => $this->model->getVentasResumen(),
-            'canales' => $this->model->getVentasPorCanal(),
+            'ventas' => $this->model->getVentasResumen($desde, $hasta),
+            'canales' => $this->model->getVentasPorCanal($desde, $hasta),
+            'rango' => ['desde' => $desde, 'hasta' => $hasta],
         ]);
     }
 
     public function productosMasVendidos(): void {
         AuthMiddleware::requireRole(['Administrador', 'Empleado']);
-        $this->ok(['productos' => $this->model->getProductosMasVendidos()]);
+        [$desde, $hasta] = $this->rangoFechas();
+        $this->ok(['productos' => $this->model->getProductosMasVendidos(5, $desde, $hasta)]);
     }
 
     public function pedidosPorEstado(): void {
         AuthMiddleware::requireRole(['Administrador', 'Empleado']);
-        $this->ok(['estados' => $this->model->getPedidosPorEstado()]);
+        [$desde, $hasta] = $this->rangoFechas();
+        $this->ok(['estados' => $this->model->getPedidosPorEstado($desde, $hasta)]);
     }
 
     public function ingresos(): void {
@@ -42,10 +47,29 @@ class ReporteController {
         if (!in_array($periodo, ['dia', 'mes'], true)) {
             $periodo = 'mes';
         }
+        [$desde, $hasta] = $this->rangoFechas();
         $this->ok([
             'periodo' => $periodo,
-            'ingresos' => $this->model->getIngresosPorPeriodo($periodo),
+            'rango' => ['desde' => $desde, 'hasta' => $hasta],
+            'ingresos' => $this->model->getIngresosPorPeriodo($periodo, $desde, $hasta),
         ]);
+    }
+
+    private function rangoFechas(): array {
+        $desde = $this->fechaQuery('desde');
+        $hasta = $this->fechaQuery('hasta');
+
+        if ($desde && $hasta && $desde > $hasta) {
+            [$desde, $hasta] = [$hasta, $desde];
+        }
+
+        return [$desde, $hasta];
+    }
+
+    private function fechaQuery(string $key): ?string {
+        $value = trim((string)($_GET[$key] ?? ''));
+        if ($value === '') return null;
+        return preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) ? $value : null;
     }
 
     private function ok(array $data, string $msg = 'OK', int $code = 200): never {

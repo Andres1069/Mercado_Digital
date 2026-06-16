@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ThemeToggle from "../components/ThemeToggle";
 import { productoService, ofertaService, categoriaService, resolverImagen } from "../services/api";
@@ -15,6 +15,19 @@ function normalizarCategoria(nombre = "") {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
+}
+
+function obtenerImagenCategoria(nombre = "") {
+  const clave = normalizarCategoria(nombre);
+  if (clave.includes("aceite")) return "/Aceites.png";
+  if (clave.includes("aseo")) return "/AseoP.png";
+  if (clave.includes("bebida")) return "/Bebidas.png";
+  if (clave.includes("cereal")) return "/Cereales.png";
+  if (clave.includes("dulce")) return "/Dulces.png";
+  if (clave.includes("grano")) return "/Granos.png";
+  if (clave.includes("lacteo") || clave.includes("lacteos")) return "/Lacteos.png";
+  if (clave.includes("pan")) return "/Panaderia.png";
+  return "";
 }
 
 function obtenerVisualCategoria(nombre = "", index) {
@@ -111,10 +124,12 @@ function CategoriaCard({ categoria, index }) {
   const { esOscuro } = useTheme();
   const visual = obtenerVisualCategoria(categoria.Nombre || categoria.nombre || "", index);
   const total = Number(categoria.total_productos || categoria.totalProductos || 0);
+  const imagenUrl = obtenerImagenCategoria(categoria.Nombre || categoria.nombre || "");
+  const catId = categoria.Cod_Categoria || categoria.Id_categoria || categoria.id || "";
 
   return (
     <Link
-      to="/tienda"
+      to={`/tienda?categoria=${catId}`}
       className="group rounded-[28px] overflow-hidden transition duration-300 hover:-translate-y-1 flex flex-col h-full"
       style={{
         backgroundColor: esOscuro ? "#111827" : "#ffffff",
@@ -122,12 +137,23 @@ function CategoriaCard({ categoria, index }) {
         boxShadow: esOscuro ? "0 18px 40px rgba(2,6,23,0.16)" : "0 14px 30px rgba(15,23,42,0.08)",
       }}
     >
-      <div
-        className="h-24 rounded-b-none"
-        style={{
-          background: `linear-gradient(135deg, ${visual.top}, ${visual.accent})`,
-        }}
-      />
+      <div className="h-32 relative overflow-hidden bg-gray-100 dark:bg-gray-800">
+        {imagenUrl ? (
+          <img
+            src={imagenUrl}
+            alt={categoria.Nombre || categoria.nombre}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          />
+        ) : (
+          <div
+            className="w-full h-full"
+            style={{
+              background: `linear-gradient(135deg, ${visual.top}, ${visual.accent})`,
+            }}
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+      </div>
       <div className="p-5 flex-1 flex flex-col justify-between">
         <div>
           <p className="text-sm uppercase tracking-[0.28em] font-semibold mb-3" style={{ color: esOscuro ? "#94a3b8" : "#6b7280" }}>
@@ -244,8 +270,8 @@ export default function Landing() {
       <header
         className="fixed top-0 left-0 right-0 z-40 border-b"
         style={{
-          backgroundColor: esOscuro ? "#0b1327" : "#ffffff",
-          borderColor: esOscuro ? "#1f2937" : "#e5e7eb",
+          backgroundColor: esOscuro ? "#1f2b21" : "#ffffff",
+          borderColor: esOscuro ? "#4f6a4b" : "#e5e7eb",
         }}
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-5 py-4 flex flex-wrap items-center justify-between gap-3">
@@ -313,7 +339,7 @@ export default function Landing() {
               className="px-3 py-2 rounded-full"
               style={{
                 backgroundColor: esOscuro ? "rgba(255,255,255,0.08)" : "#f8fafc",
-                border: `1px solid ${esOscuro ? "rgba(148,163,184,0.16)" : "#e5e7eb"}`,
+                border: `1px solid ${esOscuro ? "rgba(178,197,178,0.18)" : "#e5e7eb"}`,
                 color: esOscuro ? "#f8fafc" : "#111827",
               }}
             />
@@ -323,8 +349,8 @@ export default function Landing() {
             <div
               className="md:hidden w-full max-w-md mx-auto mt-3 rounded-[28px] border px-4 py-4 shadow-xl backdrop-blur-xl"
               style={{
-                backgroundColor: esOscuro ? "rgba(15,23,42,0.95)" : "rgba(255,255,255,0.95)",
-                borderColor: esOscuro ? "rgba(148,163,184,0.16)" : "rgba(226,232,240,0.9)",
+                backgroundColor: esOscuro ? "rgba(31,43,33,0.96)" : "rgba(255,255,255,0.95)",
+                borderColor: esOscuro ? "rgba(178,197,178,0.18)" : "rgba(226,232,240,0.9)",
               }}
             >
               <nav className="space-y-3 text-sm font-semibold">
@@ -397,7 +423,7 @@ export default function Landing() {
           className="relative overflow-hidden px-4 pb-14 pt-28 sm:px-5 lg:pb-20"
           style={{
             backgroundImage: esOscuro
-              ? "linear-gradient(180deg, #12351f 0%, #102016 48%, #0f172a 100%)"
+              ? "linear-gradient(180deg, #12351f 0%, #102016 48%, #172116 100%)"
               : "linear-gradient(180deg, #dff4dc 0%, #effaf0 48%, #ffffff 100%)",
           }}
         >
@@ -505,221 +531,219 @@ export default function Landing() {
         </section>
 
         <div className="max-w-6xl mx-auto px-4 sm:px-5">
-        {/* SLIDER INDEPENDIENTE */}
-      <section className="mb-10">
-        <div
-          className="relative overflow-hidden rounded-[32px] shadow-xl transition-all"
-          style={{
-            backgroundColor: esOscuro ? "#111827" : "#ffffff",
-            border: `1px solid ${
-              esOscuro ? "rgba(148,163,184,0.16)" : "#e5e7eb"
-            }`,
-          }}
-        >
-          <div className="relative z-10 grid grid-cols-1 md:grid-cols-[1fr_520px] lg:grid-cols-[1fr_560px] items-stretch md:min-h-[360px] lg:min-h-[390px]">
-            <div className="relative min-w-0 p-10 md:pr-6">
-              <span
-                className="inline-flex items-center rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em]"
-                style={{
-                  backgroundColor: esOscuro
-                    ? "rgba(107,142,78,0.12)"
-                    : "#ecfdf5",
-                  color: esOscuro ? "#b7d8a3" : "#166534",
-                }}
-              >
-                {slides[activeSlide].label}
-              </span>
-              <h2
-                className="mt-6 text-3xl sm:text-5xl font-black leading-tight"
-                style={{
-                  color: esOscuro ? "#f8fafc" : "#111827",
-                }}
-              >
-                {slides[activeSlide].title}
-              </h2>
-
-              <p
-                className="mt-4 max-w-2xl text-base leading-8"
-                style={{
-                  color: esOscuro ? "#cbd5e1" : "#475569",
-                }}
-              >
-                {slides[activeSlide].description}
-              </p>
-
-              <div className="absolute bottom-8 left-10 flex items-center gap-2">
-                {slides.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setActiveSlide(index)}
-                    className={`h-3 w-3 rounded-full transition ${
-                      activeSlide === index
-                        ? "bg-green-600"
-                        : esOscuro
-                        ? "bg-slate-600"
-                        : "bg-slate-300"
-                    }`}
-                    aria-label={`Slide ${index + 1}`}
-                  />
-                ))}
-              </div>
-            </div>
-
+          {/* SLIDER INDEPENDIENTE */}
+          <section className="mb-10">
             <div
-              className="relative hidden md:flex items-center justify-center"
-              aria-hidden="true"
+              className="relative overflow-hidden rounded-[32px] shadow-xl transition-all"
               style={{
-                backgroundColor: esOscuro ? "rgba(2,6,23,0.25)" : "#ffffff",
+                backgroundColor: esOscuro ? "#111827" : "#ffffff",
+                border: `1px solid ${esOscuro ? "rgba(148,163,184,0.16)" : "#e5e7eb"
+                  }`,
               }}
             >
-              <img
-                key={slides[activeSlide].image}
-                src={encodeURI(slides[activeSlide].image)}
-                alt={slides[activeSlide].imageAlt}
-                className="h-full w-full object-contain"
-                draggable="false"
-                loading="eager"
-              />
+              <div className="relative z-10 grid grid-cols-1 md:grid-cols-[1fr_520px] lg:grid-cols-[1fr_560px] items-stretch md:min-h-[360px] lg:min-h-[390px]">
+                <div className="relative min-w-0 p-10 md:pr-6">
+                  <span
+                    className="inline-flex items-center rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em]"
+                    style={{
+                      backgroundColor: esOscuro
+                        ? "rgba(107,142,78,0.12)"
+                        : "#ecfdf5",
+                      color: esOscuro ? "#b7d8a3" : "#166534",
+                    }}
+                  >
+                    {slides[activeSlide].label}
+                  </span>
+                  <h2
+                    className="mt-6 text-3xl sm:text-5xl font-black leading-tight"
+                    style={{
+                      color: esOscuro ? "#f8fafc" : "#111827",
+                    }}
+                  >
+                    {slides[activeSlide].title}
+                  </h2>
 
-              <div
-                className="absolute inset-y-0 left-0 w-24"
-                style={{
-                  background: esOscuro
-                    ? "linear-gradient(90deg, rgba(17,24,39,0.92) 0%, rgba(17,24,39,0) 100%)"
-                    : "linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%)",
-                }}
-              />
+                  <p
+                    className="mt-4 max-w-2xl text-base leading-8"
+                    style={{
+                      color: esOscuro ? "#cbd5e1" : "#475569",
+                    }}
+                  >
+                    {slides[activeSlide].description}
+                  </p>
 
-              <div className="absolute bottom-8 right-10 flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setActiveSlide(
-                      (prev) => (prev - 1 + slides.length) % slides.length
-                    )
-                  }
-                  className="rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition"
+                  <div className="absolute bottom-8 left-10 flex items-center gap-2">
+                    {slides.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setActiveSlide(index)}
+                        className={`h-3 w-3 rounded-full transition ${activeSlide === index
+                          ? "bg-green-600"
+                          : esOscuro
+                            ? "bg-slate-600"
+                            : "bg-slate-300"
+                          }`}
+                        aria-label={`Slide ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div
+                  className="relative hidden md:flex items-center justify-center"
+                  aria-hidden="true"
                   style={{
-                    backgroundColor: esOscuro
-                      ? "rgba(148,163,184,0.18)"
-                      : "rgba(241,245,249,0.92)",
-                    color: esOscuro ? "#f8fafc" : "#111827",
-                    backdropFilter: "blur(8px)",
+                    backgroundColor: esOscuro ? "rgba(2,6,23,0.25)" : "#ffffff",
                   }}
                 >
-                  Anterior
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setActiveSlide((prev) => (prev + 1) % slides.length)
-                  }
-                  className="rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white transition"
-                  style={{
-                    backgroundColor: "#6B8E4E",
-                  }}
-                >
-                  Siguiente
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-        <section id="ofertas" className="py-10">
-          <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.3em]" style={{ color: esOscuro ? "#94a3b8" : "#6b7280" }}>
-                Ofertas
-              </p>
-              <h2 className="mt-3 text-3xl font-black" style={{ color: esOscuro ? "#f8fafc" : "#111827" }}>
-                Los mejores descuentos del momento.
-              </h2>
-            </div>
-            <Link
-              to="/tienda"
-              className="text-sm font-semibold transition hover:text-green-700"
-              style={{ color: esOscuro ? "#d1d5db" : "#166534" }}
-            >
-              Ver todas
-            </Link>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {cargando ? (
-              [...Array(4)].map((_, index) => (
-                <div key={index} className="h-72 rounded-3xl bg-gray-200 animate-pulse" />
-              ))
-            ) : productosOferta.length === 0 ? (
-              <div className="rounded-3xl border p-8 text-center" style={{ backgroundColor: esOscuro ? "#111827" : "#ffffff" }}>
-                <p style={{ color: esOscuro ? "#d1d5db" : "#475569" }}>No hay ofertas disponibles.</p>
-              </div>
-            ) : (
-              productosOferta.map((producto) => <ProductoCard key={producto.Cod_Producto || producto.id || producto.Num_Documento} producto={producto} />)
-            )}
-          </div>
-        </section>
-
-        <section id="categorias" className="py-10">
-          <div className="mb-8">
-            <p className="text-sm font-semibold uppercase tracking-[0.3em]" style={{ color: esOscuro ? "#94a3b8" : "#6b7280" }}>
-              Categorías
-            </p>
-            <h2 className="mt-3 text-3xl font-black" style={{ color: esOscuro ? "#f8fafc" : "#111827" }}>
-              Encuentra lo que necesitas rápido.
-            </h2>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {cargando ? (
-              [...Array(4)].map((_, index) => (
-                <div key={index} className="h-44 rounded-3xl bg-gray-200 animate-pulse" />
-              ))
-            ) : categorias.length === 0 ? (
-              <div className="rounded-3xl border p-8 text-center" style={{ backgroundColor: esOscuro ? "#111827" : "#ffffff" }}>
-                <p style={{ color: esOscuro ? "#d1d5db" : "#475569" }}>No se encontraron categorías.</p>
-              </div>
-            ) : (
-              categorias
-                .slice(0, 8)
-                .map((categoria, index) => (
-                  <CategoriaCard
-                    key={categoria.Id_categoria || categoria.id || index}
-                    categoria={categoria}
-                    index={index}
+                  <img
+                    key={slides[activeSlide].image}
+                    src={encodeURI(slides[activeSlide].image)}
+                    alt={slides[activeSlide].imageAlt}
+                    className="h-full w-full object-contain"
+                    draggable="false"
+                    loading="eager"
                   />
-                ))
-            )}
-          </div>
-        </section>
 
-        <section id="productos" className="py-10">
-          <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
-            <div>
+                  <div
+                    className="absolute inset-y-0 left-0 w-24"
+                    style={{
+                      background: esOscuro
+                        ? "linear-gradient(90deg, rgba(17,24,39,0.92) 0%, rgba(17,24,39,0) 100%)"
+                        : "linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%)",
+                    }}
+                  />
+
+                  <div className="absolute bottom-8 right-10 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setActiveSlide(
+                          (prev) => (prev - 1 + slides.length) % slides.length
+                        )
+                      }
+                      className="rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition"
+                      style={{
+                        backgroundColor: esOscuro
+                          ? "rgba(148,163,184,0.18)"
+                          : "rgba(241,245,249,0.92)",
+                        color: esOscuro ? "#f8fafc" : "#111827",
+                        backdropFilter: "blur(8px)",
+                      }}
+                    >
+                      Anterior
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setActiveSlide((prev) => (prev + 1) % slides.length)
+                      }
+                      className="rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white transition"
+                      style={{
+                        backgroundColor: "#6B8E4E",
+                      }}
+                    >
+                      Siguiente
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="ofertas" className="py-10">
+            <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.3em]" style={{ color: esOscuro ? "#94a3b8" : "#6b7280" }}>
+                  Ofertas
+                </p>
+                <h2 className="mt-3 text-3xl font-black" style={{ color: esOscuro ? "#f8fafc" : "#111827" }}>
+                  Los mejores descuentos del momento.
+                </h2>
+              </div>
+              <Link
+                to="/tienda"
+                className="text-sm font-semibold transition hover:text-green-700"
+                style={{ color: esOscuro ? "#d1d5db" : "#166534" }}
+              >
+                Ver todas
+              </Link>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              {cargando ? (
+                [...Array(4)].map((_, index) => (
+                  <div key={index} className="h-72 rounded-3xl bg-gray-200 animate-pulse" />
+                ))
+              ) : productosOferta.length === 0 ? (
+                <div className="rounded-3xl border p-8 text-center" style={{ backgroundColor: esOscuro ? "#111827" : "#ffffff" }}>
+                  <p style={{ color: esOscuro ? "#d1d5db" : "#475569" }}>No hay ofertas disponibles.</p>
+                </div>
+              ) : (
+                productosOferta.map((producto) => <ProductoCard key={producto.Cod_Producto || producto.id || producto.Num_Documento} producto={producto} />)
+              )}
+            </div>
+          </section>
+
+          <section id="categorias" className="py-10">
+            <div className="mb-8">
               <p className="text-sm font-semibold uppercase tracking-[0.3em]" style={{ color: esOscuro ? "#94a3b8" : "#6b7280" }}>
-                Productos
+                Categorías
               </p>
               <h2 className="mt-3 text-3xl font-black" style={{ color: esOscuro ? "#f8fafc" : "#111827" }}>
-                Artículos frescos para cada día.
+                Encuentra lo que necesitas rápido.
               </h2>
             </div>
-            <p className="text-sm" style={{ color: esOscuro ? "#cbd5e1" : "#6b7280" }}>
-              Selección actualizada con los mejores precios.
-            </p>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {cargando ? (
-              [...Array(4)].map((_, index) => (
-                <div key={index} className="h-72 rounded-3xl bg-gray-200 animate-pulse" />
-              ))
-            ) : destacados.length === 0 ? (
-              <div className="rounded-3xl border p-8 text-center" style={{ backgroundColor: esOscuro ? "#111827" : "#ffffff" }}>
-                <p style={{ color: esOscuro ? "#d1d5db" : "#475569" }}>No hay productos para mostrar.</p>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {cargando ? (
+                [...Array(4)].map((_, index) => (
+                  <div key={index} className="h-44 rounded-3xl bg-gray-200 animate-pulse" />
+                ))
+              ) : categorias.length === 0 ? (
+                <div className="rounded-3xl border p-8 text-center" style={{ backgroundColor: esOscuro ? "#111827" : "#ffffff" }}>
+                  <p style={{ color: esOscuro ? "#d1d5db" : "#475569" }}>No se encontraron categorías.</p>
+                </div>
+              ) : (
+                categorias
+                  .slice(0, 8)
+                  .map((categoria, index) => (
+                    <CategoriaCard
+                      key={categoria.Id_categoria || categoria.id || index}
+                      categoria={categoria}
+                      index={index}
+                    />
+                  ))
+              )}
+            </div>
+          </section>
+
+          <section id="productos" className="py-10">
+            <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.3em]" style={{ color: esOscuro ? "#94a3b8" : "#6b7280" }}>
+                  Productos
+                </p>
+                <h2 className="mt-3 text-3xl font-black" style={{ color: esOscuro ? "#f8fafc" : "#111827" }}>
+                  Artículos frescos para cada día.
+                </h2>
               </div>
-            ) : (
-              destacados.map((producto) => <ProductoCard key={producto.Cod_Producto || producto.id || producto.Num_Documento} producto={producto} />)
-            )}
-          </div>
-        </section>
+              <p className="text-sm" style={{ color: esOscuro ? "#cbd5e1" : "#6b7280" }}>
+                Selección actualizada con los mejores precios.
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {cargando ? (
+                [...Array(4)].map((_, index) => (
+                  <div key={index} className="h-72 rounded-3xl bg-gray-200 animate-pulse" />
+                ))
+              ) : destacados.length === 0 ? (
+                <div className="rounded-3xl border p-8 text-center" style={{ backgroundColor: esOscuro ? "#111827" : "#ffffff" }}>
+                  <p style={{ color: esOscuro ? "#d1d5db" : "#475569" }}>No hay productos para mostrar.</p>
+                </div>
+              ) : (
+                destacados.map((producto) => <ProductoCard key={producto.Cod_Producto || producto.id || producto.Num_Documento} producto={producto} />)
+              )}
+            </div>
+          </section>
         </div>
       </main>
     </div>

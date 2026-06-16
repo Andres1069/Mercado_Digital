@@ -135,6 +135,7 @@ switch ($modulo) {
         match(true) {
             $metodo === 'GET'    && $accion === ''             => $ctrl->listar(),
             $metodo === 'GET'    && $accion === 'todas'        => $ctrl->todas(),
+            $metodo === 'POST'   && $accion === 'upload-banner'=> $ctrl->uploadBanner(),
             $metodo === 'POST'   && $accion === ''             => $ctrl->crear(),
             $metodo === 'PUT'    && is_numeric($accion)        => $ctrl->actualizar((int)$accion),
             $metodo === 'DELETE' && is_numeric($accion)        => $ctrl->eliminar((int)$accion),

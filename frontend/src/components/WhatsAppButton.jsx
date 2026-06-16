@@ -3,6 +3,7 @@ import { useState } from "react";
 function WhatsAppButton() {
   const [abierto, setAbierto] = useState(false);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [mostrarChatsito, setMostrarChatsito] = useState(false);
   const [cargando, setCargando] = useState(false);
   const [notificacion, setNotificacion] = useState("");
 
@@ -84,7 +85,7 @@ function WhatsAppButton() {
 
     try {
       const response = await fetch(
-  "http://localhost/mercado_digital/backend/public/?ruta=contacto",
+        "http://localhost/mercado_digital/backend/public/?ruta=contacto",
         {
           method: "POST",
           headers: {
@@ -124,7 +125,7 @@ function WhatsAppButton() {
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
-      
+
       {/* =========================
           NOTIFICACIÓN
       ========================= */}
@@ -306,22 +307,39 @@ function WhatsAppButton() {
       {/* =========================
           BOTÓN PRINCIPAL
       ========================= */}
-      <button
-        onClick={() => setAbierto(!abierto)}
-        className="p-4 rounded-full shadow-2xl hover:scale-110 transition-all duration-300"
-        style={{
-          backgroundColor: "#25D366",
-        }}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="white"
-          className="w-7 h-7"
+      <div className="relative flex flex-col items-end">
+        {mostrarChatsito && !abierto && (
+          <img
+            src="/chatsito.png"
+            alt="Asistente de contacto"
+            className="pointer-events-none absolute bottom-full right-[-0.15rem] mb-2 w-20 max-w-[20vw] translate-y-0 opacity-100 drop-shadow-2xl transition-all duration-300 sm:w-32"
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
+          />
+        )}
+        <button
+          onMouseEnter={() => setMostrarChatsito(true)}
+          onMouseLeave={() => setMostrarChatsito(false)}
+          onFocus={() => setMostrarChatsito(true)}
+          onBlur={() => setMostrarChatsito(false)}
+          onClick={() => {
+            setMostrarChatsito(false);
+            setAbierto(!abierto);
+          }}
+          className="p-4 rounded-full shadow-2xl hover:scale-110 transition-all duration-300"
+          style={{
+            backgroundColor: "#25D366",
+          }}
         >
-          <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
-        </svg>
-      </button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="white"
+            className="w-7 h-7"
+          >
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }

@@ -1,31 +1,23 @@
 import { useMemo, useState } from "react";
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Home,
+  UserPlus
+} from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { authService } from "../services/api";
 
-function OjoIcon({ abierto }) {
-  if (abierto) {
-    return (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-        <circle cx="12" cy="12" r="3" />
-      </svg>
-    );
-  }
-
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-      <path d="M14.12 14.12a3 3 0 0 1-4.24-4.24" />
-      <line x1="1" y1="1" x2="23" y2="23" />
-    </svg>
-  );
-}
-
 const loginInicial = { correo: "", contrasena: "" };
 const resetInicial = { correo: "", token: "", nueva_contrasena: "", confirmar_contrasena: "" };
-const LOGIN_ARTWORK = "/Diseño sin título.png";
+const LOGIN_ARTWORK = "/DiseÃ±o sin tÃ­tulo.png";
+
+function OjoIcon({ abierto }) {
+  return abierto ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />;
+}
 
 export default function Login() {
   const { iniciarSesion } = useAuth();
@@ -86,7 +78,7 @@ export default function Login() {
 
     try {
       const res = await authService.resetRequest(formReset.correo);
-      setMensajeReset(res.message || "Si el correo existe, enviaremos un código para restablecer la contraseña.");
+      setMensajeReset(res.message || "Si el correo existe, enviaremos un cÃ³digo para restablecer la contraseÃ±a.");
       setPasoReset(2);
     } catch (err) {
       setErrorReset(err.message);
@@ -101,19 +93,19 @@ export default function Login() {
     setMensajeReset("");
 
     if (!resetToken) {
-      setErrorReset("Debes ingresar el código o token que llegó a tu correo.");
+      setErrorReset("Debes ingresar el cÃ³digo o token que llegÃ³ a tu correo.");
       return;
     }
 
     if (formReset.nueva_contrasena !== formReset.confirmar_contrasena) {
-      setErrorReset("Las contraseñas no coinciden.");
+      setErrorReset("Las contraseÃ±as no coinciden.");
       return;
     }
 
     setCambiandoPassword(true);
     try {
       const res = await authService.resetConfirm(resetToken, formReset.nueva_contrasena);
-      setMensajeReset(res.message || "Contraseña actualizada correctamente.");
+      setMensajeReset(res.message || "ContraseÃ±a actualizada correctamente.");
       setFormReset(resetInicial);
       setPasoReset(1);
       setMostrarReset(false);
@@ -140,7 +132,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen md-app-bg flex items-center justify-center p-4 md:p-6">
-      <div className="w-full max-w-lg md:max-w-5xl bg-white rounded-[2rem] shadow-lg border border-gray-100 overflow-hidden md:grid md:grid-cols-[0.9fr,1.1fr]">
+      <div className="w-full max-w-lg md:max-w-5xl bg-white rounded-[2rem] shadow-lg border border-gray-100 overflow-hidden md:grid md:grid-cols-[1fr,1fr]">
         <div
           className="px-6 py-8 text-white md:px-10 md:py-12 flex flex-col justify-between"
           style={{ background: "linear-gradient(145deg, #1B2727 0%, #3C5148 52%, #6B8E4E 100%)" }}
@@ -154,12 +146,16 @@ export default function Login() {
           </div>
 
           <div className="hidden md:flex mt-8 justify-center">
-            <div className="relative w-full max-w-[420px] min-h-[260px] sm:min-h-[320px] md:min-h-[360px] overflow-hidden rounded-[2rem] border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.18)] bg-slate-900">
+            <div className="relative w-full max-w-[500px] min-h-[260px] sm:min-h-[320px] md:min-h-[360px] overflow-hidden rounded-[2rem] border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.18)] bg-[#172116]">
               <img
-                src="/chicasofa.png"
-                alt="Ilustración de acceso"
+                src="/loginmen.png"
+                alt="IlustraciÃ³n de acceso"
                 className="w-full h-full object-cover object-center"
               />
+              <div className="absolute bottom-5 left-5 bg-white/90 backdrop-blur-md rounded-2xl px-4 py-3 shadow-xl">
+                <p className="text-xs text-slate-500">Mercado Digital</p>
+                <p className="font-bold text-slate-800">Compra fÃ¡cil y rÃ¡pido</p>
+              </div>
             </div>
           </div>
         </div>
@@ -173,7 +169,7 @@ export default function Login() {
 
           {reason === "session" && (
             <div className="px-4 py-3 rounded-2xl mb-6 text-sm border border-amber-200 bg-amber-50 text-amber-800">
-              Tu sesión fue cerrada porque iniciaste en otro dispositivo o el token expiró. Inicia sesión nuevamente.
+              Tu sesiÃ³n fue cerrada porque iniciaste en otro dispositivo o el token expirÃ³. Inicia sesiÃ³n nuevamente.
             </div>
           )}
 
@@ -181,12 +177,16 @@ export default function Login() {
             <div className="max-w-xl mx-auto w-full">
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="text-center mb-6">
-                  <h2 className="text-2xl font-black text-slate-800">Iniciar sesión</h2>
-                  <p className="text-sm text-slate-500 mt-2">Accede con tu correo y contraseña.</p>
+                  <h2 className="text-2xl font-black text-slate-800">Iniciar sesiÃ³n</h2>
+                  <p className="text-sm text-slate-500 mt-2">Accede con tu correo y contraseÃ±a.</p>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Correo electronico</label>
+                <div className="relative">
+                  <Mail
+                    size={18}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                  />
+
                   <input
                     type="email"
                     name="correo"
@@ -194,12 +194,12 @@ export default function Login() {
                     onChange={handleChange}
                     required
                     placeholder="tucorreo@ejemplo.com"
-                    className="md-input"
+                    className="md-input pl-12"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Contraseña</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">ContraseÃ±a</label>
                   <div className="relative">
                     <input
                       type={verContrasena ? "text" : "password"}
@@ -215,7 +215,7 @@ export default function Login() {
                       onClick={() => setVerContrasena((v) => !v)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition p-1"
                       tabIndex={-1}
-                      aria-label={verContrasena ? "Ocultar contraseña" : "Ver contraseña"}
+                      aria-label={verContrasena ? "Ocultar contraseÃ±a" : "Ver contraseÃ±a"}
                     >
                       <OjoIcon abierto={verContrasena} />
                     </button>
@@ -238,20 +238,20 @@ export default function Login() {
                   onClick={abrirReset}
                   className="text-sm font-semibold md-accent-text hover:opacity-80 transition"
                 >
-                  Olvidé mi contraseña
+                  OlvidÃ© mi contraseÃ±a
                 </button>
               </div>
             </div>
           )}
 
           {mostrarReset && (
-            <div className="max-w-md mx-auto w-full">
+            <div className="max-w-[420px] mx-auto w-full">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-black text-slate-800">Restablecer contraseña</h2>
+                <h2 className="text-2xl font-black text-slate-800">Restablecer contraseÃ±a</h2>
                 <p className="text-sm text-slate-500 mt-2">
                   {pasoReset === 1
-                    ? "Te enviaremos un código a tu correo para continuar."
-                    : "Ingresa el código recibido y define tu nueva contraseña."}
+                    ? "Te enviaremos un cÃ³digo a tu correo para continuar."
+                    : "Ingresa el cÃ³digo recibido y define tu nueva contraseÃ±a."}
                 </p>
               </div>
 
@@ -289,20 +289,20 @@ export default function Login() {
                       className="w-full text-white font-semibold py-3 rounded-xl transition disabled:opacity-60"
                       style={{ backgroundColor: "#3C5148" }}
                     >
-                      {cambiandoPassword ? "Enviando..." : "Enviar código"}
+                      {cambiandoPassword ? "Enviando..." : "Enviar cÃ³digo"}
                     </button>
                   </form>
                 ) : (
                   <form onSubmit={handleResetConfirm} className="space-y-4">
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">Código o token</label>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">CÃ³digo o token</label>
                       <input
                         type="text"
                         name="token"
                         value={formReset.token}
                         onChange={handleChangeReset}
                         required={!tokenFromUrl}
-                        placeholder="Código recibido"
+                        placeholder="CÃ³digo recibido"
                         className="md-input"
                       />
                     </div>
@@ -316,7 +316,7 @@ export default function Login() {
                           onChange={handleChangeReset}
                           required
                           minLength={8}
-                          placeholder="Nueva contraseña"
+                          placeholder="Nueva contraseÃ±a"
                           className="md-input pr-12"
                         />
                         <button
@@ -324,7 +324,7 @@ export default function Login() {
                           onClick={() => setVerNueva((v) => !v)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition p-1"
                           tabIndex={-1}
-                          aria-label={verNueva ? "Ocultar contraseña" : "Ver contraseña"}
+                          aria-label={verNueva ? "Ocultar contraseÃ±a" : "Ver contraseÃ±a"}
                         >
                           <OjoIcon abierto={verNueva} />
                         </button>
@@ -338,7 +338,7 @@ export default function Login() {
                           onChange={handleChangeReset}
                           required
                           minLength={8}
-                          placeholder="Confirmar contraseña"
+                          placeholder="Confirmar contraseÃ±a"
                           className="md-input pr-12"
                         />
                         <button
@@ -346,7 +346,7 @@ export default function Login() {
                           onClick={() => setVerConfirmar((v) => !v)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition p-1"
                           tabIndex={-1}
-                          aria-label={verConfirmar ? "Ocultar contraseña" : "Ver contraseña"}
+                          aria-label={verConfirmar ? "Ocultar contraseÃ±a" : "Ver contraseÃ±a"}
                         >
                           <OjoIcon abierto={verConfirmar} />
                         </button>
@@ -359,7 +359,7 @@ export default function Login() {
                       className="w-full text-white font-semibold py-3 rounded-xl transition disabled:opacity-60"
                       style={{ backgroundColor: "#3C5148" }}
                     >
-                      {cambiandoPassword ? "Actualizando..." : "Guardar nueva contraseña"}
+                      {cambiandoPassword ? "Actualizando..." : "Guardar nueva contraseÃ±a"}
                     </button>
                   </form>
                 )}
@@ -371,7 +371,7 @@ export default function Login() {
                   onClick={pasoReset === 2 && !tokenFromUrl ? () => setPasoReset(1) : cerrarReset}
                   className="text-sm font-semibold text-slate-600 hover:underline"
                 >
-                  {pasoReset === 2 && !tokenFromUrl ? "Volver al correo" : "Volver al inicio de sesión"}
+                  {pasoReset === 2 && !tokenFromUrl ? "Volver al correo" : "Volver al inicio de sesiÃ³n"}
                 </button>
               </div>
             </div>
@@ -383,7 +383,7 @@ export default function Login() {
               className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 text-sm font-bold transition hover:opacity-90"
               style={{ borderColor: "#6B8E4E", color: "#6B8E4E", backgroundColor: "rgba(107,142,78,0.08)" }}
             >
-              No tienes cuenta? Registrate aqui
+              Â¿No tienes cuenta? Registrate aqui
             </Link>
             <Link
               to="/"
