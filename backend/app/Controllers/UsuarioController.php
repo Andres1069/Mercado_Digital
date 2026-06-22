@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../Models/UsuarioModel.php';
 require_once __DIR__ . '/../Middleware/AuthMiddleware.php';
+require_once __DIR__ . '/../Helpers/AuditLog.php';
 
 class UsuarioController {
     private UsuarioModel $model;
@@ -14,7 +15,14 @@ class UsuarioController {
 
     public function listar(): void {
         AuthMiddleware::requireRole(['Administrador']);
-        $this->ok(['usuarios' => $this->model->getAll()]);
+        $pagina    = max(0, (int)($_GET['pagina'] ?? 0));
+        $limite    = max(0, min(100, (int)($_GET['limite'] ?? 0)));
+        $resultado = $this->model->getAll($pagina, $limite);
+        if ($pagina > 0) {
+            $this->ok($resultado);
+        } else {
+            $this->ok(['usuarios' => $resultado]);
+        }
     }
 
     public function roles(): void {
@@ -73,6 +81,7 @@ class UsuarioController {
 
         $doc = $this->model->crearDesdeAdmin($body);
         $usuario = $this->model->findByDocumento($doc);
+        AuditLog::registrar('crear', 'usuario', $doc, (int)($payload['num_documento'] ?? 0), $body['correo'] ?? null);
         $this->ok(['usuario' => $usuario], 'Usuario creado correctamente.', 201);
     }
 
@@ -112,6 +121,7 @@ class UsuarioController {
         }
 
         $this->model->actualizarDesdeAdmin($doc, $body);
+        AuditLog::registrar('editar', 'usuario', $doc, (int)($payload['num_documento'] ?? 0), $body['correo'] ?? null);
         $this->ok(['usuario' => $this->model->findByDocumento($doc)], 'Usuario actualizado correctamente.');
     }
 
@@ -137,6 +147,7 @@ class UsuarioController {
         }
 
         $this->model->actualizarRol($doc, (int)$body['rol_id']);
+        AuditLog::registrar('cambiar_rol', 'usuario', $doc, (int)($payload['num_documento'] ?? 0), "rol_id={$body['rol_id']}");
         $this->ok(['usuario' => $this->model->findByDocumento($doc)], 'Rol actualizado correctamente.');
     }
 
@@ -167,6 +178,7 @@ class UsuarioController {
         }
 
         $this->model->actualizarEstado($doc, $estado);
+        AuditLog::registrar('cambiar_estado', 'usuario', $doc, (int)($payload['num_documento'] ?? 0), $estado);
         $this->ok(['usuario' => $this->model->findByDocumento($doc)], 'Estado actualizado correctamente.');
     }
 
@@ -182,6 +194,7 @@ class UsuarioController {
             $this->error($resultado['message'], 409);
         }
 
+        AuditLog::registrar('eliminar', 'usuario', $doc, (int)($payload['num_documento'] ?? 0));
         $this->ok([], 'Usuario eliminado correctamente.');
     }
 

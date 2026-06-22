@@ -4,6 +4,7 @@
 require_once __DIR__ . '/../Models/PedidoModel.php';
 require_once __DIR__ . '/../Middleware/AuthMiddleware.php';
 require_once __DIR__ . '/../../config/Mailer.php';
+require_once __DIR__ . '/../Helpers/AuditLog.php';
 
 class PedidoController {
     private PedidoModel $model;
@@ -25,8 +26,14 @@ class PedidoController {
     // GET /pedidos  (admin/empleado)
     public function todos(): void {
         AuthMiddleware::requireRole(['Administrador', 'Empleado']);
-        $pedidos = $this->model->getAll();
-        $this->ok(['pedidos' => $pedidos]);
+        $pagina    = max(0, (int)($_GET['pagina'] ?? 0));
+        $limite    = max(0, min(100, (int)($_GET['limite'] ?? 0)));
+        $resultado = $this->model->getAll($pagina, $limite);
+        if ($pagina > 0) {
+            $this->ok($resultado);
+        } else {
+            $this->ok(['pedidos' => $resultado]);
+        }
     }
 
     // GET /pedidos/{id}
@@ -64,7 +71,11 @@ class PedidoController {
             $this->err('El metodo de pago es requerido.');
         }
 
-        $codPedido = $this->model->crear($doc, $items, $metodoPago, $montoTotal);
+        try {
+            $codPedido = $this->model->crear($doc, $items, $metodoPago, $montoTotal);
+        } catch (RuntimeException $e) {
+            $this->err($e->getMessage(), 422);
+        }
         $this->ok(['cod_pedido' => $codPedido], 'Pedido creado exitosamente.', 201);
     }
 
@@ -87,14 +98,18 @@ class PedidoController {
             $this->err('El total de la venta debe ser mayor a cero.');
         }
 
-        $codPedido = $this->model->crear($vendedor, $items, $metodoPago, $montoTotal, [
-            'canal_venta' => 'Tienda',
-            'tipo_entrega' => 'Recoger_Tienda',
-            'estado_pedido' => 'Entregado',
-            'estado_pago' => 'Completado',
-            'vendedor' => $vendedor,
-            'observaciones' => $observaciones !== '' ? $observaciones : 'Venta presencial en tienda',
-        ]);
+        try {
+            $codPedido = $this->model->crear($vendedor, $items, $metodoPago, $montoTotal, [
+                'canal_venta' => 'Tienda',
+                'tipo_entrega' => 'Recoger_Tienda',
+                'estado_pedido' => 'Entregado',
+                'estado_pago' => 'Completado',
+                'vendedor' => $vendedor,
+                'observaciones' => $observaciones !== '' ? $observaciones : 'Venta presencial en tienda',
+            ]);
+        } catch (RuntimeException $e) {
+            $this->err($e->getMessage(), 422);
+        }
 
         $this->ok(['cod_pedido' => $codPedido], 'Venta presencial registrada.', 201);
     }
@@ -119,13 +134,14 @@ class PedidoController {
 
     // PUT /pedidos/{id}/estado  (admin/empleado)
     public function cambiarEstado(int $id): void {
-        AuthMiddleware::requireRole(['Administrador', 'Empleado']);
+        $payload = AuthMiddleware::requireRole(['Administrador', 'Empleado']);
         $body = $this->body();
         $estado = trim((string)($body['estado'] ?? ''));
         if ($estado === '') $this->err('El campo estado es requerido.');
 
         $ok = $this->model->cambiarEstado($id, $estado);
         if (!$ok) $this->err('Pedido no encontrado.', 404);
+        AuditLog::registrar('cambiar_estado', 'pedido', $id, (int)($payload['num_documento'] ?? 0), $estado);
         $this->ok([], 'Estado actualizado.');
     }
 

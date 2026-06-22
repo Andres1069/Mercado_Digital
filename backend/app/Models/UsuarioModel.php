@@ -50,7 +50,7 @@ class UsuarioModel {
             );
             $stmt->execute();
             return (int)$stmt->fetchColumn() > 0;
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             return false;
         }
     }
@@ -67,7 +67,7 @@ class UsuarioModel {
             );
             $stmt->execute();
             return (int)$stmt->fetchColumn() > 0;
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             return false;
         }
     }
@@ -181,16 +181,32 @@ class UsuarioModel {
                         ->execute([':hash' => password_hash($nueva, PASSWORD_BCRYPT), ':doc' => $doc]);
     }
 
-    public function getAll(): array {
+    public function getAll(int $pagina = 0, int $limite = 0): array {
         $selectEstado = $this->tieneEstado ? "u.Estado AS estado" : "'Activo' AS estado";
-        $stmt = $this->db->prepare(
-            "SELECT p.Num_Documento, p.Nombre, p.Apellido, p.Correo,
-                    p.Telefono, p.Barrio, p.Direccion, r.nombre_rol AS rol,
-                    r.Id_rol, u.Id_usuario, $selectEstado
-             FROM persona p
-             INNER JOIN usuario u ON u.Id_usuario = p.Id_Usuario
-             INNER JOIN rol_usuario r ON r.Id_rol = u.Id_Rol ORDER BY p.Nombre"
-        );
+        $sql = "SELECT p.Num_Documento, p.Nombre, p.Apellido, p.Correo,
+                       p.Telefono, p.Barrio, p.Direccion, r.nombre_rol AS rol,
+                       r.Id_rol, u.Id_usuario, $selectEstado
+                FROM persona p
+                INNER JOIN usuario u ON u.Id_usuario = p.Id_Usuario
+                INNER JOIN rol_usuario r ON r.Id_rol = u.Id_Rol
+                ORDER BY p.Nombre";
+
+        if ($pagina > 0 && $limite > 0) {
+            $cntStmt = $this->db->prepare("SELECT COUNT(*) FROM ($sql) AS _c");
+            $cntStmt->execute();
+            $total  = (int)$cntStmt->fetchColumn();
+            $offset = ($pagina - 1) * $limite;
+            $stmt   = $this->db->prepare($sql . " LIMIT $limite OFFSET $offset");
+            $stmt->execute();
+            return [
+                'datos'   => $stmt->fetchAll(),
+                'total'   => $total,
+                'pagina'  => $pagina,
+                'paginas' => max(1, (int)ceil($total / $limite)),
+            ];
+        }
+
+        $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll();
     }

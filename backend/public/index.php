@@ -22,6 +22,18 @@ header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
+// Cache-Control según visibilidad de la ruta
+$_rutaCache = ltrim(parse_url($_GET['ruta'] ?? '', PHP_URL_PATH) ?? '', '/');
+$_moduloCache = strtok($_rutaCache, '/');
+if (in_array($_moduloCache, ['productos', 'categorias', 'ofertas'], true) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    header('Cache-Control: public, max-age=60');
+} else {
+    header('Cache-Control: no-store');
+}
+unset($_rutaCache, $_moduloCache);
+
+require_once __DIR__ . '/../app/Helpers/AuditLog.php';
+
 set_exception_handler(function (Throwable $e): void {
     http_response_code(500);
     echo json_encode([

@@ -1,0 +1,10 @@
+Options -Indexes
+RewriteEngine On
+
+# Archivos y carpetas físicas pasan directo (assets del build de Vite)
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Todo lo demás → index.html (React Router maneja la ruta en el cliente)
+RewriteRule ^ index.html [L]

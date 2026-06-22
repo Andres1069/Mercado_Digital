@@ -3,6 +3,7 @@
 
 require_once __DIR__ . '/../Models/ProductoModel.php';
 require_once __DIR__ . '/../Middleware/AuthMiddleware.php';
+require_once __DIR__ . '/../Helpers/AuditLog.php';
 
 class ProductoController {
     private ProductoModel $model;
@@ -17,7 +18,14 @@ class ProductoController {
             'categoria' => $_GET['categoria'] ?? null,
             'buscar'    => $_GET['buscar'] ?? null,
         ];
-        $this->ok(['productos' => $this->model->getAll($filtros)]);
+        $pagina = max(0, (int)($_GET['pagina'] ?? 0));
+        $limite = max(0, min(100, (int)($_GET['limite'] ?? 0)));
+        $resultado = $this->model->getAll($filtros, $pagina, $limite);
+        if ($pagina > 0) {
+            $this->ok($resultado);
+        } else {
+            $this->ok(['productos' => $resultado]);
+        }
     }
 
     // GET /api/productos/:id (publico)
@@ -44,27 +52,30 @@ class ProductoController {
 
     // POST /api/productos (solo admin)
     public function crear(): void {
-        AuthMiddleware::requireRole(['Administrador']);
+        $payload = AuthMiddleware::requireRole(['Administrador']);
         $body = $this->body();
         if (empty($body['nombre']) || empty($body['precio'])) {
             $this->err('Nombre y precio son requeridos.', 400);
         }
         $id = $this->model->crear($body);
+        AuditLog::registrar('crear', 'producto', $id, (int)($payload['num_documento'] ?? 0), $body['nombre'] ?? null);
         $this->ok(['id' => $id], 'Producto creado exitosamente.', 201);
     }
 
     // PUT /api/productos/:id (admin y empleado)
     public function actualizar(int $id): void {
-        AuthMiddleware::requireRole(['Administrador', 'Empleado']);
+        $payload = AuthMiddleware::requireRole(['Administrador', 'Empleado']);
         $body = $this->body();
         $this->model->actualizar($id, $body);
+        AuditLog::registrar('editar', 'producto', $id, (int)($payload['num_documento'] ?? 0), $body['nombre'] ?? null);
         $this->ok([], 'Producto actualizado.');
     }
 
     // DELETE /api/productos/:id (solo admin)
     public function eliminar(int $id): void {
-        AuthMiddleware::requireRole(['Administrador']);
+        $payload = AuthMiddleware::requireRole(['Administrador']);
         $this->model->eliminar($id);
+        AuditLog::registrar('eliminar', 'producto', $id, (int)($payload['num_documento'] ?? 0));
         $this->ok([], 'Producto eliminado.');
     }
 

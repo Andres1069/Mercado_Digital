@@ -1,6 +1,8 @@
 <?php
 // backend/app/Controllers/CategoriaController.php
 
+require_once __DIR__ . '/../Helpers/AuditLog.php';
+
 class CategoriaController {
 
     private CategoriaModel $model;
@@ -16,7 +18,7 @@ class CategoriaController {
 
     // POST /categorias  — solo Administrador
     public function crear(): void {
-        AuthMiddleware::requireRole(['Administrador']);
+        $payload = AuthMiddleware::requireRole(['Administrador']);
         $body   = json_decode(file_get_contents('php://input'), true) ?? [];
         $nombre = trim($body['nombre'] ?? '');
 
@@ -37,6 +39,7 @@ class CategoriaController {
         }
 
         $id = $this->model->crear($nombre);
+        AuditLog::registrar('crear', 'categoria', $id, (int)($payload['num_documento'] ?? 0), $nombre);
         http_response_code(201);
         echo json_encode([
             'success'  => true,
@@ -47,7 +50,7 @@ class CategoriaController {
 
     // PUT /categorias/{id}  — solo Administrador
     public function actualizar(int $id): void {
-        AuthMiddleware::requireRole(['Administrador']);
+        $payload = AuthMiddleware::requireRole(['Administrador']);
         $cat = $this->model->getById($id);
         if (!$cat) {
             http_response_code(404);
@@ -75,12 +78,13 @@ class CategoriaController {
         }
 
         $this->model->actualizar($id, $nombre);
+        AuditLog::registrar('editar', 'categoria', $id, (int)($payload['num_documento'] ?? 0), $nombre);
         echo json_encode(['success' => true, 'message' => 'Categoría actualizada correctamente.']);
     }
 
     // DELETE /categorias/{id}  — solo Administrador
     public function eliminar(int $id): void {
-        AuthMiddleware::requireRole(['Administrador']);
+        $payload = AuthMiddleware::requireRole(['Administrador']);
         $cat = $this->model->getById($id);
         if (!$cat) {
             http_response_code(404);
@@ -99,6 +103,7 @@ class CategoriaController {
         }
 
         $this->model->eliminar($id);
+        AuditLog::registrar('eliminar', 'categoria', $id, (int)($payload['num_documento'] ?? 0), $cat['Nombre']);
         echo json_encode(['success' => true, 'message' => 'Categoría eliminada correctamente.']);
     }
 }

@@ -23,7 +23,7 @@ class DomicilioModel {
             $this->db->exec("ALTER TABLE domicilio ADD COLUMN IF NOT EXISTS Documento_Recibe VARCHAR(40) DEFAULT NULL");
             $this->db->exec("ALTER TABLE domicilio ADD COLUMN IF NOT EXISTS Observaciones_Entrega VARCHAR(255) DEFAULT NULL");
             $this->db->exec("ALTER TABLE domicilio ADD COLUMN IF NOT EXISTS Fecha_Entrega DATETIME DEFAULT NULL");
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             error_log('[DomicilioModel] No se pudo sincronizar columnas de comprobante: ' . $e->getMessage());
         }
     }
@@ -41,7 +41,7 @@ class DomicilioModel {
                 static fn($r) => (string)$r['COLUMN_NAME'],
                 $stmt->fetchAll() ?: []
             ));
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             $this->domicilioCols = [];
         }
 
@@ -57,7 +57,7 @@ class DomicilioModel {
                 static fn($r) => (string)$r['COLUMN_NAME'],
                 $stmt->fetchAll() ?: []
             ));
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             $this->pagoCols = [];
         }
 
@@ -71,7 +71,7 @@ class DomicilioModel {
             );
             $stmt->execute();
             $this->tieneHistorial = (int)$stmt->fetchColumn() > 0;
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             $this->tieneHistorial = false;
         }
 
@@ -88,7 +88,7 @@ class DomicilioModel {
                     static fn($r) => (string)$r['COLUMN_NAME'],
                     $stmt->fetchAll() ?: []
                 ));
-            } catch (Throwable $e) {
+            } catch (Throwable) {
                 $this->historialCols = [];
             }
         }
@@ -271,7 +271,7 @@ class DomicilioModel {
 
             $this->db->commit();
             return ['created' => true, 'domicilio' => $domicilio];
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
@@ -314,7 +314,7 @@ class DomicilioModel {
 
             $this->db->commit();
             return $ok;
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
@@ -379,7 +379,7 @@ class DomicilioModel {
     /**
      * Lista todos los domicilios con info del cliente y pedido (para admin).
      */
-    public function getAll(): array {
+    public function getAll(int $pagina = 0, int $limite = 0): array {
         $extra = [];
         if ($this->hasDomicilioCol('Direccion_entrega')) $extra[] = 'd.Direccion_entrega';
         if ($this->hasDomicilioCol('Telefono'))          $extra[] = 'd.Telefono AS Telefono_entrega';
@@ -408,6 +408,21 @@ class DomicilioModel {
                 INNER JOIN persona per        ON per.Num_Documento      = up.Num_Documento
                 LEFT  JOIN pago pa            ON pa.Cod_pedido          = p.Cod_Pedido
                 ORDER BY d.Fecha DESC";
+
+        if ($pagina > 0 && $limite > 0) {
+            $cntStmt = $this->db->prepare("SELECT COUNT(*) FROM ($sql) AS _c");
+            $cntStmt->execute();
+            $total  = (int)$cntStmt->fetchColumn();
+            $offset = ($pagina - 1) * $limite;
+            $stmt   = $this->db->prepare($sql . " LIMIT $limite OFFSET $offset");
+            $stmt->execute();
+            return [
+                'datos'   => $stmt->fetchAll(PDO::FETCH_ASSOC),
+                'total'   => $total,
+                'pagina'  => $pagina,
+                'paginas' => max(1, (int)ceil($total / $limite)),
+            ];
+        }
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
@@ -473,7 +488,7 @@ class DomicilioModel {
 
             $this->db->commit();
             return true;
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             if ($this->db->inTransaction()) $this->db->rollBack();
             throw $e;
         }

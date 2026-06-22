@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../Models/DomicilioModel.php';
 require_once __DIR__ . '/../Middleware/AuthMiddleware.php';
+require_once __DIR__ . '/../Helpers/AuditLog.php';
 
 class DomicilioController {
     private DomicilioModel $model;
@@ -117,13 +118,19 @@ class DomicilioController {
     // GET /domicilio/todos  (admin/empleado)
     public function todos(): void {
         AuthMiddleware::requireRole(['Administrador', 'Empleado']);
-        $domicilios = $this->model->getAll();
-        $this->ok(['domicilios' => $domicilios]);
+        $pagina    = max(0, (int)($_GET['pagina'] ?? 0));
+        $limite    = max(0, min(100, (int)($_GET['limite'] ?? 0)));
+        $resultado = $this->model->getAll($pagina, $limite);
+        if ($pagina > 0) {
+            $this->ok($resultado);
+        } else {
+            $this->ok(['domicilios' => $resultado]);
+        }
     }
 
     // PUT /domicilio/{id}/estado  body: {estado, recibido_por?, documento_recibe?, observaciones_entrega?, comprobante_entrega?}
     public function actualizarEstado(int $id): void {
-        AuthMiddleware::requireRole(['Administrador', 'Empleado']);
+        $payload = AuthMiddleware::requireRole(['Administrador', 'Empleado']);
         $body   = $this->body();
         $estado = trim((string)($body['estado'] ?? ''));
         $validos = ['Pendiente', 'En preparacion', 'En camino', 'Entregado', 'Cancelado'];
@@ -144,6 +151,7 @@ class DomicilioController {
         }
 
         $this->model->actualizarEstado($id, $estado, $comprobante);
+        AuditLog::registrar('cambiar_estado', 'domicilio', $id, (int)($payload['num_documento'] ?? 0), $estado);
         $this->ok([], 'Estado actualizado.');
     }
 

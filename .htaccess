@@ -1,0 +1,13 @@
+Options -Indexes
+RewriteEngine On
+
+# El backend tiene su propio .htaccess en backend/public/ — no tocar
+RewriteRule ^backend/ - [L]
+
+# Archivos y carpetas físicas pasan directo (imágenes, fuentes, JS, CSS del build)
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Todo lo demás → index.html (React Router maneja la ruta en el cliente)
+RewriteRule ^ index.html [L]

@@ -17,7 +17,7 @@ class ProductoModel {
         $this->db->exec("ALTER TABLE producto ADD COLUMN IF NOT EXISTS Imagen_pos_y DECIMAL(5,2) NOT NULL DEFAULT 50.00");
     }
 
-    public function getAll(array $filtros = []): array {
+    public function getAll(array $filtros = [], int $pagina = 0, int $limite = 0): array {
         $where  = [];
         $params = [];
 
@@ -32,7 +32,7 @@ class ProductoModel {
 
         $whereSQL = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
 
-        $sql = "SELECT 
+        $sql = "SELECT
                     p.Cod_Producto,
                     p.Nombre,
                     p.Descripcion,
@@ -52,6 +52,21 @@ class ProductoModel {
                 LEFT JOIN proveedor pr ON pr.Cod_Proveedor = p.Cod_Proveedor
                 $whereSQL
                 ORDER BY p.Nombre";
+
+        if ($pagina > 0 && $limite > 0) {
+            $cntStmt = $this->db->prepare("SELECT COUNT(*) FROM ($sql) AS _c");
+            $cntStmt->execute($params);
+            $total  = (int)$cntStmt->fetchColumn();
+            $offset = ($pagina - 1) * $limite;
+            $stmt   = $this->db->prepare($sql . " LIMIT $limite OFFSET $offset");
+            $stmt->execute($params);
+            return [
+                'datos'   => $stmt->fetchAll(),
+                'total'   => $total,
+                'pagina'  => $pagina,
+                'paginas' => max(1, (int)ceil($total / $limite)),
+            ];
+        }
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
