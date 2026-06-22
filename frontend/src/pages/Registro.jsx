@@ -7,16 +7,16 @@ import PasswordRequirements from "../components/PasswordRequirements";
 function OjoIcon({ abierto }) {
   if (abierto) return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-      <circle cx="12" cy="12" r="3"/>
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
     </svg>
   );
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
-      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
-      <path d="M14.12 14.12a3 3 0 0 1-4.24-4.24"/>
-      <line x1="1" y1="1" x2="23" y2="23"/>
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+      <path d="M14.12 14.12a3 3 0 0 1-4.24-4.24" />
+      <line x1="1" y1="1" x2="23" y2="23" />
     </svg>
   );
 }
@@ -56,8 +56,8 @@ export default function Registro() {
   const handleChange = (e) => {
     const updated = { ...form, [e.target.name]: e.target.value };
     setForm(updated);
-    
-    // Validar coincidencia de contrase�as en tiempo real
+
+    // Validar coincidencia de contraseñas en tiempo real
     if (e.target.name === "confirmar" || e.target.name === "contrasena") {
       if (updated.confirmar && updated.contrasena) {
         setCoinciden(updated.contrasena === updated.confirmar);
@@ -75,7 +75,7 @@ export default function Registro() {
       { texto: "Debe incluir al menos 1 numero.", cumple: (valor) => /\d/.test(valor) },
     ];
     const pendiente = requisitos.find((item) => !item.cumple(contrasena));
-    return pendiente ? `La contrase�a debe cumplir: ${pendiente.texto}` : "";
+    return pendiente ? `La contraseña debe cumplir: ${pendiente.texto}` : "";
   };
 
   const handleSubmit = async (e) => {
@@ -83,7 +83,7 @@ export default function Registro() {
     setError("");
 
     if (form.contrasena !== form.confirmar) {
-      setError("Las contrase�as no coinciden.");
+      setError("Las contraseñas no coinciden.");
       return;
     }
     const errorPassword = validarContrasena(form.contrasena);
@@ -130,6 +130,14 @@ export default function Registro() {
             <p className="text-white/85 text-sm lg:text-base mt-3 max-w-md">
               Registra tus datos para comprar, guardar tu perfil y recibir acceso inmediato a la tienda.
             </p>
+            <div className="mt-6 overflow-hidden rounded-[0.9rem] border border-white/15 bg-white/10 shadow-2xl shadow-black/20">
+              <img
+                src="/registrarse.png"
+                alt="Registro en Mercado Digital"
+                className="h-44 w-full object-cover object-center sm:h-56 lg:h-72"
+                onError={(e) => { e.currentTarget.style.display = "none"; }}
+              />
+            </div>
           </div>
 
 
@@ -162,44 +170,43 @@ export default function Registro() {
 
             <div className="grid sm:grid-cols-2 gap-4 lg:gap-3">
               <div className="relative">
-                <input 
-                  type={verContrasena ? "text" : "password"} 
-                  name="contrasena" 
-                  value={form.contrasena} 
-                  onChange={handleChange} 
+                <input
+                  type={verContrasena ? "text" : "password"}
+                  name="contrasena"
+                  value={form.contrasena}
+                  onChange={handleChange}
                   onFocus={() => setMostrarRequisitos(true)}
                   onBlur={() => setTimeout(() => setMostrarRequisitos(false), 200)}
-                  required 
-                  placeholder="Contrase�a" 
-                  className="md-input pr-12" 
-                  aria-describedby="requisitos-contrasena-registro" 
+                  required
+                  placeholder="Contraseña"
+                  className="md-input pr-12"
+                  aria-describedby="requisitos-contrasena-registro"
                 />
                 <button type="button" onClick={() => setVerContrasena((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition p-1" tabIndex={-1} aria-label={verContrasena ? "Ocultar" : "Ver"}>
                   <OjoIcon abierto={verContrasena} />
                 </button>
               </div>
               <div className="relative">
-                <input 
-                  type={verConfirmar ? "text" : "password"} 
-                  name="confirmar" 
-                  value={form.confirmar} 
-                  onChange={handleChange} 
-                  required 
-                  placeholder="Confirmar contrase�a" 
-                  className={`md-input pr-12 transition-all ${
-                    coinciden === true 
-                      ? 'border-emerald-500' 
-                      : coinciden === false 
-                      ? 'border-rose-500' 
+                <input
+                  type={verConfirmar ? "text" : "password"}
+                  name="confirmar"
+                  value={form.confirmar}
+                  onChange={handleChange}
+                  required
+                  placeholder="Confirmar contraseña"
+                  className={`md-input pr-12 transition-all ${coinciden === true
+                    ? 'border-emerald-500'
+                    : coinciden === false
+                      ? 'border-rose-500'
                       : ''
-                  }`} 
+                    }`}
                 />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                   {coinciden === true && (
                     <span className="text-emerald-500 text-xl animate-pulse">?</span>
                   )}
                   {coinciden === false && (
-                    <span className="text-rose-500 text-xl animate-bounce" style={{animationDuration: '0.5s'}}>?</span>
+                    <span className="text-rose-500 text-xl animate-bounce" style={{ animationDuration: '0.5s' }}>?</span>
                   )}
                   <button type="button" onClick={() => setVerConfirmar((v) => !v)} className="text-slate-400 hover:text-slate-600 transition p-1" tabIndex={-1} aria-label={verConfirmar ? "Ocultar" : "Ver"}>
                     <OjoIcon abierto={verConfirmar} />
@@ -207,20 +214,19 @@ export default function Registro() {
                 </div>
               </div>
             </div>
-            
+
             {form.confirmar && (
-              <div className={`text-xs font-semibold transition-all ${
-                coinciden === true 
-                  ? 'text-emerald-600' 
-                  : 'text-rose-600'
-              }`}>
+              <div className={`text-xs font-semibold transition-all ${coinciden === true
+                ? 'text-emerald-600'
+                : 'text-rose-600'
+                }`}>
                 {coinciden === true ? (
                   <span className="flex items-center gap-1">
-                    <span className="text-lg">?</span> Las contrase�as coinciden perfectamente
+                    <span className="text-lg">?</span> Las contraseñas coinciden perfectamente
                   </span>
                 ) : (
                   <span className="flex items-center gap-1">
-                    <span className="text-lg">?</span> Las contrase�as no coinciden
+                    <span className="text-lg">?</span> Las contraseñas no coinciden
                   </span>
                 )}
               </div>
@@ -239,7 +245,7 @@ export default function Registro() {
               className="w-full flex items-center justify-center gap-2 py-3 rounded-[0.85rem] border-2 text-sm font-bold transition hover:opacity-90"
               style={{ borderColor: "#3C5148", color: "#3C5148", backgroundColor: "rgba(107,142,78,0.08)" }}
             >
-              �Ya tienes cuenta? Inicia sesi�n
+              ¿Ya tienes cuenta? Inicia sesión
             </Link>
             <Link
               to="/"
@@ -252,10 +258,10 @@ export default function Registro() {
         </div>
       </div>
 
-      <PasswordRequirements 
-        contrasena={form.contrasena} 
-        mostrar={mostrarRequisitos} 
-        onClose={() => setMostrarRequisitos(false)} 
+      <PasswordRequirements
+        contrasena={form.contrasena}
+        mostrar={mostrarRequisitos}
+        onClose={() => setMostrarRequisitos(false)}
       />
     </div>
   );

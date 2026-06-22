@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Sidebar from "../../components/Sidebar";
-import { ofertaService, productoService } from "../../services/api";
+import { ofertaService, productoService, resolverImagen } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 
 const VACIO = {
@@ -87,6 +87,9 @@ export default function AdminOfertas() {
   const [error, setError] = useState("");
   const [confirmar, setConfirmar] = useState(null);
   const [notif, setNotif] = useState("");
+  const [bannerModo, setBannerModo] = useState("web");
+  const [bannerArchivo, setBannerArchivo] = useState(null);
+  const [bannerPreview, setBannerPreview] = useState("");
 
   const ahora = getLocalNowParts();
   const inicioActual = joinDateTime(form.fecha_inicio_fecha, form.fecha_inicio_hora);
@@ -122,13 +125,29 @@ export default function AdminOfertas() {
 
   useEffect(() => { cargarDatos(); }, []);
 
+  useEffect(() => {
+    return () => {
+      if (bannerPreview) URL.revokeObjectURL(bannerPreview);
+    };
+  }, [bannerPreview]);
+
   const mostrarNotif = (msg) => { setNotif(msg); setTimeout(() => setNotif(""), 3000); };
+
+  const limpiarBannerLocal = () => {
+    setBannerArchivo(null);
+    setBannerPreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return "";
+    });
+  };
 
   const abrirCrear = () => {
     const inicio = getLocalNowParts();
     const fin = addMinutes(inicio.fecha, inicio.hora, 10);
     setEditando(null);
     setError("");
+    setBannerModo("web");
+    limpiarBannerLocal();
     setForm({ ...VACIO, fecha_inicio_fecha: inicio.fecha, fecha_inicio_hora: inicio.hora, fecha_fin_fecha: fin.fecha, fecha_fin_hora: fin.hora });
     setModal(true);
   };
@@ -138,6 +157,8 @@ export default function AdminOfertas() {
     const fin = splitDateTime(oferta.Fecha_Fin);
     setEditando(oferta);
     setError("");
+    setBannerModo("web");
+    limpiarBannerLocal();
     setForm({
       titulo: oferta.Titulo || "",
       descripcion: oferta.Descripcion || "",
@@ -158,16 +179,57 @@ export default function AdminOfertas() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const cambiarBannerModo = (modo) => {
+    setBannerModo(modo);
+    setError("");
+    if (modo === "web") limpiarBannerLocal();
+  };
+
+  const handleBannerArchivo = (e) => {
+    const file = e.target.files?.[0] || null;
+    limpiarBannerLocal();
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("Selecciona un archivo de imagen valido.");
+      e.target.value = "";
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("La imagen local no puede pesar mas de 5 MB.");
+      e.target.value = "";
+      return;
+    }
+
+    setError("");
+    setBannerArchivo(file);
+    setBannerPreview(URL.createObjectURL(file));
+  };
+
   const validar = () => {
     if (!form.titulo.trim()) return "El título es obligatorio.";
     const pct = Number(form.porcentaje_descuento);
     if (!pct || pct <= 0 || pct > 100) return "El descuento debe estar entre 1 y 100.";
     if (!form.fecha_inicio_fecha || !form.fecha_inicio_hora || !form.fecha_fin_fecha || !form.fecha_fin_hora)
       return "Debes seleccionar fecha y hora de inicio y fin.";
-    if (!editando && inicioActual < joinDateTime(ahora.fecha, ahora.hora))
+
+    // Calculamos la diferencia en minutos entre el inicio y el momento de guardar.
+    // Damos una tolerancia de 15 minutos en el pasado para evitar fallas si el usuario
+    // tarda unos minutos completando el formulario.
+    const inicioMs = new Date(inicioActual.replace(" ", "T")).getTime();
+    const ahoraMs = new Date().getTime();
+    const diferenciaMinutos = (ahoraMs - inicioMs) / 60000;
+
+    if (!editando && diferenciaMinutos > 15)
       return "La fecha de inicio no puede estar en el pasado.";
-    if (finActual < joinDateTime(ahora.fecha, ahora.hora))
+
+    // Tolerancia de 5 minutos en el pasado para la fecha de fin por el mismo motivo
+    const finMs = new Date(finActual.replace(" ", "T")).getTime();
+    const difFinMinutos = (ahoraMs - finMs) / 60000;
+    if (difFinMinutos > 5)
       return "La fecha fin no puede estar en el pasado.";
+
     if (finActual <= inicioActual)
       return "La fecha fin debe ser mayor que la fecha inicio.";
     return "";
@@ -180,6 +242,14 @@ export default function AdminOfertas() {
     if (msg) { setError(msg); return; }
     setGuardando(true);
     try {
+      let imagenBanner = form.imagen_banner;
+      if (bannerModo === "local" && bannerArchivo) {
+        const fd = new FormData();
+        fd.append("banner", bannerArchivo);
+        const subida = await ofertaService.uploadBanner(fd);
+        imagenBanner = subida.imagen_banner || "";
+      }
+
       const payload = {
         titulo: form.titulo,
         descripcion: form.descripcion,
@@ -187,7 +257,7 @@ export default function AdminOfertas() {
         fecha_inicio: joinDateTime(form.fecha_inicio_fecha, form.fecha_inicio_hora),
         fecha_fin: joinDateTime(form.fecha_fin_fecha, form.fecha_fin_hora),
         cod_producto: form.cod_producto ? Number(form.cod_producto) : null,
-        imagen_banner: form.imagen_banner,
+        imagen_banner: imagenBanner,
         activo: Number(form.activo),
       };
       if (editando) {
@@ -198,6 +268,7 @@ export default function AdminOfertas() {
         mostrarNotif("Oferta creada");
       }
       setModal(false);
+      limpiarBannerLocal();
       await cargarDatos();
     } catch (err) {
       setError(err.message || "No se pudo guardar la oferta.");
@@ -462,10 +533,50 @@ export default function AdminOfertas() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold mb-1" style={LABEL}>Imagen banner</label>
-                  <input type="text" name="imagen_banner" value={form.imagen_banner} onChange={handleChange}
-                    placeholder="https://..."
-                    className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={INPUT_STYLE} />
+                  <label className="block text-sm font-semibold mb-2" style={LABEL}>Imagen banner</label>
+                  <div className="grid grid-cols-2 gap-2 mb-3">
+                    <button type="button" onClick={() => cambiarBannerModo("web")}
+                      className="rounded-xl px-4 py-2.5 text-sm font-semibold transition"
+                      style={bannerModo === "web"
+                        ? { backgroundColor: "#6B8E4E", color: "#FFFFFF" }
+                        : { ...INPUT_STYLE, color: "#3C5148" }}>
+                      Imagen web
+                    </button>
+                    <button type="button" onClick={() => cambiarBannerModo("local")}
+                      className="rounded-xl px-4 py-2.5 text-sm font-semibold transition"
+                      style={bannerModo === "local"
+                        ? { backgroundColor: "#6B8E4E", color: "#FFFFFF" }
+                        : { ...INPUT_STYLE, color: "#3C5148" }}>
+                      Subir local
+                    </button>
+                  </div>
+
+                  {bannerModo === "web" ? (
+                    <input type="text" name="imagen_banner" value={form.imagen_banner} onChange={handleChange}
+                      placeholder="https://..."
+                      className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={INPUT_STYLE} />
+                  ) : (
+                    <div className="space-y-3">
+                      <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleBannerArchivo}
+                        className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none file:mr-4 file:rounded-lg file:border-0 file:px-3 file:py-2 file:text-sm file:font-semibold"
+                        style={INPUT_STYLE} />
+                      <p className="text-xs" style={{ color: "#6B8E4E" }}>
+                        Formatos permitidos: PNG, JPG, JPEG o WEBP. Maximo 5 MB.
+                      </p>
+                    </div>
+                  )}
+
+                  {(bannerPreview || form.imagen_banner) && (
+                    <div className="mt-3 overflow-hidden rounded-xl"
+                      style={{ border: "1px solid rgba(107,142,78,0.18)", backgroundColor: "rgba(107,142,78,0.06)" }}>
+                      <div className="px-3 py-2 text-xs font-semibold" style={{ color: "#3C5148" }}>Vista previa</div>
+                      <img
+                        src={bannerPreview || resolverImagen(form.imagen_banner)}
+                        alt="Vista previa del banner"
+                        className="w-full h-36 object-cover"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {editando && (

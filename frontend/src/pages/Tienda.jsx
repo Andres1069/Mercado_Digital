@@ -25,7 +25,10 @@ export default function Tienda() {
   const [cargando, setCargando] = useState(true);
   const [buscar, setBuscar] = useState("");
   const [buscarDebounced, setBuscarDebounced] = useState("");
-  const [catActiva, setCatActiva] = useState(null);
+  const [catActiva, setCatActiva] = useState(() => {
+    const cat = searchParams.get("categoria");
+    return cat ? Number(cat) : null;
+  });
   const [verOfertas, setVerOfertas] = useState(searchParams.get("ofertas") === "1");
   const [notif, setNotif] = useState("");
   const [favoritos, setFavoritos] = useState(() => {
@@ -38,6 +41,21 @@ export default function Tienda() {
     }
   });
   const { addItem } = useCart();
+
+  useEffect(() => {
+    const catParam = searchParams.get("categoria");
+    const ofertasParam = searchParams.get("ofertas") === "1";
+    if (catParam) {
+      setCatActiva(Number(catParam));
+      setVerOfertas(false);
+    } else if (ofertasParam) {
+      setVerOfertas(true);
+      setCatActiva(null);
+    } else {
+      setCatActiva(null);
+      setVerOfertas(false);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const t = setTimeout(() => setBuscarDebounced(buscar), 400);
@@ -132,7 +150,7 @@ export default function Tienda() {
 
       {notif && (
         <div
-          className="fixed bottom-6 right-6 text-white px-5 py-3 rounded-2xl shadow-2xl z-50 font-semibold text-sm"
+          className="fixed bottom-24 left-4 right-4 sm:left-auto sm:right-28 sm:bottom-6 sm:max-w-sm text-white px-5 py-3 rounded-2xl shadow-2xl z-[60] font-semibold text-sm"
           style={{ background: "linear-gradient(135deg, #6B8E4E, #3C5148)" }}
         >
           {notif}
@@ -179,7 +197,7 @@ export default function Tienda() {
             {/* Barra de búsqueda */}
             <div className="relative">
               <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
               </svg>
               <input
                 type="text"
@@ -264,7 +282,7 @@ export default function Tienda() {
             {/* Búsqueda móvil */}
             <div className="md:hidden relative mb-4">
               <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
               </svg>
               <input
                 type="text"

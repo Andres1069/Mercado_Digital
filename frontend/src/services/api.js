@@ -157,13 +157,22 @@ export const ventaService = {
   crearPresencial: (datos) => post("ventas/presencial", datos),
 };
 
+function queryReportes(filtros = {}) {
+  const params = new URLSearchParams();
+  if (filtros.periodo) params.append("periodo", filtros.periodo);
+  if (filtros.desde) params.append("desde", filtros.desde);
+  if (filtros.hasta) params.append("hasta", filtros.hasta);
+  const qs = params.toString();
+  return qs ? `?${qs}` : "";
+}
+
 // ── Reportes ──────────────────────────────────────────────
 export const reporteService = {
-  registros:            ()       => get("reportes"),
-  ventas:              ()       => get("reportes/ventas"),
-  productosMasVendidos:()       => get("reportes/productos-mas-vendidos"),
-  pedidosPorEstado:    ()       => get("reportes/pedidos-estado"),
-  ingresos:            (p)      => get(`reportes/ingresos?periodo=${p}`),
+  registros:            (f = {}) => get(`reportes${queryReportes(f)}`),
+  ventas:              (f = {}) => get(`reportes/ventas${queryReportes(f)}`),
+  productosMasVendidos:(f = {}) => get(`reportes/productos-mas-vendidos${queryReportes(f)}`),
+  pedidosPorEstado:    (f = {}) => get(`reportes/pedidos-estado${queryReportes(f)}`),
+  ingresos:            (p, f = {}) => get(`reportes/ingresos${queryReportes({ ...f, periodo: p })}`),
 };
 
 // ── Inventario ────────────────────────────────────────────
@@ -180,6 +189,7 @@ export const ofertaService = {
   crear:      (datos)     => post("ofertas", datos),
   actualizar: (id, datos) => put(`ofertas/${id}`, datos),
   eliminar:   (id)        => del(`ofertas/${id}`),
+  uploadBanner: (formData) => uploadFile("ofertas/upload-banner", formData),
 };
 
 export const usuarioService = {

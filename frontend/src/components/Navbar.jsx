@@ -57,17 +57,18 @@ export default function Navbar({ carritoCount }) {
   }, []);
 
   return (
-    <nav
-      className="sticky top-0 z-50 border-b shadow-lg backdrop-blur-xl"
-      style={{
-        backgroundColor: esOscuro
-          ? "rgba(15,23,42,0.92)"
-          : "rgba(255,255,255,0.92)",
-        borderColor: esOscuro
-          ? "rgba(148,163,184,0.12)"
-          : "#e5e7eb",
-      }}
-    >
+    <>
+      <nav
+        className="fixed inset-x-0 top-0 z-[100] border-b shadow-lg backdrop-blur-xl"
+        style={{
+          backgroundColor: esOscuro
+            ? "rgba(15,23,42,0.92)"
+            : "rgba(255,255,255,0.92)",
+          borderColor: esOscuro
+            ? "rgba(148,163,184,0.12)"
+            : "#e5e7eb",
+        }}
+      >
       <div
         className="max-w-7xl mx-auto px-3 sm:px-5 py-3 flex items-center gap-3 sm:gap-4"
         style={{
@@ -541,6 +542,8 @@ export default function Navbar({ carritoCount }) {
           </div>
         </div>
       </div>
-    </nav>
+      </nav>
+      <div aria-hidden="true" className="h-[73px] sm:h-[81px] md:h-[89px]" />
+    </>
   );
 }

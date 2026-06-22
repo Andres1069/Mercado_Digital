@@ -74,7 +74,7 @@ class OfertaModel {
     public function actualizar(int $id, array $d): bool {
         $stmt = $this->db->prepare(
             "UPDATE oferta SET Titulo=:titulo, Descripcion=:desc, Porcentaje_Descuento=:pct,
-             Fecha_Inicio=:inicio, Fecha_Fin=:fin, activo=:activo, Cod_Producto=:prod
+             Fecha_Inicio=:inicio, Fecha_Fin=:fin, activo=:activo, Cod_Producto=:prod, imagen_banner=:banner
              WHERE Cod_Oferta=:id"
         );
         return $stmt->execute([
@@ -85,6 +85,7 @@ class OfertaModel {
             ':fin'     => $d['fecha_fin'],
             ':activo'  => $d['activo'] ?? 1,
             ':prod'    => $d['cod_producto'] ?? null,
+            ':banner'  => $d['imagen_banner'] ?? null,
             ':id'      => $id,
         ]);
     }

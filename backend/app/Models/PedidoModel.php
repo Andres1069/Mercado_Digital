@@ -374,11 +374,45 @@ class PedidoModel {
                 )->execute($idsProductos);
             }
 
+            // 10. Registrar auditoria para Reportes > Registros en tabla reporte
+            $this->registrarReportePedido($codPedido, $numDocumento, $canalVenta, $estadoPago, count($items));
+
             $this->db->commit();
             return $codPedido;
         } catch (Throwable $e) {
             if ($this->db->inTransaction()) $this->db->rollBack();
             throw $e;
+        }
+    }
+
+    private function registrarReportePedido(int $codPedido, int $numDocumento, string $canalVenta, string $estadoPago, int $totalItems): void {
+        $tipo = $canalVenta === 'Tienda' ? 'Venta tienda' : 'Pedido';
+        $descripcion = $canalVenta === 'Tienda'
+            ? "Reporte: venta presencial pedido {$codPedido} generada"
+            : "Reporte: pedido {$codPedido} generado";
+
+        $stmt = $this->db->prepare(
+            "INSERT INTO reporte (Fecha_Reporte, Tipo_reporte, Descripcion, Num_Documento)
+             VALUES (NOW(), :tipo, :descripcion, :doc)"
+        );
+        $stmt->execute([
+            ':tipo' => $tipo,
+            ':descripcion' => $descripcion,
+            ':doc' => $numDocumento,
+        ]);
+        $codReporte = (int)$this->db->lastInsertId();
+
+        $stmtDetalle = $this->db->prepare(
+            "INSERT INTO detalle_reporte (Tipo_Entidad, Cod_Reporte)
+             VALUES (:entidad, :reporte)"
+        );
+
+        $stmtDetalle->execute([':entidad' => 'pedido', ':reporte' => $codReporte]);
+        if (strtolower($estadoPago) === 'completado') {
+            $stmtDetalle->execute([':entidad' => 'pago', ':reporte' => $codReporte]);
+        }
+        if ($totalItems > 0) {
+            $stmtDetalle->execute([':entidad' => 'producto', ':reporte' => $codReporte]);
         }
     }
 
