@@ -10,6 +10,7 @@ import {
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { authService } from "../services/api";
+import { useTheme } from "../context/ThemeContext";
 
 const loginInicial = { correo: "", contrasena: "" };
 const resetInicial = { correo: "", token: "", nueva_contrasena: "", confirmar_contrasena: "" };
@@ -21,6 +22,7 @@ function OjoIcon({ abierto }) {
 
 export default function Login() {
   const { iniciarSesion } = useAuth();
+  const { esOscuro } = useTheme();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const reason = searchParams.get("reason");
@@ -131,11 +133,21 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen md-app-bg flex items-center justify-center p-4 md:p-6">
-      <div className="w-full max-w-lg md:max-w-5xl bg-white rounded-[2rem] shadow-lg border border-gray-100 overflow-hidden md:grid md:grid-cols-[1fr,1fr]">
+    <div className="min-h-screen flex items-center justify-center p-4 md:p-6" style={{ backgroundColor: esOscuro ? "#0d1a12" : "#f8fafc" }}>
+      <div
+        className="w-full max-w-lg md:max-w-5xl rounded-[2rem] shadow-lg overflow-hidden md:grid md:grid-cols-[1fr,1fr]"
+        style={{
+          backgroundColor: esOscuro ? "#142018" : "#ffffff",
+          border: `1px solid ${esOscuro ? "rgba(79,106,75,0.18)" : "#e5e7eb"}`,
+        }}
+      >
         <div
           className="px-6 py-8 text-white md:px-10 md:py-12 flex flex-col justify-between"
-          style={{ background: "linear-gradient(145deg, #1B2727 0%, #3C5148 52%, #6B8E4E 100%)" }}
+          style={{
+            background: esOscuro
+              ? "linear-gradient(145deg, #0a1f10 0%, #142a18 52%, #1f3d1f 100%)"
+              : "linear-gradient(145deg, #1B2727 0%, #3C5148 52%, #6B8E4E 100%)",
+          }}
         >
           <div className="max-w-md">
             <p className="text-xs uppercase tracking-[0.35em] text-white/70 font-semibold">Mercado Digital</p>
@@ -153,14 +165,14 @@ export default function Login() {
                 className="w-full h-full object-cover object-center"
               />
               <div className="absolute bottom-5 left-5 bg-white/90 backdrop-blur-md rounded-2xl px-4 py-3 shadow-xl">
-                <p className="text-xs text-slate-500">Mercado Digital</p>
-                <p className="font-bold text-slate-800">Compra fácil y rápido</p>
+                <p className="text-xs" style={{ color: esOscuro ? "#94a3b8" : "#64748b" }}>Mercado Digital</p>
+                <p className="font-bold" style={{ color: esOscuro ? "#f8fafc" : "#1e293b" }}>Compra fácil y rápido</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="p-7 md:p-10 lg:p-12 flex flex-col justify-center">
+        <div className="p-7 md:p-10 lg:p-12 flex flex-col justify-center" style={{ backgroundColor: esOscuro ? "#142018" : "#ffffff" }}>
           {error && (
             <div className="px-4 py-3 rounded-2xl mb-6 text-sm border border-rose-200 bg-rose-50 text-rose-700">
               {error}
@@ -177,14 +189,15 @@ export default function Login() {
             <div className="max-w-xl mx-auto w-full">
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="text-center mb-6">
-                  <h2 className="text-2xl font-black text-slate-800">Iniciar sesión</h2>
-                  <p className="text-sm text-slate-500 mt-2">Accede con tu correo y contraseña.</p>
+                  <h2 className="text-2xl font-black" style={{ color: esOscuro ? "#f8fafc" : "#1e293b" }}>Iniciar sesión</h2>
+                  <p className="text-sm mt-2" style={{ color: esOscuro ? "#94a3b8" : "#64748b" }}>Accede con tu correo y contraseña.</p>
                 </div>
 
                 <div className="relative">
                   <Mail
                     size={18}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                    className="absolute left-4 top-1/2 -translate-y-1/2"
+                    style={{ color: esOscuro ? "#8aab7e" : "#94a3b8" }}
                   />
 
                   <input
@@ -199,7 +212,7 @@ export default function Login() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Contraseña</label>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: esOscuro ? "#cbd5e1" : "#334155" }}>Contraseña</label>
                   <div className="relative">
                     <input
                       type={verContrasena ? "text" : "password"}
@@ -213,7 +226,8 @@ export default function Login() {
                     <button
                       type="button"
                       onClick={() => setVerContrasena((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition p-1"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 transition p-1"
+                      style={{ color: esOscuro ? "#8aab7e" : "#94a3b8" }}
                       tabIndex={-1}
                       aria-label={verContrasena ? "Ocultar contraseña" : "Ver contraseña"}
                     >
@@ -247,15 +261,18 @@ export default function Login() {
           {mostrarReset && (
             <div className="max-w-[420px] mx-auto w-full">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-black text-slate-800">Restablecer contraseña</h2>
-                <p className="text-sm text-slate-500 mt-2">
+                <h2 className="text-2xl font-black" style={{ color: esOscuro ? "#f8fafc" : "#1e293b" }}>Restablecer contraseña</h2>
+                <p className="text-sm mt-2" style={{ color: esOscuro ? "#94a3b8" : "#64748b" }}>
                   {pasoReset === 1
                     ? "Te enviaremos un código a tu correo para continuar."
                     : "Ingresa el código recibido y define tu nueva contraseña."}
                 </p>
               </div>
 
-              <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-5">
+              <div className="rounded-[1.5rem] border p-5" style={{
+                borderColor: esOscuro ? "rgba(79,106,75,0.18)" : "#e2e8f0",
+                backgroundColor: esOscuro ? "rgba(10,26,18,0.5)" : "rgba(248,250,252,0.7)",
+              }}>
                 {errorReset && (
                   <div className="px-4 py-3 rounded-2xl mb-4 text-sm border border-rose-200 bg-rose-50 text-rose-700">
                     {errorReset}
@@ -271,7 +288,7 @@ export default function Login() {
                 {pasoReset === 1 ? (
                   <form onSubmit={handleResetRequest} className="space-y-4">
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">Correo electronico</label>
+                      <label className="block text-sm font-semibold mb-2" style={{ color: esOscuro ? "#cbd5e1" : "#334155" }}>Correo electronico</label>
                       <input
                         type="email"
                         name="correo"
@@ -295,7 +312,7 @@ export default function Login() {
                 ) : (
                   <form onSubmit={handleResetConfirm} className="space-y-4">
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">Código o token</label>
+                      <label className="block text-sm font-semibold mb-2" style={{ color: esOscuro ? "#cbd5e1" : "#334155" }}>Código o token</label>
                       <input
                         type="text"
                         name="token"
@@ -322,7 +339,8 @@ export default function Login() {
                         <button
                           type="button"
                           onClick={() => setVerNueva((v) => !v)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition p-1"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 transition p-1"
+                      style={{ color: esOscuro ? "#8aab7e" : "#94a3b8" }}
                           tabIndex={-1}
                           aria-label={verNueva ? "Ocultar contraseña" : "Ver contraseña"}
                         >
@@ -344,7 +362,8 @@ export default function Login() {
                         <button
                           type="button"
                           onClick={() => setVerConfirmar((v) => !v)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition p-1"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 transition p-1"
+                      style={{ color: esOscuro ? "#8aab7e" : "#94a3b8" }}
                           tabIndex={-1}
                           aria-label={verConfirmar ? "Ocultar contraseña" : "Ver contraseña"}
                         >
@@ -369,7 +388,8 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={pasoReset === 2 && !tokenFromUrl ? () => setPasoReset(1) : cerrarReset}
-                  className="text-sm font-semibold text-slate-600 hover:underline"
+                  className="text-sm font-semibold hover:underline"
+                  style={{ color: esOscuro ? "#b7d8a3" : "#475569" }}
                 >
                   {pasoReset === 2 && !tokenFromUrl ? "Volver al correo" : "Volver al inicio de sesión"}
                 </button>
@@ -387,8 +407,11 @@ export default function Login() {
             </Link>
             <Link
               to="/"
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
-              style={{ borderColor: "var(--md-border)" }}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border text-sm font-semibold transition"
+              style={{
+                borderColor: esOscuro ? "rgba(79,106,75,0.18)" : "#e5e7eb",
+                color: esOscuro ? "#b7d8a3" : "#475569",
+              }}
             >
               Volver al inicio
             </Link>

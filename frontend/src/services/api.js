@@ -15,6 +15,12 @@ export function resolverImagen(url) {
   if (!url) return "";
   if (/^https?:\/\//i.test(url)) return url;
   const limpia = String(url).replace(/^\/+/, "");
+  // Imágenes locales que están en frontend/public/ (carpeta producto/, carrusel/, etc.)
+  if (limpia.startsWith("producto/") || limpia.startsWith("carrusel/")) {
+    const parts = limpia.split("/");
+    const encoded = parts.map((p, i) => i === parts.length - 1 ? encodeURI(p) : p).join("/");
+    return `/${encoded}`;
+  }
   return `${BASE_URL}/${limpia}`;
 }
 

@@ -10,9 +10,9 @@ export default function Footer() {
     <footer
       className="border-t shadow-[0_-10px_25px_-5px_rgba(0,0,0,0.05)] transition-all"
       style={{
-        backgroundColor: esOscuro ? "#0f172a" : "#ffffff",
+        backgroundColor: esOscuro ? "#0d1a12" : "#ffffff",
         borderColor: esOscuro
-          ? "rgba(148,163,184,0.12)"
+          ? "rgba(79,106,75,0.18)"
           : "#e5e7eb",
         color: esOscuro ? "#f8fafc" : "#111827",
       }}
@@ -47,7 +47,7 @@ export default function Footer() {
             <h3
               className="text-[10px] uppercase tracking-[0.3em] font-bold"
               style={{
-                color: esOscuro ? "#94a3b8" : "#64748b",
+                color: esOscuro ? "#8aab7e" : "#64748b",
               }}
             >
               Navegación
@@ -66,7 +66,7 @@ export default function Footer() {
                     className="transition-colors duration-200"
                     style={{
                       color: esOscuro
-                        ? "#cbd5e1"
+                        ? "#b7d8a3"
                         : "#475569",
                     }}
                     onMouseEnter={(e) => {
@@ -74,7 +74,7 @@ export default function Footer() {
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.color = esOscuro
-                        ? "#cbd5e1"
+                        ? "#b7d8a3"
                         : "#475569";
                     }}
                   >
@@ -90,7 +90,7 @@ export default function Footer() {
             <h3
               className="text-[10px] uppercase tracking-[0.3em] font-bold"
               style={{
-                color: esOscuro ? "#94a3b8" : "#64748b",
+                color: esOscuro ? "#8aab7e" : "#64748b",
               }}
             >
               Contacto
@@ -102,7 +102,7 @@ export default function Footer() {
                   className="flex h-9 w-9 items-center justify-center rounded-2xl"
                   style={{
                     background: esOscuro
-                      ? "rgba(255,255,255,0.08)"
+                      ? "rgba(107,142,78,0.12)"
                       : "rgba(15,23,42,0.05)",
                   }}
                 >
@@ -127,7 +127,7 @@ export default function Footer() {
                   className="flex h-9 w-9 items-center justify-center rounded-2xl"
                   style={{
                     background: esOscuro
-                      ? "rgba(255,255,255,0.08)"
+                      ? "rgba(107,142,78,0.12)"
                       : "rgba(15,23,42,0.05)",
                   }}
                 >
@@ -151,7 +151,7 @@ export default function Footer() {
                   className="flex h-11 w-11 items-center justify-center rounded-2xl transition-all text-xl"
                   style={{
                     background: esOscuro
-                      ? "rgba(255,255,255,0.08)"
+                      ? "rgba(107,142,78,0.12)"
                       : "rgba(15,23,42,0.05)",
                   }}
                 >
@@ -163,7 +163,7 @@ export default function Footer() {
                   className="flex h-11 w-11 items-center justify-center rounded-2xl transition-all text-xl"
                   style={{
                     background: esOscuro
-                      ? "rgba(255,255,255,0.08)"
+                      ? "rgba(107,142,78,0.12)"
                       : "rgba(15,23,42,0.05)",
                   }}
                 >
@@ -179,7 +179,7 @@ export default function Footer() {
           className="pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-6"
           style={{
             borderColor: esOscuro
-              ? "rgba(148,163,184,0.12)"
+              ? "rgba(79,106,75,0.18)"
               : "#e5e7eb",
           }}
         >

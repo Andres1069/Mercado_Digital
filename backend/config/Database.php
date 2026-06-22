@@ -3,9 +3,10 @@
 
 class Database {
     private string $host     = 'localhost';
+    private int    $port     = 3307;
     private string $db_name  = 'mercado_digital';
     private string $username = 'root';
-    private string $password = '';        
+    private string $password = '';
     private string $charset  = 'utf8mb4';
 
     private ?PDO $connection = null;
@@ -15,7 +16,7 @@ class Database {
      */
     public function getConnection(): PDO {
         if ($this->connection === null) {
-            $dsn = "mysql:host={$this->host};dbname={$this->db_name};charset={$this->charset}";
+            $dsn = "mysql:host={$this->host};port={$this->port};dbname={$this->db_name};charset={$this->charset}";
             $options = [
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
