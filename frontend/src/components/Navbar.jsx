@@ -29,9 +29,9 @@ export default function Navbar({ carritoCount }) {
   const rolUsuario =
     usuario?.rol || (estaLogueado ? "Invitado" : "Invitado");
 
-  const handleCerrar = () => {
+  const handleLogout = () => {
     cerrarSesion();
-    navigate("/");
+    navigate("/login");
   };
 
   const formatMoney = (value) =>
@@ -501,7 +501,7 @@ export default function Navbar({ carritoCount }) {
                         )}
 
                         <button
-                          onClick={handleCerrar}
+                          onClick={handleLogout}
                           className="w-full text-left px-4 py-3 rounded-2xl text-sm"
                           style={{
                             color: "#e11d48",

@@ -131,7 +131,7 @@ export default function Sidebar() {
   const links = esEmp ? LINKS_EMPLEADO : LINKS_ADMIN;
 
   const cerrar = () => setAbierto(false);
-  const handleLogout = () => { cerrarSesion(); navigate("/"); };
+  const handleLogout = () => { cerrarSesion(); navigate("/login"); };
 
   const inicial = (usuario?.Nombre?.[0] || "U").toUpperCase();
 
