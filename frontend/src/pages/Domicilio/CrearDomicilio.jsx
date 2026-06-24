@@ -20,6 +20,13 @@ export default function CrearDomicilio() {
       return null;
     }
   })();
+  const shippingQuote = (() => {
+    try {
+      return JSON.parse(sessionStorage.getItem("md_checkout_shipping_quote") || "null");
+    } catch {
+      return null;
+    }
+  })();
 
   // "confirmar" → muestra la dirección guardada para validar
   // "formulario" → muestra campos para escribir una nueva dirección
@@ -50,7 +57,7 @@ export default function CrearDomicilio() {
         direccion:   direccion.trim(),
         telefono:    telefono?.trim() || null,
         notas:       notas?.trim()    || null,
-        costo_envio: 7900,
+        costo_envio: shippingQuote ? Number(shippingQuote.costoEnvio) : 7900,
       });
       sessionStorage.removeItem("md_checkout_delivery_address");
       navigate("/mis-pedidos");

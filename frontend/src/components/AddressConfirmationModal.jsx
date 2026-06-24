@@ -6,7 +6,7 @@ import { useCart } from "../context/CartContext";
 
 const STORAGE_KEY = "md_checkout_delivery_address";
 
-export default function AddressConfirmationModal({ open, onClose, onConfirm }) {
+export default function AddressConfirmationModal({ open, onClose, onConfirm, inline = false }) {
   const { usuario } = useAuth();
   const { items, subtotal } = useCart();
   const barrio = usuario?.Barrio || "Bosa Brasil";
@@ -75,7 +75,9 @@ export default function AddressConfirmationModal({ open, onClose, onConfirm }) {
       setDetalleEnvio(calculo);
       setOkInfo(`Dirección validada dentro del rango permitido (${validacion.distanciaKm} km).`);
       onConfirm?.(payload);
-      onClose?.();
+      if (!inline) {
+        onClose?.();
+      }
     } catch (e) {
       setError(e.message || "No se pudo validar la dirección.");
     } finally {
@@ -83,9 +85,17 @@ export default function AddressConfirmationModal({ open, onClose, onConfirm }) {
     }
   }
 
+  const wrapperClass = inline
+    ? "w-full"
+    : "fixed inset-0 z-[120] flex items-center justify-center bg-black/50 px-4";
+
+  const containerClass = inline
+    ? "w-full rounded-[2rem] border border-slate-200 bg-white p-6"
+    : "w-full max-w-lg rounded-[2rem] border border-slate-200 bg-white p-6 shadow-2xl";
+
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/50 px-4">
-      <div className="w-full max-w-lg rounded-[2rem] border border-slate-200 bg-white p-6 shadow-2xl">
+    <div className={wrapperClass}>
+      <div className={containerClass}>
         <div className="mb-5">
           <p className="text-xs font-black uppercase tracking-[0.3em] text-[#6B8E4E]">Confirma tu dirección</p>
           <h2 className="mt-2 text-2xl font-black text-slate-900">Antes de continuar con el pago</h2>

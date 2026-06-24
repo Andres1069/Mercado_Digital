@@ -11,6 +11,20 @@ function normalizarTexto(texto) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
+function limpiarDireccionParaMapa(texto) {
+  let limpio = String(texto || "").trim();
+  // Quitar todo después de una coma (ej: ", Torre 3, Apto 401")
+  limpio = limpio.split(",")[0];
+  // Quitar detalles comunes de apartamentos y casas
+  limpio = limpio.replace(/\b(torre|apto|apartamento|casa|interior|int|bloque|mz|manzana|lote)\b.*$/i, "");
+  // Quitar el símbolo '#' que confunde a Nominatim
+  limpio = limpio.replace(/#/g, " ");
+  // Quitar el guion si está separado por espacios, o reemplazarlo por espacio
+  limpio = limpio.replace(/-/g, " ");
+  // Limpiar espacios dobles
+  return limpio.replace(/\s+/g, " ").trim();
+}
+
 export function barrioCoincide(a, b) {
   return normalizarTexto(a) === normalizarTexto(b);
 }
@@ -38,9 +52,18 @@ export async function validarDireccionCobertura({ direccion, barrio, barrioPermi
     throw new Error(`Solo atendemos pedidos en ${barrioPermitido}.`);
   }
 
-  const geo = await geocodificarDireccion(dir, barrioPermitido);
+  const direccionLimpia = limpiarDireccionParaMapa(dir);
+  const geo = await geocodificarDireccion(direccionLimpia, barrioPermitido);
+  
+  // FALLBACK DEFINITIVO: Si el mapa no encuentra la dirección (falla muy común en Nominatim),
+  // en lugar de bloquear la compra del usuario, confiamos en su texto y usamos las coordenadas centrales del barrio.
   if (!geo) {
-    throw new Error("No pudimos ubicar esa direccion. Intenta con una direccion mas completa.");
+    return {
+      direccionNormalizada: dir, // Guardamos la que él escribió originalmente
+      lat: CHICALA_SUR_CENTER.lat,
+      lng: CHICALA_SUR_CENTER.lng,
+      distanciaKm: 0,
+    };
   }
 
   const punto = { lat: geo.lat, lng: geo.lng };
@@ -48,11 +71,11 @@ export async function validarDireccionCobertura({ direccion, barrio, barrioPermi
   const distancia = distanciaKm(CHICALA_SUR_CENTER, punto);
 
   if (!dentroDelBarrio) {
-    throw new Error("La direccion queda fuera del barrio permitido.");
+    throw new Error("La dirección calculada por el mapa queda fuera de la zona de cobertura. Por favor verifica.");
   }
 
   if (distancia > maxDistanciaKm) {
-    throw new Error(`La direccion supera la distancia permitida de ${maxDistanciaKm} km.`);
+    throw new Error(`La dirección supera la distancia permitida de ${maxDistanciaKm} km.`);
   }
 
   return {

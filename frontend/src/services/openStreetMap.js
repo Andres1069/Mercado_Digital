@@ -34,9 +34,11 @@ export function cargarLeaflet() {
 }
 
 export async function geocodificarDireccion(direccion, barrio = "Chicala del Sur") {
+  const query = direccion ? `${direccion}, ${barrio}, Bogota, Colombia` : `${barrio}, Bogota, Colombia`;
+
   const params = new URLSearchParams({
     format: "jsonv2",
-    q: `${direccion}, ${barrio}, Bogota, Colombia`,
+    q: query,
     countrycodes: "co",
     limit: "1",
     addressdetails: "1",

@@ -39,9 +39,9 @@ export default function Carrito() {
   };
 
   const resumenEnvio = calcularCostoEnvio(items, distanciaKm, reglasEnvio);
-  const envio = items.length === 0 ? 0 : resumenEnvio.costoEnvio;
-  const total = items.length === 0 ? 0 : resumenEnvio.total;
-  const envioGratis = resumenEnvio.envioGratis;
+  const envio = (items.length === 0 || tipoEntrega === "Recoger_Tienda") ? 0 : resumenEnvio.costoEnvio;
+  const total = items.length === 0 ? 0 : subtotal + envio;
+  const envioGratis = tipoEntrega === "Recoger_Tienda" ? true : resumenEnvio.envioGratis;
 
   function abrirModal() {
     setTipoEntrega("");
