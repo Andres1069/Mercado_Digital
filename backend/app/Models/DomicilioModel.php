@@ -498,7 +498,6 @@ class DomicilioModel {
             throw $e;
         }
     }
-    }
 
     /**
      * Obtiene los datos del cliente (correo, nombre) y el pedido asociado a un domicilio.
