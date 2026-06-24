@@ -69,8 +69,8 @@ function ProductoCard({ producto }) {
     <div
       className="rounded-3xl overflow-hidden shadow-sm transition hover:shadow-md flex flex-col h-full"
       style={{
-        backgroundColor: esOscuro ? "#111827" : "#ffffff",
-        border: `1px solid ${esOscuro ? "rgba(148,163,184,0.16)" : "#e5e7eb"}`,
+        backgroundColor: esOscuro ? "#142018" : "#ffffff",
+        border: `1px solid ${esOscuro ? "rgba(79,106,75,0.18)" : "#e5e7eb"}`,
       }}
     >
       <div className="h-44 overflow-hidden bg-gray-100">
@@ -132,9 +132,9 @@ function CategoriaCard({ categoria, index }) {
       to={`/tienda?categoria=${catId}`}
       className="group rounded-[28px] overflow-hidden transition duration-300 hover:-translate-y-1 flex flex-col h-full"
       style={{
-        backgroundColor: esOscuro ? "#111827" : "#ffffff",
-        border: `1px solid ${esOscuro ? "rgba(148,163,184,0.16)" : "rgba(226,232,240,0.9)"}`,
-        boxShadow: esOscuro ? "0 18px 40px rgba(2,6,23,0.16)" : "0 14px 30px rgba(15,23,42,0.08)",
+        backgroundColor: esOscuro ? "#142018" : "#ffffff",
+        border: `1px solid ${esOscuro ? "rgba(79,106,75,0.18)" : "rgba(226,232,240,0.9)"}`,
+        boxShadow: esOscuro ? "0 18px 40px rgba(5,15,8,0.16)" : "0 14px 30px rgba(15,23,42,0.08)",
       }}
     >
       <div className="h-32 relative overflow-hidden bg-gray-100 dark:bg-gray-800">
@@ -192,27 +192,32 @@ export default function Landing() {
       title: "Recibe tu pedido en tiempo récord",
       description:
         "Seguimiento en vivo, despachos confiables y entregas optimizadas para que tus compras lleguen directo a la puerta.",
-      image: "/carrusel/carrusel 1.png",
+      image: "/carrusel/carrusel 91.png",
       imageAlt: "Envío express",
-      imagePosition: "left center",
     },
     {
       label: "Pagos seguros",
       title: "Procesamiento de pago confiable",
       description:
         "Disfruta de pagos protegidos y confirmaciones instantáneas con la pasarela de Mercado Pago integrada.",
-      image: "/carrusel/carrusel 2.png",
+      image: "/carrusel/carrusel 92.png",
       imageAlt: "Pagos seguros",
-      imagePosition: "left center",
     },
     {
       label: "Ofertas exclusivas",
       title: "Ahorra en los productos más buscados",
       description:
         "Encuentra descuentos seleccionados, promoción por tiempo limitado y categorías destacadas en nuestra plataforma.",
-      image: "/carrusel/carrusel 3.png",
+      image: "/carrusel/carrusel 93.png",
       imageAlt: "Ofertas exclusivas",
-      imagePosition: "left center",
+    },
+    {
+      label: "Variedad de productos",
+      title: "Todo lo que necesitas en un solo lugar",
+      description:
+        "Desde frutas y verduras hasta productos de aseo y despensa, encuentra todo para tu hogar con la mejor calidad.",
+      image: "/carrusel/carrusel 94.png",
+      imageAlt: "Variedad de productos",
     },
   ];
 
@@ -266,7 +271,7 @@ export default function Landing() {
   const productosOferta = productos.filter((p) => Number(p.Porcentaje_Descuento || 0) > 0).slice(0, 4);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: esOscuro ? "#0f172a" : "#ffffff", color: esOscuro ? "#e5e7eb" : "#0f172a" }}>
+    <div className="min-h-screen" style={{ backgroundColor: esOscuro ? "#0d1a12" : "#ffffff", color: esOscuro ? "#e5e7eb" : "#0f172a" }}>
       <header
         className="fixed top-0 left-0 right-0 z-40 border-b"
         style={{
@@ -488,7 +493,7 @@ export default function Landing() {
                     style={{
                       backgroundColor: esOscuro ? "rgba(255,255,255,0.08)" : "#ffffff",
                       color: esOscuro ? "#f8fafc" : "#111827",
-                      border: `1px solid ${esOscuro ? "rgba(148,163,184,0.18)" : "#dbe8d8"}`,
+                      border: `1px solid ${esOscuro ? "rgba(79,106,75,0.20)" : "#dbe8d8"}`,
                     }}
                   >
                     Ver productos
@@ -530,123 +535,60 @@ export default function Landing() {
           </div>
         </section>
 
-        <div className="max-w-6xl mx-auto px-4 sm:px-5">
+        <div className="mx-auto w-full max-w-5xl px-4 sm:px-5 pt-8">
           {/* SLIDER INDEPENDIENTE */}
-          <section className="mb-10">
+          <section className="mb-10 w-full">
             <div
-              className="relative overflow-hidden rounded-[32px] shadow-xl transition-all"
+              className="relative overflow-hidden transition-all border"
               style={{
-                backgroundColor: esOscuro ? "#111827" : "#ffffff",
-                border: `1px solid ${esOscuro ? "rgba(148,163,184,0.16)" : "#e5e7eb"
-                  }`,
+                backgroundColor: esOscuro ? "#142018" : "#f8faf8",
+                borderColor: esOscuro ? "rgba(79,106,75,0.18)" : "#dbe5d8",
+                boxShadow: esOscuro
+                  ? "0 18px 50px rgba(0,0,0,0.35)"
+                  : "0 16px 40px rgba(15, 23, 42, 0.12)",
               }}
             >
-              <div className="relative z-10 grid grid-cols-1 md:grid-cols-[1fr_520px] lg:grid-cols-[1fr_560px] items-stretch md:min-h-[360px] lg:min-h-[390px]">
-                <div className="relative min-w-0 p-10 md:pr-6">
-                  <span
-                    className="inline-flex items-center rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em]"
-                    style={{
-                      backgroundColor: esOscuro
-                        ? "rgba(107,142,78,0.12)"
-                        : "#ecfdf5",
-                      color: esOscuro ? "#b7d8a3" : "#166534",
-                    }}
-                  >
-                    {slides[activeSlide].label}
-                  </span>
-                  <h2
-                    className="mt-6 text-3xl sm:text-5xl font-black leading-tight"
-                    style={{
-                      color: esOscuro ? "#f8fafc" : "#111827",
-                    }}
-                  >
-                    {slides[activeSlide].title}
-                  </h2>
-
-                  <p
-                    className="mt-4 max-w-2xl text-base leading-8"
-                    style={{
-                      color: esOscuro ? "#cbd5e1" : "#475569",
-                    }}
-                  >
-                    {slides[activeSlide].description}
-                  </p>
-
-                  <div className="absolute bottom-8 left-10 flex items-center gap-2">
-                    {slides.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setActiveSlide(index)}
-                        className={`h-3 w-3 rounded-full transition ${activeSlide === index
-                          ? "bg-green-600"
-                          : esOscuro
-                            ? "bg-slate-600"
-                            : "bg-slate-300"
-                          }`}
-                        aria-label={`Slide ${index + 1}`}
-                      />
-                    ))}
-                  </div>
-                </div>
+              <div
+                className="relative aspect-[21/7] w-full min-h-[260px] overflow-hidden md:min-h-[360px] lg:min-h-[420px]"
+                aria-hidden="true"
+                style={{
+                  backgroundColor: esOscuro ? "rgba(10,20,14,0.25)" : "#f3f8f2",
+                }}
+              >
+                <img
+                  key={slides[activeSlide].image}
+                  src={encodeURI(slides[activeSlide].image)}
+                  alt={slides[activeSlide].imageAlt}
+                  className="absolute inset-0 h-full w-full object-cover"
+                  style={{ objectPosition: "center center" }}
+                  draggable="false"
+                  loading="eager"
+                />
 
                 <div
-                  className="relative hidden md:flex items-center justify-center"
-                  aria-hidden="true"
+                  className="absolute inset-0"
                   style={{
-                    backgroundColor: esOscuro ? "rgba(2,6,23,0.25)" : "#ffffff",
+                    background: esOscuro
+                      ? "linear-gradient(90deg, rgba(20,32,24,0.16) 0%, rgba(20,32,24,0) 20%, rgba(20,32,24,0) 80%, rgba(20,32,24,0.16) 100%)"
+                      : "linear-gradient(90deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0) 20%, rgba(255,255,255,0) 80%, rgba(255,255,255,0.16) 100%)",
                   }}
-                >
-                  <img
-                    key={slides[activeSlide].image}
-                    src={encodeURI(slides[activeSlide].image)}
-                    alt={slides[activeSlide].imageAlt}
-                    className="h-full w-full object-contain"
-                    draggable="false"
-                    loading="eager"
-                  />
+                />
 
-                  <div
-                    className="absolute inset-y-0 left-0 w-24"
-                    style={{
-                      background: esOscuro
-                        ? "linear-gradient(90deg, rgba(17,24,39,0.92) 0%, rgba(17,24,39,0) 100%)"
-                        : "linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%)",
-                    }}
-                  />
-
-                  <div className="absolute bottom-8 right-10 flex items-center gap-2">
+                <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 items-center gap-2">
+                  {slides.map((_, index) => (
                     <button
-                      type="button"
-                      onClick={() =>
-                        setActiveSlide(
-                          (prev) => (prev - 1 + slides.length) % slides.length
-                        )
-                      }
-                      className="rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition"
-                      style={{
-                        backgroundColor: esOscuro
-                          ? "rgba(148,163,184,0.18)"
-                          : "rgba(241,245,249,0.92)",
-                        color: esOscuro ? "#f8fafc" : "#111827",
-                        backdropFilter: "blur(8px)",
-                      }}
-                    >
-                      Anterior
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setActiveSlide((prev) => (prev + 1) % slides.length)
-                      }
-                      className="rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white transition"
-                      style={{
-                        backgroundColor: "#6B8E4E",
-                      }}
-                    >
-                      Siguiente
-                    </button>
-                  </div>
+                      key={index}
+                      onClick={() => setActiveSlide(index)}
+                      className={`h-3 w-3 rounded-full transition ${
+                        activeSlide === index
+                          ? "bg-green-600"
+                          : esOscuro
+                            ? "bg-green-900"
+                            : "bg-green-200"
+                      }`}
+                      aria-label={`Slide ${index + 1}`}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
@@ -675,7 +617,7 @@ export default function Landing() {
                   <div key={index} className="h-72 rounded-3xl bg-gray-200 animate-pulse" />
                 ))
               ) : productosOferta.length === 0 ? (
-                <div className="rounded-3xl border p-8 text-center" style={{ backgroundColor: esOscuro ? "#111827" : "#ffffff" }}>
+                <div className="rounded-3xl border p-8 text-center" style={{ backgroundColor: esOscuro ? "#142018" : "#ffffff" }}>
                   <p style={{ color: esOscuro ? "#d1d5db" : "#475569" }}>No hay ofertas disponibles.</p>
                 </div>
               ) : (
@@ -699,7 +641,7 @@ export default function Landing() {
                   <div key={index} className="h-44 rounded-3xl bg-gray-200 animate-pulse" />
                 ))
               ) : categorias.length === 0 ? (
-                <div className="rounded-3xl border p-8 text-center" style={{ backgroundColor: esOscuro ? "#111827" : "#ffffff" }}>
+                <div className="rounded-3xl border p-8 text-center" style={{ backgroundColor: esOscuro ? "#142018" : "#ffffff" }}>
                   <p style={{ color: esOscuro ? "#d1d5db" : "#475569" }}>No se encontraron categorías.</p>
                 </div>
               ) : (
@@ -736,7 +678,7 @@ export default function Landing() {
                   <div key={index} className="h-72 rounded-3xl bg-gray-200 animate-pulse" />
                 ))
               ) : destacados.length === 0 ? (
-                <div className="rounded-3xl border p-8 text-center" style={{ backgroundColor: esOscuro ? "#111827" : "#ffffff" }}>
+                <div className="rounded-3xl border p-8 text-center" style={{ backgroundColor: esOscuro ? "#142018" : "#ffffff" }}>
                   <p style={{ color: esOscuro ? "#d1d5db" : "#475569" }}>No hay productos para mostrar.</p>
                 </div>
               ) : (

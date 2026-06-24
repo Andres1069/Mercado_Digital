@@ -62,10 +62,10 @@ export default function Navbar({ carritoCount }) {
         className="fixed inset-x-0 top-0 z-[100] border-b shadow-lg backdrop-blur-xl"
         style={{
           backgroundColor: esOscuro
-            ? "rgba(15,23,42,0.92)"
+            ? "rgba(13,26,18,0.92)"
             : "rgba(255,255,255,0.92)",
           borderColor: esOscuro
-            ? "rgba(148,163,184,0.12)"
+            ? "rgba(79,106,75,0.18)"
             : "#e5e7eb",
         }}
       >
@@ -122,8 +122,9 @@ export default function Navbar({ carritoCount }) {
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = esOscuro
-                    ? "rgba(255,255,255,0.08)"
-                    : "rgba(15,23,42,0.05)";
+                    ? "rgba(107,142,78,0.12)"
+                    : "rgba(15,23,42,0.05)"
+;
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = "transparent";
@@ -155,8 +156,9 @@ export default function Navbar({ carritoCount }) {
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = esOscuro
-                    ? "rgba(255,255,255,0.08)"
-                    : "rgba(15,23,42,0.05)";
+                    ? "rgba(107,142,78,0.12)"
+                    : "rgba(15,23,42,0.05)"
+;
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = "transparent";
@@ -181,7 +183,7 @@ export default function Navbar({ carritoCount }) {
                   : "#f8fafc",
                 border: `1px solid ${
                   esOscuro
-                    ? "rgba(255,255,255,0.08)"
+                    ? "rgba(107,142,78,0.12)"
                     : "#e2e8f0"
                 }`,
                 color: esOscuro ? "#ffffff" : "#111827",
@@ -244,8 +246,9 @@ export default function Navbar({ carritoCount }) {
               className="h-10 w-10 sm:h-11 sm:w-11 rounded-2xl transition flex items-center justify-center"
               style={{
                 background: esOscuro
-                  ? "rgba(255,255,255,0.08)"
-                  : "rgba(15,23,42,0.05)",
+                  ? "rgba(107,142,78,0.12)"
+                  : "rgba(15,23,42,0.05)"
+,
                 color: esOscuro ? "#ffffff" : "#111827",
               }}
             />
@@ -280,7 +283,7 @@ export default function Navbar({ carritoCount }) {
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = esOscuro
-                    ? "rgba(255,255,255,0.08)"
+                    ? "rgba(107,142,78,0.12)"
                     : "rgba(93, 124, 74, 0.08)";
                   e.currentTarget.style.color = "#5d7c4a";
                 }}
@@ -305,9 +308,9 @@ export default function Navbar({ carritoCount }) {
                 <div
                   className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[300px] rounded-2xl shadow-2xl overflow-hidden"
                   style={{
-                    backgroundColor: esOscuro ? "#0b1220" : "#ffffff",
+                    backgroundColor: esOscuro ? "#142018" : "#ffffff",
                     border: `1px solid ${
-                      esOscuro ? "rgba(148,163,184,0.14)" : "#e5e7eb"
+                      esOscuro ? "rgba(79,106,75,0.18)" : "#e5e7eb"
                     }`,
                   }}
                 >
@@ -320,7 +323,7 @@ export default function Navbar({ carritoCount }) {
                             className="flex items-center gap-3 rounded-xl px-2.5 py-2"
                             style={{
                               background: esOscuro
-                                ? "rgba(255,255,255,0.04)"
+                                ? "rgba(107,142,78,0.08)"
                                 : "rgba(15,23,42,0.03)",
                             }}
                           >
@@ -348,8 +351,9 @@ export default function Navbar({ carritoCount }) {
                               style={{
                                 color: esOscuro ? "#e5e7eb" : "#111827",
                                 background: esOscuro
-                                  ? "rgba(255,255,255,0.05)"
-                                  : "rgba(15,23,42,0.05)",
+                                  ? "rgba(107,142,78,0.10)"
+                                  : "rgba(15,23,42,0.05)"
+,
                               }}
                               onClick={(e) => {
                                 e.preventDefault();
@@ -366,7 +370,7 @@ export default function Navbar({ carritoCount }) {
                           className="flex items-center justify-between pt-2 mt-1 border-t text-sm font-semibold"
                           style={{
                             borderColor: esOscuro
-                              ? "rgba(148,163,184,0.14)"
+                              ? "rgba(79,106,75,0.18)"
                               : "#e5e7eb",
                           }}
                         >
@@ -398,15 +402,16 @@ export default function Navbar({ carritoCount }) {
               className="flex items-center gap-2 sm:gap-3 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-[1.35rem] transition"
               style={{
                 background: esOscuro
-                  ? "rgba(255,255,255,0.08)"
-                  : "rgba(15,23,42,0.05)",
+                  ? "rgba(107,142,78,0.12)"
+                  : "rgba(15,23,42,0.05)"
+,
               }}
             >
               <div
                 className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl flex items-center justify-center text-lg flex-shrink-0"
                 style={{
                   background: esOscuro
-                    ? "rgba(255,255,255,0.12)"
+                    ? "rgba(107,142,78,0.18)"
                     : "rgba(15,23,42,0.06)",
                 }}
               >
@@ -417,7 +422,7 @@ export default function Navbar({ carritoCount }) {
                 <p
                   className="text-[10px] uppercase tracking-normal font-semibold"
                   style={{
-                    color: esOscuro ? "#94a3b8" : "#64748b",
+                    color: esOscuro ? "#8aab7e" : "#64748b",
                   }}
                 >
                   {rolUsuario}
@@ -445,11 +450,11 @@ export default function Navbar({ carritoCount }) {
                 className="absolute right-0 mt-2 w-56 sm:w-60 rounded-3xl overflow-hidden shadow-2xl"
                 style={{
                   backgroundColor: esOscuro
-                    ? "#111827"
+                    ? "#142018"
                     : "#ffffff",
                   border: `1px solid ${
                     esOscuro
-                      ? "rgba(148,163,184,0.12)"
+                      ? "rgba(79,106,75,0.18)"
                       : "#e5e7eb"
                   }`,
                 }}
