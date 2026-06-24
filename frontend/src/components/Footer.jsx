@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 
-export default function Footer() {
+export default function Footer({ compact = false }) {
   const currentYear = new Date().getFullYear();
 
   const { esOscuro } = useTheme();
@@ -17,14 +17,15 @@ export default function Footer() {
         color: esOscuro ? "#f8fafc" : "#111827",
       }}
     >
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className={`max-w-7xl mx-auto px-6 ${compact ? "py-4" : "py-12"}`}>
         {/* SECCIÓN SUPERIOR */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 pb-12">
-          {/* BRANDING */}
-          <div className="md:col-span-5 space-y-6">
-            <Link to="/" className="inline-block overflow-hidden">
+        {!compact && (
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-12 pb-12">
+            {/* BRANDING */}
+            <div className="md:col-span-5 space-y-6">
+              <Link to="/" className="inline-block overflow-hidden">
               <img
-                src={esOscuro ? "/Logo-Mercado-Digital-Blanco.png" : "/Logo-Mercado-Digital.png"}
+                src={esOscuro ? "/logo/Logo-Mercado-Digital-Blanco.png" : "/logo/Logo-Mercado-Digital.png"}
                 alt="Mercado Digital Logo"
                 className="h-12 scale-2 origin-left"
               />
@@ -173,10 +174,11 @@ export default function Footer() {
             </ul>
           </div>
         </div>
+        )}
 
         {/* SECCIÓN INFERIOR */}
         <div
-          className="pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-6"
+          className={`${compact ? "" : "pt-8 border-t"} flex flex-col md:flex-row justify-between items-center gap-6`}
           style={{
             borderColor: esOscuro
               ? "rgba(79,106,75,0.18)"

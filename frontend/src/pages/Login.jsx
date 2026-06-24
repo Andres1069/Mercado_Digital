@@ -162,7 +162,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 md:p-6" style={{ backgroundColor: esOscuro ? "#0d1a12" : "#f8fafc" }}>
+    <div className="min-h-screen flex items-center justify-center p-4 md:p-6 relative" style={{ backgroundColor: esOscuro ? "#0d1a12" : "#f8fafc" }}>
       <div
         className="w-full max-w-lg md:max-w-5xl rounded-[2rem] shadow-lg overflow-hidden md:grid md:grid-cols-[1fr,1fr]"
         style={{
@@ -179,23 +179,29 @@ export default function Login() {
           }}
         >
           <div className="max-w-md">
-            <p className="text-xs uppercase tracking-[0.35em] text-white/70 font-semibold">Mercado Digital</p>
-            <h1 className="text-2xl md:text-4xl font-black mt-3 leading-tight">Bienvenido de nuevo</h1>
-            <p className="text-white/80 text-sm md:text-base mt-3">
+            <img
+              src="/logo/Logo-Mercado-Digital-Blanco.png"
+              alt="Mercado Digital"
+              className="h-10 md:h-12 w-auto mb-4 drop-shadow-md object-contain"
+            />
+            <h1 className="text-3xl md:text-[2.2rem] font-black leading-[1.1] tracking-tight drop-shadow-sm">
+              Bienvenido de nuevo
+            </h1>
+            <p className="text-white/85 text-sm mt-3 font-medium leading-relaxed max-w-[90%]">
               Ingresa a tu cuenta para comprar, seguir pedidos o entrar al panel administrativo.
             </p>
           </div>
 
-          <div className="hidden md:flex mt-8 justify-center">
-            <div className="relative w-full max-w-[500px] min-h-[260px] sm:min-h-[320px] md:min-h-[360px] overflow-hidden rounded-[2rem] border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.18)] bg-[#172116]">
+          <div className="hidden md:flex mt-6 justify-center">
+            <div className="relative w-full max-w-[500px] min-h-[220px] sm:min-h-[260px] md:min-h-[290px] overflow-hidden rounded-[2rem] border border-white/10 shadow-2xl bg-[#172116]">
               <img
-                src="/loginmen.png"
+                src="/login/loginmen.png"
                 alt="Ilustración de acceso"
                 className="w-full h-full object-cover object-center"
               />
-              <div className="absolute bottom-5 left-5 bg-white/90 backdrop-blur-md rounded-2xl px-4 py-3 shadow-xl">
-                <p className="text-xs" style={{ color: esOscuro ? "#94a3b8" : "#64748b" }}>Mercado Digital</p>
-                <p className="font-bold" style={{ color: esOscuro ? "#f8fafc" : "#1e293b" }}>Compra fácil y rápido</p>
+              <div className="absolute bottom-6 left-6 bg-white/95 backdrop-blur-xl rounded-2xl px-5 py-3.5 shadow-2xl border border-white/40">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-0.5" style={{ color: "#64748b" }}>Mercado Digital</p>
+                <p className="font-black text-base" style={{ color: "#0f172a" }}>Compra fácil y rápido</p>
               </div>
             </div>
           </div>
@@ -388,7 +394,7 @@ export default function Login() {
                           type="button"
                           onClick={() => setVerNueva((v) => !v)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 transition p-1"
-                      style={{ color: esOscuro ? "#8aab7e" : "#94a3b8" }}
+                          style={{ color: esOscuro ? "#8aab7e" : "#94a3b8" }}
                           tabIndex={-1}
                           aria-label={verNueva ? "Ocultar contraseña" : "Ver contraseña"}
                         >
@@ -411,7 +417,7 @@ export default function Login() {
                           type="button"
                           onClick={() => setVerConfirmar((v) => !v)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 transition p-1"
-                      style={{ color: esOscuro ? "#8aab7e" : "#94a3b8" }}
+                          style={{ color: esOscuro ? "#8aab7e" : "#94a3b8" }}
                           tabIndex={-1}
                           aria-label={verConfirmar ? "Ocultar contraseña" : "Ver contraseña"}
                         >
@@ -465,6 +471,12 @@ export default function Login() {
             </Link>
           </div>
         </div>
+      </div>
+
+      <div className="absolute bottom-4 left-0 right-0 text-center" style={{ color: esOscuro ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)" }}>
+        <p className="text-[8px] uppercase tracking-wider font-semibold">
+          &copy; {new Date().getFullYear()} Mercado Digital S.A.S. Todos los derechos reservados.
+        </p>
       </div>
     </div>
   );

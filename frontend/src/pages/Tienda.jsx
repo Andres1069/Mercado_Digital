@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import ProductoCard from "../components/ProductoCard";
 import { productoService, ofertaService, categoriaService } from "../services/api";
 import { useCart } from "../context/CartContext";
@@ -145,17 +146,9 @@ export default function Tienda() {
   const coloresCat = ["#6B8E4E", "#06b6d4", "#3C5148", "#6B8E4E", "#3C5148", "#f59e0b", "#6B8E4E", "#6B8E4E", "#ef4444", "#3C5148"];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen flex flex-col bg-white">
       <Navbar />
 
-      {notif && (
-        <div
-          className="fixed bottom-24 left-4 right-4 sm:left-auto sm:right-28 sm:bottom-6 sm:max-w-sm text-white px-5 py-3 rounded-2xl shadow-2xl z-[60] font-semibold text-sm"
-          style={{ background: "linear-gradient(135deg, #6B8E4E, #3C5148)" }}
-        >
-          {notif}
-        </div>
-      )}
 
       <div className="max-w-7xl mx-auto px-4 py-8">
 
@@ -367,6 +360,7 @@ export default function Tienda() {
           </div>
         </div>
       </div>
+      <Footer compact={true} />
     </div>
   );
 }
