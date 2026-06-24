@@ -153,7 +153,7 @@ export default function ErrorPage({
             <BotonAccion
               tipo="soporte"
               variant="secondary"
-              href="https://wa.me/573000000000?text=Necesito%20ayuda%20con%20Mercado%20Digital"
+              href="https://wa.me/573244314271?text=Necesito%20ayuda%20con%20Mercado%20Digital"
             />
           )}
         </div>

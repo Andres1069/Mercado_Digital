@@ -541,8 +541,8 @@ class AuthController {
         $codigoHtml          = htmlspecialchars($codigo, ENT_QUOTES, 'UTF-8');
         $contactoMail        = 'mercado.digital.bog@gmail.com';
         $contactoMailHref    = 'mailto:' . $contactoMail;
-        $contactoTelefono    = '+57 300 000 0000';
-        $contactoTelefonoHref = 'tel:+573000000000';
+        $contactoTelefono    = '+57 324 4314271';
+        $contactoTelefonoHref = 'tel:+573244314271';
         $socialHref          = htmlspecialchars($origin !== '' ? rtrim($origin, '/') : '#', ENT_QUOTES, 'UTF-8');
 
         $bodyHtml = <<<HTML

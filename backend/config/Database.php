@@ -6,7 +6,7 @@ require_once __DIR__ . '/../app/Helpers/Logger.php';
 
 class Database {
     private string $host     = 'localhost';
-    private int    $port     = 3307;
+    private int    $port     = 3306;
     private string $db_name  = 'mercado_digital';
     private string $username = 'root';
     private string $password = '';
