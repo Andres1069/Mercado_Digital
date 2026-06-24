@@ -118,21 +118,27 @@ export default function Registro() {
   };
 
   return (
-    <div className="min-h-screen md-app-bg flex items-center justify-center p-4 md:p-6">
+    <div className="min-h-screen md-app-bg flex items-center justify-center p-4 md:p-6 relative pb-12">
       <div className="w-full max-w-md lg:max-w-6xl bg-white rounded-[1rem] shadow-lg border border-gray-100 overflow-hidden lg:grid lg:grid-cols-[1.05fr,1.1fr]">
         <div
           className="px-7 py-8 text-white lg:px-10 lg:py-12 flex flex-col justify-between"
           style={{ background: "linear-gradient(155deg, #3C5148 0%, #6B8E4E 58%, #B2C5B2 100%)" }}
         >
           <div>
-            <p className="text-xs uppercase tracking-[0.35em] text-white/70 font-semibold">Mercado Digital</p>
-            <h1 className="text-2xl lg:text-4xl font-black mt-3 leading-tight">Crea tu cuenta</h1>
-            <p className="text-white/85 text-sm lg:text-base mt-3 max-w-md">
+            <img
+              src="/logo/Logo-Mercado-Digital-Blanco.png"
+              alt="Mercado Digital"
+              className="h-10 lg:h-12 w-auto mb-4 drop-shadow-md object-contain"
+            />
+            <h1 className="text-3xl lg:text-[2.2rem] font-black leading-[1.1] tracking-tight drop-shadow-sm">
+              Crea tu cuenta
+            </h1>
+            <p className="text-white/85 text-sm mt-3 font-medium leading-relaxed max-w-[90%]">
               Registra tus datos para comprar, guardar tu perfil y recibir acceso inmediato a la tienda.
             </p>
             <div className="mt-6 overflow-hidden rounded-[0.9rem] border border-white/15 bg-white/10 shadow-2xl shadow-black/20">
               <img
-                src="/registrarse.png"
+                src="/registro/registrarse.png"
                 alt="Registro en Mercado Digital"
                 className="h-44 w-full object-cover object-center sm:h-56 lg:h-72"
                 onError={(e) => { e.currentTarget.style.display = "none"; }}
@@ -256,6 +262,12 @@ export default function Registro() {
             </Link>
           </div>
         </div>
+      </div>
+
+      <div className="absolute bottom-4 left-0 right-0 text-center text-slate-500">
+        <p className="text-[8px] uppercase tracking-wider font-semibold">
+          &copy; {new Date().getFullYear()} Mercado Digital S.A.S. Todos los derechos reservados.
+        </p>
       </div>
 
       <PasswordRequirements

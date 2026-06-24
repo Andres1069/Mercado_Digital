@@ -416,8 +416,8 @@ class AuthController {
 
     // ── Bloqueo por cuenta (LR7) ──────────────────────────────────────────
 
-    private const LOCKOUT_MAX_ATTEMPTS = 5;
-    private const LOCKOUT_SECONDS      = 900; // 15 minutos
+    private const LOCKOUT_MAX_ATTEMPTS = 4;
+    private const LOCKOUT_SECONDS      = 180; // 3 minutos
 
     private function lockoutFile(string $correo): string {
         $key = substr(hash('sha256', strtolower($correo)), 0, 16);
@@ -431,10 +431,11 @@ class AuthController {
         $data  = @json_decode(@file_get_contents($this->lockoutFile($correo)), true);
         $until = (int)($data['locked_until'] ?? 0);
         if ($until > time()) {
-            $minutos = (int)ceil(($until - time()) / 60);
+            $restante = $until - time();
             $this->error(
-                "Cuenta bloqueada por demasiados intentos fallidos. Vuelve a intentarlo en $minutos minuto(s).",
-                429
+                "Cuenta bloqueada por demasiados intentos fallidos. Vuelve a intentarlo en " . $this->formatoMinutos($restante) . ".",
+                429,
+                ['code' => 'ACCOUNT_LOCKED', 'retry_after' => $restante, 'locked_until' => $until]
             );
         }
     }
@@ -463,12 +464,18 @@ class AuthController {
                 'correo_hash=' . substr(hash('sha256', strtolower($correo)), 0, 8) . ' ip=' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown')
             );
             $this->error(
-                'Tu cuenta ha sido bloqueada por 15 minutos debido a demasiados intentos fallidos.',
-                429
+                'Tu cuenta ha sido bloqueada por ' . $this->formatoMinutos(self::LOCKOUT_SECONDS) . ' debido a demasiados intentos fallidos.',
+                429,
+                ['code' => 'ACCOUNT_LOCKED', 'retry_after' => self::LOCKOUT_SECONDS, 'locked_until' => $data['locked_until']]
             );
         }
 
         @file_put_contents($file, json_encode($data), LOCK_EX);
+    }
+
+    private function formatoMinutos(int $segundos): string {
+        $minutos = (int)ceil($segundos / 60);
+        return $minutos . ' minuto' . ($minutos === 1 ? '' : 's');
     }
 
     private function clearAccountLockout(string $correo): void {
@@ -534,8 +541,8 @@ class AuthController {
         $codigoHtml          = htmlspecialchars($codigo, ENT_QUOTES, 'UTF-8');
         $contactoMail        = 'mercado.digital.bog@gmail.com';
         $contactoMailHref    = 'mailto:' . $contactoMail;
-        $contactoTelefono    = '+57 300 000 0000';
-        $contactoTelefonoHref = 'tel:+573000000000';
+        $contactoTelefono    = '+57 324 4314271';
+        $contactoTelefonoHref = 'tel:+573244314271';
         $socialHref          = htmlspecialchars($origin !== '' ? rtrim($origin, '/') : '#', ENT_QUOTES, 'UTF-8');
 
         $bodyHtml = <<<HTML
@@ -720,9 +727,9 @@ HTML;
         exit;
     }
 
-    private function error(string $msg, int $code = 400): never {
+    private function error(string $msg, int $code = 400, array $extra = []): never {
         http_response_code($code);
-        echo json_encode(['success' => false, 'message' => $msg]);
+        echo json_encode(array_replace(['success' => false, 'message' => $msg], $extra));
         exit;
     }
 }

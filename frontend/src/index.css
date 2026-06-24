@@ -40,9 +40,11 @@ html.theme-dark {
   --md-text: #f3f7ed;
   --md-text-soft: #c5d3bf;
   --md-sage: #5f7658;
-  --md-aqua: #a8c878;
+  /* Verde de acento en modo oscuro: un punto más oscuro/saturado que el verde
+     caqui anterior (#a8c878), sin llegar a un verde militar apagado. */
+  --md-aqua: #7CB155;
   --md-lavender: #2f4438;
-  --md-accent: linear-gradient(135deg, #a8c878 0%, #3C5148 100%);
+  --md-accent: linear-gradient(135deg, #7CB155 0%, #3C5148 100%);
   --md-shadow: 0 20px 44px rgba(0, 0, 0, 0.34);
 }
 
@@ -326,13 +328,32 @@ body {
   html.theme-dark [style*="color: #374151"],
   html.theme-dark [style*="color:#374151"],
   html.theme-dark [style*="color: #666"],
-  html.theme-dark [style*="color:#666"] {
+  html.theme-dark [style*="color:#666"],
+  html.theme-dark [style*="color: #6b7280"],
+  html.theme-dark [style*="color:#6b7280"],
+  html.theme-dark [style*="color: #64748b"],
+  html.theme-dark [style*="color:#64748b"],
+  html.theme-dark [style*="color: #475569"],
+  html.theme-dark [style*="color:#475569"],
+  html.theme-dark [style*="color: #4b5563"],
+  html.theme-dark [style*="color:#4b5563"],
+  html.theme-dark [style*="color: #94a3b8"],
+  html.theme-dark [style*="color:#94a3b8"] {
     color: #dbe7d4 !important;
   }
 
   html.theme-dark [style*="color: #4f46e5"],
   html.theme-dark [style*="color:#4f46e5"] {
-    color: #b8d889 !important;
+    color: var(--md-aqua) !important;
+  }
+
+  /* Verde de marca usado como texto/acento (enlaces, iconos, badges activos):
+     en modo oscuro se reemplaza por --md-aqua para mantener buen contraste. */
+  html.theme-dark [style*="color: #6B8E4E"],
+  html.theme-dark [style*="color:#6B8E4E"],
+  html.theme-dark [style*="color: #6b8e4e"],
+  html.theme-dark [style*="color:#6b8e4e"] {
+    color: var(--md-aqua) !important;
   }
 
   html.theme-dark [style*="backgroundColor: white"],
@@ -346,7 +367,7 @@ body {
   }
 
   html.theme-dark th {
-    color: #b8d889 !important;
+    color: var(--md-aqua) !important;
   }
 
   html.theme-dark input,

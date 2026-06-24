@@ -209,7 +209,7 @@ export default function AdminProveedores() {
     if (Number(p.productos_bajo_stock) === 0) return;
     setCargandoStock(true);
     try {
-      const res = await proveedorService.obtener(p.Cod_Proveedor);
+      const res = await proveedorService.obtener(p.Cod_Proveedor, { silent: true });
       setPanelStock({ proveedor: p, productos: res.productos_bajo_stock || [] });
     } catch { /* silencioso */ }
     finally { setCargandoStock(false); }

@@ -113,10 +113,12 @@ export default function AdminDashboard() {
   const cargar = async () => {
     setCargando(true);
     try {
+      // silent: el dashboard tolera que cualquiera de estas tres falle (usa
+      // Promise.allSettled y sigue mostrando datos parciales).
       const [pedRes, prodRes, ventasRes] = await Promise.allSettled([
-        pedidoService.todos(),
-        productoService.listar(),
-        reporteService.ventas(),
+        pedidoService.todos({ silent: true }),
+        productoService.listar({}, { silent: true }),
+        reporteService.ventas({}, { silent: true }),
       ]);
 
       const peds  = pedRes.status  === "fulfilled" ? (pedRes.value.pedidos   || []) : [];

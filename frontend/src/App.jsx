@@ -4,8 +4,11 @@ import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from "react
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { GlobalErrorProvider } from "./context/ErrorContext";
 import { BellRing, Clock3, PackageCheck, X } from "lucide-react";
 import { pedidoService } from "./services/api";
+import ErrorPage from "./components/errors/ErrorPage";
+import LoadingScreen from "./components/LoadingScreen";
 
 // Paginas publicas
 import Landing from "./pages/Landing";
@@ -70,7 +73,8 @@ function AdminPendingOrdersNotice() {
 
     const cargarPendientes = async () => {
       try {
-        const res = await pedidoService.todos();
+        // silent: es una notificación de fondo, no debe interrumpir al admin si falla.
+        const res = await pedidoService.todos({ silent: true });
         if (cancelado) return;
 
         const pendientes = (res.pedidos || [])
@@ -154,41 +158,48 @@ function AdminPendingOrdersNotice() {
   );
 }
 
+// "Ir al inicio" de la pantalla 403 debe llevar al panel que sí le corresponde al usuario.
+function inicioPorRol(esAdmin, esEmpleado) {
+  if (esAdmin()) return "/admin/dashboard";
+  if (esEmpleado()) return "/empleado/dashboard";
+  return "/tienda";
+}
+
 function RutaPrivada({ children }) {
   const { estaLogueado, cargando } = useAuth();
-  if (cargando) return null;
-  return estaLogueado() ? children : <Navigate to="/login" />;
+  if (cargando) return <LoadingScreen />;
+  return estaLogueado() ? children : <ErrorPage tipo="UNAUTHORIZED" />;
 }
 
 // Solo administrador
 function RutaAdmin({ children }) {
-  const { estaLogueado, esAdmin, cargando } = useAuth();
-  if (cargando) return null;
-  if (!estaLogueado()) return <Navigate to="/login" />;
-  if (!esAdmin()) return <Navigate to="/tienda" />;
+  const { estaLogueado, esAdmin, esEmpleado, cargando } = useAuth();
+  if (cargando) return <LoadingScreen />;
+  if (!estaLogueado()) return <ErrorPage tipo="UNAUTHORIZED" />;
+  if (!esAdmin()) return <ErrorPage tipo="FORBIDDEN" inicioHref={inicioPorRol(esAdmin, esEmpleado)} />;
   return children;
 }
 
 // Solo empleado
 function RutaEmpleado({ children }) {
-  const { estaLogueado, esEmpleado, cargando } = useAuth();
-  if (cargando) return null;
-  if (!estaLogueado()) return <Navigate to="/login" />;
-  if (!esEmpleado()) return <Navigate to="/tienda" />;
+  const { estaLogueado, esAdmin, esEmpleado, cargando } = useAuth();
+  if (cargando) return <LoadingScreen />;
+  if (!estaLogueado()) return <ErrorPage tipo="UNAUTHORIZED" />;
+  if (!esEmpleado()) return <ErrorPage tipo="FORBIDDEN" inicioHref={inicioPorRol(esAdmin, esEmpleado)} />;
   return children;
 }
 
 function RutaStaff({ children }) {
   const { estaLogueado, esAdmin, esEmpleado, cargando } = useAuth();
-  if (cargando) return null;
-  if (!estaLogueado()) return <Navigate to="/login" />;
-  if (!esAdmin() && !esEmpleado()) return <Navigate to="/tienda" />;
+  if (cargando) return <LoadingScreen />;
+  if (!estaLogueado()) return <ErrorPage tipo="UNAUTHORIZED" />;
+  if (!esAdmin() && !esEmpleado()) return <ErrorPage tipo="FORBIDDEN" inicioHref={inicioPorRol(esAdmin, esEmpleado)} />;
   return children;
 }
 
 function RutaSoloPublica({ children }) {
   const { estaLogueado, esAdmin, esEmpleado, cargando } = useAuth();
-  if (cargando) return null;
+  if (cargando) return <LoadingScreen />;
   if (estaLogueado()) {
     if (esAdmin())    return <Navigate to="/admin/dashboard" />;
     if (esEmpleado()) return <Navigate to="/empleado/dashboard" />;
@@ -263,18 +274,7 @@ function AppRoutes() {
         <Route path="/empleado/reportes-ventas" element={<Navigate to="/empleado/reportes" />} />
 
         {/* 404 */}
-        <Route
-          path="*"
-          element={
-            <div className="min-h-screen flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-6xl mb-4">404</div>
-                <h2 className="text-2xl font-bold text-gray-700">Pagina no encontrada</h2>
-                <a href="/" className="text-sm mt-4 inline-block" style={{ color: "#74B495" }}>Volver al inicio</a>
-              </div>
-            </div>
-          }
-        />
+        <Route path="*" element={<ErrorPage tipo="NOT_FOUND" />} />
       </Routes>
     </>
   );
@@ -299,9 +299,11 @@ export default function App() {
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
-          <CartProvider>
-            <AppContent />
-          </CartProvider>
+          <GlobalErrorProvider>
+            <CartProvider>
+              <AppContent />
+            </CartProvider>
+          </GlobalErrorProvider>
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>

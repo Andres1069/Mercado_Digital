@@ -1,11 +1,12 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Mail,
   Lock,
   Eye,
   EyeOff,
   Home,
-  UserPlus
+  UserPlus,
+  Clock3
 } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -41,13 +42,38 @@ export default function Login() {
   const [verNueva, setVerNueva] = useState(false);
   const [verConfirmar, setVerConfirmar] = useState(false);
 
+  // Cuenta bloqueada por intentos fallidos: cronómetro hasta que se puede reintentar.
+  const [bloqueadoHasta, setBloqueadoHasta] = useState(null); // epoch ms
+  const [segundosRestantes, setSegundosRestantes] = useState(0);
+
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
   const handleChangeReset = (e) => setFormReset({ ...formReset, [e.target.name]: e.target.value });
 
   const resetToken = useMemo(() => formReset.token || tokenFromUrl, [formReset.token, tokenFromUrl]);
 
+  useEffect(() => {
+    if (!bloqueadoHasta) return;
+
+    const actualizar = () => {
+      const restante = Math.max(0, Math.ceil((bloqueadoHasta - Date.now()) / 1000));
+      setSegundosRestantes(restante);
+      if (restante <= 0) {
+        setBloqueadoHasta(null);
+        setError("");
+      }
+    };
+
+    actualizar();
+    const id = setInterval(actualizar, 1000);
+    return () => clearInterval(id);
+  }, [bloqueadoHasta]);
+
+  const formatoMMSS = (segundos) =>
+    `${Math.floor(segundos / 60)}:${String(segundos % 60).padStart(2, "0")}`;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (bloqueadoHasta) return;
     setError("");
     setCargando(true);
 
@@ -66,6 +92,9 @@ export default function Login() {
 
       navigate("/tienda");
     } catch (err) {
+      if (err.code === "ACCOUNT_LOCKED" && err.data?.retry_after) {
+        setBloqueadoHasta(Date.now() + err.data.retry_after * 1000);
+      }
       setError(err.message);
     } finally {
       setCargando(false);
@@ -133,7 +162,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 md:p-6" style={{ backgroundColor: esOscuro ? "#0d1a12" : "#f8fafc" }}>
+    <div className="min-h-screen flex items-center justify-center p-4 md:p-6 relative" style={{ backgroundColor: esOscuro ? "#0d1a12" : "#f8fafc" }}>
       <div
         className="w-full max-w-lg md:max-w-5xl rounded-[2rem] shadow-lg overflow-hidden md:grid md:grid-cols-[1fr,1fr]"
         style={{
@@ -150,23 +179,29 @@ export default function Login() {
           }}
         >
           <div className="max-w-md">
-            <p className="text-xs uppercase tracking-[0.35em] text-white/70 font-semibold">Mercado Digital</p>
-            <h1 className="text-2xl md:text-4xl font-black mt-3 leading-tight">Bienvenido de nuevo</h1>
-            <p className="text-white/80 text-sm md:text-base mt-3">
+            <img
+              src="/logo/Logo-Mercado-Digital-Blanco.png"
+              alt="Mercado Digital"
+              className="h-10 md:h-12 w-auto mb-4 drop-shadow-md object-contain"
+            />
+            <h1 className="text-3xl md:text-[2.2rem] font-black leading-[1.1] tracking-tight drop-shadow-sm">
+              Bienvenido de nuevo
+            </h1>
+            <p className="text-white/85 text-sm mt-3 font-medium leading-relaxed max-w-[90%]">
               Ingresa a tu cuenta para comprar, seguir pedidos o entrar al panel administrativo.
             </p>
           </div>
 
-          <div className="hidden md:flex mt-8 justify-center">
-            <div className="relative w-full max-w-[500px] min-h-[260px] sm:min-h-[320px] md:min-h-[360px] overflow-hidden rounded-[2rem] border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.18)] bg-[#172116]">
+          <div className="hidden md:flex mt-6 justify-center">
+            <div className="relative w-full max-w-[500px] min-h-[220px] sm:min-h-[260px] md:min-h-[290px] overflow-hidden rounded-[2rem] border border-white/10 shadow-2xl bg-[#172116]">
               <img
-                src="/loginmen.png"
+                src="/login/loginmen.png"
                 alt="Ilustración de acceso"
                 className="w-full h-full object-cover object-center"
               />
-              <div className="absolute bottom-5 left-5 bg-white/90 backdrop-blur-md rounded-2xl px-4 py-3 shadow-xl">
-                <p className="text-xs" style={{ color: esOscuro ? "#94a3b8" : "#64748b" }}>Mercado Digital</p>
-                <p className="font-bold" style={{ color: esOscuro ? "#f8fafc" : "#1e293b" }}>Compra fácil y rápido</p>
+              <div className="absolute bottom-6 left-6 bg-white/95 backdrop-blur-xl rounded-2xl px-5 py-3.5 shadow-2xl border border-white/40">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-0.5" style={{ color: "#64748b" }}>Mercado Digital</p>
+                <p className="font-black text-base" style={{ color: "#0f172a" }}>Compra fácil y rápido</p>
               </div>
             </div>
           </div>
@@ -175,7 +210,20 @@ export default function Login() {
         <div className="p-7 md:p-10 lg:p-12 flex flex-col justify-center" style={{ backgroundColor: esOscuro ? "#142018" : "#ffffff" }}>
           {error && (
             <div className="px-4 py-3 rounded-2xl mb-6 text-sm border border-rose-200 bg-rose-50 text-rose-700">
-              {error}
+              {bloqueadoHasta ? (
+                <div className="flex items-center gap-3">
+                  <Clock3 className="w-5 h-5 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold">Cuenta bloqueada por demasiados intentos fallidos.</p>
+                    <p>
+                      Podrás volver a intentarlo en{" "}
+                      <span className="font-bold tabular-nums">{formatoMMSS(segundosRestantes)}</span>.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                error
+              )}
             </div>
           )}
 
@@ -206,8 +254,9 @@ export default function Login() {
                     value={form.correo}
                     onChange={handleChange}
                     required
+                    disabled={!!bloqueadoHasta}
                     placeholder="tucorreo@ejemplo.com"
-                    className="md-input pl-12"
+                    className="md-input pl-12 disabled:opacity-60"
                   />
                 </div>
 
@@ -220,8 +269,9 @@ export default function Login() {
                       value={form.contrasena}
                       onChange={handleChange}
                       required
+                      disabled={!!bloqueadoHasta}
                       placeholder="********"
-                      className="md-input pr-12"
+                      className="md-input pr-12 disabled:opacity-60"
                     />
                     <button
                       type="button"
@@ -238,11 +288,15 @@ export default function Login() {
 
                 <button
                   type="submit"
-                  disabled={cargando}
+                  disabled={cargando || !!bloqueadoHasta}
                   className="w-full text-white font-semibold py-3 rounded-xl text-sm transition disabled:opacity-60"
                   style={{ background: "#6B8E4E" }}
                 >
-                  {cargando ? "Ingresando..." : "Ingresar"}
+                  {bloqueadoHasta
+                    ? `Bloqueado (${formatoMMSS(segundosRestantes)})`
+                    : cargando
+                    ? "Ingresando..."
+                    : "Ingresar"}
                 </button>
               </form>
 
@@ -340,7 +394,7 @@ export default function Login() {
                           type="button"
                           onClick={() => setVerNueva((v) => !v)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 transition p-1"
-                      style={{ color: esOscuro ? "#8aab7e" : "#94a3b8" }}
+                          style={{ color: esOscuro ? "#8aab7e" : "#94a3b8" }}
                           tabIndex={-1}
                           aria-label={verNueva ? "Ocultar contraseña" : "Ver contraseña"}
                         >
@@ -363,7 +417,7 @@ export default function Login() {
                           type="button"
                           onClick={() => setVerConfirmar((v) => !v)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 transition p-1"
-                      style={{ color: esOscuro ? "#8aab7e" : "#94a3b8" }}
+                          style={{ color: esOscuro ? "#8aab7e" : "#94a3b8" }}
                           tabIndex={-1}
                           aria-label={verConfirmar ? "Ocultar contraseña" : "Ver contraseña"}
                         >
@@ -417,6 +471,12 @@ export default function Login() {
             </Link>
           </div>
         </div>
+      </div>
+
+      <div className="absolute bottom-4 left-0 right-0 text-center" style={{ color: esOscuro ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)" }}>
+        <p className="text-[8px] uppercase tracking-wider font-semibold">
+          &copy; {new Date().getFullYear()} Mercado Digital S.A.S. Todos los derechos reservados.
+        </p>
       </div>
     </div>
   );

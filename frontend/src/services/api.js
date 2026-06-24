@@ -24,25 +24,81 @@ export function resolverImagen(url) {
   return `${BASE_URL}/${limpia}`;
 }
 
+// ── Manejo centralizado de errores ─────────────────────────
+// Toda petición fallida lanza un ApiError con status/code, en vez de un Error
+// genérico. El GlobalErrorProvider (frontend/src/context/ErrorContext.jsx) se
+// registra como handler y muestra la pantalla de error correspondiente para
+// cualquier llamada que no se marque como { silent: true } (login, registro y
+// flujos de credenciales mantienen su manejo inline de siempre).
+export class ApiError extends Error {
+  constructor(message, { status, code, data } = {}) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.code = code;
+    // Cuerpo crudo de la respuesta (si lo hubo): permite leer campos extra que
+    // algunos endpoints agregan, p.ej. retry_after en el bloqueo de cuenta.
+    this.data = data;
+  }
+}
+
+let globalErrorHandler = null;
+export function setGlobalErrorHandler(fn) {
+  globalErrorHandler = fn;
+}
+
+function codigoDesdeStatus(status) {
+  switch (status) {
+    case 400: return "BAD_REQUEST";
+    case 401: return "UNAUTHORIZED";
+    case 403: return "FORBIDDEN";
+    case 404: return "NOT_FOUND";
+    default: return "SERVER_ERROR";
+  }
+}
+
+// Errores de infraestructura (servidor caído, BD caída, sin red, servicio externo
+// caído) siempre deben tomar toda la pantalla, incluso en llamadas marcadas como
+// "silent" (login/registro/etc): "silent" solo protege el manejo inline de errores
+// de validación (400/401/403), no oculta una caída real del sistema.
+const CODIGOS_CRITICOS = new Set(["SERVER_ERROR", "DB_CONNECTION_ERROR", "SERVICE_UNAVAILABLE", "NETWORK_ERROR"]);
+
+function reportarYLanzar(err, silent, retry) {
+  const debeReportar = (!silent || CODIGOS_CRITICOS.has(err.code)) && globalErrorHandler;
+  if (debeReportar) {
+    globalErrorHandler({ tipo: err.code, detalle: err.message, retry });
+  }
+  throw err;
+}
+
 async function request(ruta, opciones = {}) {
+  const { silent = false, ...fetchOpciones } = opciones;
   const token = sessionStorage.getItem("md_token");
   const config = {
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...opciones.headers,
+      ...fetchOpciones.headers,
     },
-    ...opciones,
+    ...fetchOpciones,
   };
 
   const url = `${BASE_URL}/${ruta}`;
+  const reintentar = () => request(ruta, opciones);
   let res;
   try {
     res = await fetch(url, config);
   } catch (e) {
-    // Esto pasa típicamente por: API apagada, URL mal, CORS bloqueado, o mixed content (https->http).
+    // Esto pasa típicamente por: API apagada, URL mal, CORS bloqueado, mixed content, o sin red.
     const detalle = e instanceof Error ? e.message : String(e);
-    throw new Error(`No se pudo conectar con la API (${detalle}). URL: ${url}`);
+    const sinRed = typeof navigator !== "undefined" && navigator.onLine === false;
+    return reportarYLanzar(
+      new ApiError(`No se pudo conectar con la API (${detalle}). URL: ${url}`, {
+        code: sinRed ? "NETWORK_ERROR" : "DB_CONNECTION_ERROR",
+      }),
+      silent,
+      reintentar
+    );
   }
   const raw = await res.text();
 
@@ -59,7 +115,8 @@ async function request(ruta, opciones = {}) {
     .replace(/\s+/g, " ")
     .trim();
 
-  // Si la API invalida el token (expirado o sesión cerrada), limpiamos la sesión local y forzamos login.
+  // Si la API invalida el token (expirado o sesión cerrada), limpiamos la sesión local.
+  // La pantalla de error 401 (global o de los guards de ruta) ofrece el botón "Iniciar sesión".
   if (!res.ok && res.status === 401) {
     const msg = (data?.message || data?.mensaje || textoLimpio || "").toLowerCase();
     const debeCerrarSesion =
@@ -71,51 +128,55 @@ async function request(ruta, opciones = {}) {
     if (debeCerrarSesion) {
       sessionStorage.removeItem("md_token");
       sessionStorage.removeItem("md_usuario");
-      if (!window.location.pathname.startsWith("/login")) {
-        window.location.assign("/login?reason=session");
-      }
     }
   }
 
   if (!res.ok) {
     const base = data?.message || data?.mensaje || "";
     const detalle = data?.detail ? ` ${data.detail}` : "";
-    const mensaje = (base + detalle).trim() || textoLimpio.slice(0, 220);
-    throw new Error(mensaje || "Error en la solicitud.");
+    const mensaje = (base + detalle).trim() || textoLimpio.slice(0, 220) || "Error en la solicitud.";
+    const code = data?.code || codigoDesdeStatus(res.status);
+    return reportarYLanzar(new ApiError(mensaje, { status: res.status, code, data }), silent, reintentar);
   }
 
   if (!data) {
-    throw new Error(textoLimpio || "La API no devolvio JSON valido.");
+    return reportarYLanzar(
+      new ApiError(textoLimpio || "La API no devolvio JSON valido.", { status: res.status, code: "SERVER_ERROR" }),
+      silent,
+      reintentar
+    );
   }
 
   return data;
 }
 
-const get  = (ruta)       => request(ruta, { method: "GET" });
-const post = (ruta, body) => request(ruta, { method: "POST",   body: JSON.stringify(body) });
-const put  = (ruta, body) => request(ruta, { method: "PUT",    body: JSON.stringify(body) });
-const del  = (ruta)       => request(ruta, { method: "DELETE" });
+const get  = (ruta, extra = {})       => request(ruta, { method: "GET", ...extra });
+const post = (ruta, body, extra = {}) => request(ruta, { method: "POST",   body: JSON.stringify(body), ...extra });
+const put  = (ruta, body, extra = {}) => request(ruta, { method: "PUT",    body: JSON.stringify(body), ...extra });
+const del  = (ruta, extra = {})       => request(ruta, { method: "DELETE", ...extra });
 
 // ── Auth ──────────────────────────────────────────────────
+// silent: true → estas llamadas mantienen su manejo de error inline (formularios
+// de Login/Registro/Perfil) en vez de disparar la pantalla de error global.
 export const authService = {
-  login:    (correo, contrasena) => post("auth/login",    { correo, contrasena }),
-  registro: (datos)              => post("auth/registro", datos),
-  cambiarPassword: (datos)       => post("auth/cambiar-password", datos),
-  resetRequest: (correo)         => post("auth/reset-request", { correo }),
-  resetConfirm: (token, nueva_contrasena) => post("auth/reset-confirm", { token, nueva_contrasena }),
-  me:       ()                   => get("auth/me"),
-  actualizarPerfil: (datos)      => put("auth/perfil", datos),
-  logout:   ()                   => post("auth/logout", {}),
+  login:    (correo, contrasena) => post("auth/login",    { correo, contrasena }, { silent: true }),
+  registro: (datos)              => post("auth/registro", datos, { silent: true }),
+  cambiarPassword: (datos)       => post("auth/cambiar-password", datos, { silent: true }),
+  resetRequest: (correo)         => post("auth/reset-request", { correo }, { silent: true }),
+  resetConfirm: (token, nueva_contrasena) => post("auth/reset-confirm", { token, nueva_contrasena }, { silent: true }),
+  me:       ()                   => get("auth/me", { silent: true }),
+  actualizarPerfil: (datos)      => put("auth/perfil", datos, { silent: true }),
+  logout:   ()                   => post("auth/logout", {}, { silent: true }),
 };
 
 // ── Productos ─────────────────────────────────────────────
 export const productoService = {
-  listar: (filtros = {}) => {
+  listar: (filtros = {}, extra = {}) => {
     const params = new URLSearchParams();
     if (filtros.categoria) params.append("categoria", filtros.categoria);
     if (filtros.buscar)    params.append("buscar",    filtros.buscar);
     const qs = params.toString();
-    return get(`productos${qs ? "?" + qs : ""}`);
+    return get(`productos${qs ? "?" + qs : ""}`, extra);
   },
   obtener:     (id)        => get(`productos/${id}`),
   crear:       (datos)     => post("productos", datos),
@@ -126,15 +187,15 @@ export const productoService = {
 
 // ── Categorías ────────────────────────────────────────────
 export const categoriaService = {
-  listar:    ()          => get("categorias"),
+  listar:    (extra = {}) => get("categorias", extra),
   crear:     (datos)     => post("categorias", datos),
   actualizar:(id, datos) => put(`categorias/${id}`, datos),
   eliminar:  (id)        => del(`categorias/${id}`),
 };
 
 export const proveedorService = {
-  listar:    ()          => get("proveedores"),
-  obtener:   (id)        => get(`proveedores/${id}`),
+  listar:    (extra = {})      => get("proveedores", extra),
+  obtener:   (id, extra = {})  => get(`proveedores/${id}`, extra),
   crear:     (datos)     => post("proveedores", datos),
   actualizar:(id, datos) => put(`proveedores/${id}`, datos),
   eliminar:  (id)        => del(`proveedores/${id}`),
@@ -151,9 +212,9 @@ export const carritoService = {
 // ── Pedidos ───────────────────────────────────────────────
 export const pedidoService = {
   mis_pedidos:  ()              => get("pedidos/mis-pedidos"),
-  obtener:      (id)            => get(`pedidos/${id}`),
+  obtener:      (id, extra = {})  => get(`pedidos/${id}`, extra),
   crear:        (datos)         => post("pedidos", datos),
-  todos:        ()              => get("pedidos"),
+  todos:        (extra = {})    => get("pedidos", extra),
   cambiarEstado:(id, estado)    => put(`pedidos/${id}/estado`, { estado }),
   actualizarEntrega:(id, tipo_entrega) => put(`pedidos/${id}/entrega`, { tipo_entrega }),
   notificarDomicilio:(id)       => post(`pedidos/${id}/notificar-domicilio`, {}),
@@ -175,7 +236,7 @@ function queryReportes(filtros = {}) {
 // ── Reportes ──────────────────────────────────────────────
 export const reporteService = {
   registros:            (f = {}) => get(`reportes${queryReportes(f)}`),
-  ventas:              (f = {}) => get(`reportes/ventas${queryReportes(f)}`),
+  ventas:              (f = {}, extra = {}) => get(`reportes/ventas${queryReportes(f)}`, extra),
   productosMasVendidos:(f = {}) => get(`reportes/productos-mas-vendidos${queryReportes(f)}`),
   pedidosPorEstado:    (f = {}) => get(`reportes/pedidos-estado${queryReportes(f)}`),
   ingresos:            (p, f = {}) => get(`reportes/ingresos${queryReportes({ ...f, periodo: p })}`),
@@ -183,7 +244,7 @@ export const reporteService = {
 
 // ── Inventario ────────────────────────────────────────────
 export const inventarioService = {
-  listar:    ()               => get("inventario"),
+  listar:    (extra = {})     => get("inventario", extra),
   actualizar:(id, datos)      => put(`inventario/${id}`, datos),
   alertas:   (umbral = 10)    => get(`inventario/alertas?umbral=${umbral}`),
 };
@@ -191,7 +252,7 @@ export const inventarioService = {
 // ── Ofertas ─────────────────────────────────────────────────────
 export const ofertaService = {
   listar:     ()          => get("ofertas"),
-  listarTodas:()          => get("ofertas/todas"),
+  listarTodas:(extra = {})=> get("ofertas/todas", extra),
   crear:      (datos)     => post("ofertas", datos),
   actualizar: (id, datos) => put(`ofertas/${id}`, datos),
   eliminar:   (id)        => del(`ofertas/${id}`),
@@ -199,7 +260,7 @@ export const ofertaService = {
 };
 
 export const usuarioService = {
-  listar:     ()          => get("usuarios"),
+  listar:     (extra = {}) => get("usuarios", extra),
   stats:      ()          => get("usuarios/stats"),
   roles:      ()          => get("usuarios/roles"),
   crear:      (datos)     => post("usuarios", datos),
@@ -216,14 +277,15 @@ export const domicilioService = {
   detalle:         (pedido)         => get(`domicilio/detalle?pedido=${pedido}`),
   cancelar:        (pedido)         => post("domicilio/cancelar", { pedido }),
   seguimiento:     (pedido)         => get(`domicilio/seguimiento?pedido=${pedido}`),
-  todos:           ()               => get("domicilio/todos"),
+  todos:           (extra = {})     => get("domicilio/todos", extra),
   actualizarEstado:(id, estado, extra = {}) => put(`domicilio/${id}/estado`, { estado, ...extra }),
 };
 
 // ── Helper para subir archivos (multipart/form-data) ──────
-export async function uploadFile(ruta, formData) {
+export async function uploadFile(ruta, formData, { silent = false } = {}) {
   const token = sessionStorage.getItem("md_token");
   const url   = `${BASE_URL}/${ruta}`;
+  const reintentar = () => uploadFile(ruta, formData, { silent });
   let res;
   try {
     res = await fetch(url, {
@@ -233,7 +295,14 @@ export async function uploadFile(ruta, formData) {
       body:    formData,
     });
   } catch (e) {
-    throw new Error(`No se pudo conectar con la API (${e instanceof Error ? e.message : String(e)}). URL: ${url}`);
+    const sinRed = typeof navigator !== "undefined" && navigator.onLine === false;
+    return reportarYLanzar(
+      new ApiError(`No se pudo conectar con la API (${e instanceof Error ? e.message : String(e)}). URL: ${url}`, {
+        code: sinRed ? "NETWORK_ERROR" : "DB_CONNECTION_ERROR",
+      }),
+      silent,
+      reintentar
+    );
   }
   const raw = await res.text();
   let data = null;
@@ -243,7 +312,9 @@ export async function uploadFile(ruta, formData) {
   if (!res.ok) {
     const base = data?.message || data?.mensaje || "";
     const det  = data?.detail ? ` ${data.detail}` : "";
-    throw new Error((base + det).trim() || textoLimpio.slice(0, 220) || "Error al subir archivo.");
+    const mensaje = (base + det).trim() || textoLimpio.slice(0, 220) || "Error al subir archivo.";
+    const code = data?.code || codigoDesdeStatus(res.status);
+    return reportarYLanzar(new ApiError(mensaje, { status: res.status, code, data }), silent, reintentar);
   }
   return data;
 }
@@ -251,9 +322,9 @@ export async function uploadFile(ruta, formData) {
 // ── Pago ──────────────────────────────────────────────────
 export const pagoService = {
   obtener:          (pedidoId)              => get(`pago/${pedidoId}`),
-  todos:            ()                      => get("pago"),
+  todos:            (extra = {})            => get("pago", extra),
   crearPreferencia: (pedidoId, frontendUrl) => post(`pago/${pedidoId}/preferencia`, { frontend_url: frontendUrl }),
-  verificarMP:      (pedidoId, paymentId)   => get(`pago/${pedidoId}/verificar-mp${paymentId ? `?payment_id=${paymentId}` : ""}`),
+  verificarMP:      (pedidoId, paymentId, extra = {}) => get(`pago/${pedidoId}/verificar-mp${paymentId ? `?payment_id=${paymentId}` : ""}`, extra),
   simular:          (pedidoId, metodo, datos) => post(`pago/${pedidoId}/simulado`, { metodo, datos }),
   subirComprobante: (pedidoId, formData)    => uploadFile(`pago/${pedidoId}/comprobante`, formData),
   verificar:        (pagoId, estado, notas = "") => put(`pago/${pagoId}/verificar`, { estado, notas }),

@@ -131,7 +131,7 @@ export default function Sidebar() {
   const links = esEmp ? LINKS_EMPLEADO : LINKS_ADMIN;
 
   const cerrar = () => setAbierto(false);
-  const handleLogout = () => { cerrarSesion(); navigate("/"); };
+  const handleLogout = () => { cerrarSesion(); navigate("/login"); };
 
   const inicial = (usuario?.Nombre?.[0] || "U").toUpperCase();
 
@@ -229,6 +229,15 @@ export default function Sidebar() {
             {Ico.logout}
             Cerrar sesión
           </button>
+          
+          {/* Copyright */}
+          <div className="pt-4 pb-2 mt-4 text-center border-t border-white/5">
+            <p className="text-[10px] uppercase tracking-wider font-semibold leading-relaxed" style={{ color: "rgba(213,221,223,0.3)" }}>
+              &copy; {new Date().getFullYear()} Mercado Digital S.A.S.
+              <br />
+              Todos los derechos reservados.
+            </p>
+          </div>
         </div>
       </div>
     );

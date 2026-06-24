@@ -112,7 +112,8 @@ export default function AdminOfertas() {
     try {
       const [ofertasRes, productosRes] = await Promise.allSettled([
         ofertaService.listarTodas(),
-        productoService.listar(),
+        // silent: lista secundaria (selector de producto), no bloquea la página si falla.
+        productoService.listar({}, { silent: true }),
       ]);
       if (ofertasRes.status === "fulfilled") setOfertas(ofertasRes.value.ofertas || []);
       else { setOfertas([]); setError(ofertasRes.reason?.message || "No se pudieron cargar las ofertas."); }

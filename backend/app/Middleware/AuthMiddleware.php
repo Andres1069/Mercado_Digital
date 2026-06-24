@@ -16,7 +16,7 @@ class AuthMiddleware {
 
         if (!$token) {
             http_response_code(401);
-            echo json_encode(['success' => false, 'message' => 'Token requerido. Inicia sesión.']);
+            echo json_encode(['success' => false, 'message' => 'Token requerido. Inicia sesión.', 'code' => 'UNAUTHORIZED']);
             exit;
         }
 
@@ -24,7 +24,7 @@ class AuthMiddleware {
 
         if (!$payload) {
             http_response_code(401);
-            echo json_encode(['success' => false, 'message' => 'Token inválido o expirado.']);
+            echo json_encode(['success' => false, 'message' => 'Token inválido o expirado.', 'code' => 'UNAUTHORIZED']);
             exit;
         }
 
@@ -36,7 +36,7 @@ class AuthMiddleware {
             $estado = $model->obtenerEstadoPorDocumento($doc);
             if ($estado !== null && $estado !== 'Activo') {
                 http_response_code(403);
-                echo json_encode(['success' => false, 'message' => 'Tu cuenta esta inactiva. Contacta a un administrador.']);
+                echo json_encode(['success' => false, 'message' => 'Tu cuenta esta inactiva. Contacta a un administrador.', 'code' => 'FORBIDDEN']);
                 exit;
             }
         }
@@ -46,14 +46,14 @@ class AuthMiddleware {
             $sidToken = (string)($payload['sid'] ?? '');
             if ($sidToken === '') {
                 http_response_code(401);
-                echo json_encode(['success' => false, 'message' => 'Sesion expirada. Inicia sesion nuevamente.']);
+                echo json_encode(['success' => false, 'message' => 'Sesion expirada. Inicia sesion nuevamente.', 'code' => 'UNAUTHORIZED']);
                 exit;
             }
 
             $sidActual = $model->obtenerSesionIdPorDocumento($doc);
             if (!$sidActual || !hash_equals($sidActual, $sidToken)) {
                 http_response_code(401);
-                echo json_encode(['success' => false, 'message' => 'Sesion cerrada por inicio en otro dispositivo.']);
+                echo json_encode(['success' => false, 'message' => 'Sesion cerrada por inicio en otro dispositivo.', 'code' => 'UNAUTHORIZED']);
                 exit;
             }
         }
@@ -70,7 +70,7 @@ class AuthMiddleware {
 
         if (!in_array($payload['rol'], $roles)) {
             http_response_code(403);
-            echo json_encode(['success' => false, 'message' => 'No tienes permiso para esta acción.']);
+            echo json_encode(['success' => false, 'message' => 'No tienes permiso para esta acción.', 'code' => 'FORBIDDEN']);
             exit;
         }
 

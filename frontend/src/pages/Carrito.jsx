@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import { resolverImagen, pedidoService } from "../services/api";
 import { useCart } from "../context/CartContext";
 import { calcularCostoEnvio, DEFAULT_SHIPPING_RULES } from "../utils/shipping";
@@ -83,10 +84,10 @@ export default function Carrito() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8 mb-16 flex-1 w-full">
         <div className="flex flex-wrap items-end justify-between gap-3 mb-6">
           <div>
             <h1 className="text-2xl font-extrabold text-gray-800">Carrito de compras</h1>
@@ -252,6 +253,7 @@ export default function Carrito() {
           </div>
         )}
       </div>
+      <Footer compact={true} />
 
       {/* ── Modal de checkout ── */}
       {mostrarModal && (
