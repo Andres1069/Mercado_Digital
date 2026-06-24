@@ -385,6 +385,11 @@ class DomicilioModel {
         if ($this->hasDomicilioCol('Telefono'))          $extra[] = 'd.Telefono AS Telefono_entrega';
         if ($this->hasDomicilioCol('Notas'))             $extra[] = 'd.Notas';
         if ($this->hasDomicilioCol('Costo_envio'))       $extra[] = 'd.Costo_envio';
+        if ($this->hasDomicilioCol('Comprobante_Entrega')) $extra[] = 'd.Comprobante_Entrega';
+        if ($this->hasDomicilioCol('Recibido_Por'))        $extra[] = 'd.Recibido_Por';
+        if ($this->hasDomicilioCol('Documento_Recibe'))    $extra[] = 'd.Documento_Recibe';
+        if ($this->hasDomicilioCol('Observaciones_Entrega')) $extra[] = 'd.Observaciones_Entrega';
+        if ($this->hasDomicilioCol('Fecha_Entrega'))       $extra[] = 'd.Fecha_Entrega';
 
         $selectExtra = $extra ? ",\n                    " . implode(",\n                    ", $extra) : '';
 
@@ -492,5 +497,25 @@ class DomicilioModel {
             if ($this->db->inTransaction()) $this->db->rollBack();
             throw $e;
         }
+    }
+    }
+
+    /**
+     * Obtiene los datos del cliente (correo, nombre) y el pedido asociado a un domicilio.
+     */
+    public function getContactoPorDomicilio(int $codDomicilio): array {
+        $sql = "SELECT 
+                    per.Correo, 
+                    per.Nombre, 
+                    per.Apellido, 
+                    p.Cod_Pedido
+                FROM domicilio d
+                INNER JOIN usuario_pedido up ON up.Cod_usuario_pedido = d.Cod_Usuario_Pedido
+                INNER JOIN persona per ON per.Num_Documento = up.Num_Documento
+                INNER JOIN pedido p ON p.Cod_Pedido = up.Cod_pedido
+                WHERE d.Cod_Domicilio = :id LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':id' => $codDomicilio]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
     }
 }

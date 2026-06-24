@@ -43,6 +43,7 @@ export default function AdminDomicilios() {
     observaciones_entrega: "",
     comprobante_entrega: "",
   });
+  const [subiendoFoto, setSubiendoFoto] = useState(false);
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -89,7 +90,7 @@ export default function AdminDomicilios() {
     }
   }
 
-  async function confirmarEntrega() {
+  const confirmarEntrega = async () => {
     if (!comprobanteTarget) return;
     setCambiando(comprobanteTarget.Cod_Domicilio);
     try {
@@ -112,11 +113,38 @@ export default function AdminDomicilios() {
       );
       setComprobanteTarget(null);
     } catch (e) {
-      alert(e.message || "Error al registrar el comprobante.");
+      alert(e.message || "Error al confirmar entrega.");
     } finally {
       setCambiando(null);
     }
-  }
+  };
+
+  const handleSubirFoto = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setSubiendoFoto(true);
+    const formData = new FormData();
+    formData.append("evidencia", file);
+    formData.append("pedido_id", comprobanteTarget?.Cod_Pedido || "");
+
+    try {
+      const response = await fetch("http://localhost/mercado_digital/backend/public/upload_evidencia.php", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json();
+      if (data.success) {
+        setComprobante((prev) => ({ ...prev, comprobante_entrega: data.url }));
+      } else {
+        alert(data.message || "Error al subir foto");
+      }
+    } catch (err) {
+      alert("Error de conexión al subir foto");
+    } finally {
+      setSubiendoFoto(false);
+    }
+  };
 
   const filtrados = domicilios.filter((d) => {
     const matchEstado = filtroEstado === "Todos" || d.Estado_Domicilio === filtroEstado;
@@ -196,7 +224,7 @@ export default function AdminDomicilios() {
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
-                  {["Pedido", "Cliente", "Dirección", "Pago", "Estado", "Cambiar estado"].map((h, i) => (
+                  {["Pedido", "Cliente", "Dirección", "Pago", "Estado", "Evidencia", "Cambiar estado"].map((h, i) => (
                     <th key={h}
                       className={`px-4 py-3 text-xs font-bold uppercase tracking-wider ${i === 1 ? "hidden md:table-cell text-left" : ""} ${i === 2 ? "hidden lg:table-cell text-left" : ""} ${i === 3 ? "hidden md:table-cell text-center" : ""} ${i >= 4 ? "text-center" : ""} ${i === 0 ? "text-left" : ""}`}
                       style={{ color: "#6B8E4E" }}>
@@ -261,7 +289,7 @@ export default function AdminDomicilios() {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-center">
-                          {d.Comprobante_Entrega || d.Recibido_Por ? (
+                          {d.Estado_Domicilio === "Entregado" || d.Comprobante_Entrega || d.Recibido_Por ? (
                             <button
                               type="button"
                               onClick={() => {
@@ -273,10 +301,13 @@ export default function AdminDomicilios() {
                                   comprobante_entrega: d.Comprobante_Entrega || "",
                                 });
                               }}
-                              className="px-2.5 py-1 rounded-lg text-xs font-bold"
-                              style={{ backgroundColor: "rgba(107,142,78,0.16)", color: "#3C5148" }}
+                              className="px-2.5 py-1 rounded-lg text-xs font-bold transition"
+                              style={{ 
+                                backgroundColor: d.Comprobante_Entrega ? "rgba(107,142,78,0.16)" : "rgba(245,158,11,0.15)", 
+                                color: d.Comprobante_Entrega ? "#3C5148" : "#92400e" 
+                              }}
                             >
-                              Ver
+                              {d.Comprobante_Entrega ? "Ver" : "Añadir"}
                             </button>
                           ) : (
                             <span className="text-xs" style={{ color: "#92400e" }}>Pendiente</span>
@@ -332,19 +363,47 @@ export default function AdminDomicilios() {
             <textarea
               value={comprobante.observaciones_entrega}
               onChange={(e) => setComprobante((p) => ({ ...p, observaciones_entrega: e.target.value }))}
-              rows={3}
+              rows={2}
               placeholder="Observaciones de entrega"
               className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none resize-none"
               style={INPUT_STYLE}
             />
-            <textarea
-              value={comprobante.comprobante_entrega}
-              onChange={(e) => setComprobante((p) => ({ ...p, comprobante_entrega: e.target.value }))}
-              rows={3}
-              placeholder="Comprobante: URL de foto, nota de firma o codigo de evidencia"
-              className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none resize-none"
-              style={INPUT_STYLE}
-            />
+            
+            <div className="mt-2">
+              <label className="block text-sm font-semibold mb-2" style={{ color: "#3C5148" }}>Evidencia Fotográfica</label>
+              
+              {comprobante.comprobante_entrega ? (
+                <div className="relative rounded-xl overflow-hidden mb-2" style={{ border: "1px solid #B2C5B2", height: "180px" }}>
+                  <img src={comprobante.comprobante_entrega} alt="Evidencia" className="w-full h-full object-cover" />
+                  <button 
+                    onClick={() => setComprobante((p) => ({ ...p, comprobante_entrega: "" }))}
+                    className="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full shadow flex items-center justify-center font-bold"
+                  >
+                    ×
+                  </button>
+                </div>
+              ) : (
+                <label className={`w-full flex flex-col items-center justify-center rounded-xl border-2 border-dashed py-8 cursor-pointer transition ${subiendoFoto ? "opacity-50 cursor-not-allowed" : "hover:bg-slate-50"}`}
+                  style={{ borderColor: "#B2C5B2", backgroundColor: "#F8FAF9" }}>
+                  <span className="text-3xl mb-2">📷</span>
+                  <span className="text-sm font-semibold" style={{ color: "#6B8E4E" }}>
+                    {subiendoFoto ? "Subiendo foto..." : "Tomar foto o subir imagen"}
+                  </span>
+                  <input type="file" accept="image/*" capture="environment" className="hidden" disabled={subiendoFoto} onChange={handleSubirFoto} />
+                </label>
+              )}
+              
+              <p className="text-xs mt-2" style={{ color: "#6B8E4E" }}>
+                También puedes usar este campo temporalmente si necesitas poner una URL manual o nota.
+              </p>
+              <input
+                value={comprobante.comprobante_entrega}
+                onChange={(e) => setComprobante((p) => ({ ...p, comprobante_entrega: e.target.value }))}
+                placeholder="URL manual o texto..."
+                className="w-full rounded-xl px-4 py-2 mt-1 text-xs focus:outline-none"
+                style={INPUT_STYLE}
+              />
+            </div>
           </div>
 
           <div className="flex gap-3 mt-5">

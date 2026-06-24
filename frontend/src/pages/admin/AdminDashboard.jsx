@@ -109,45 +109,50 @@ export default function AdminDashboard() {
   const [pedidos,    setPedidos]    = useState([]);
   const [productos,  setProductos]  = useState([]);
   const [chartData,  setChartData]  = useState([]);
+  const [topProductos, setTopProductos] = useState([]);
 
   const cargar = async () => {
     setCargando(true);
     try {
-      // silent: el dashboard tolera que cualquiera de estas tres falle (usa
-      // Promise.allSettled y sigue mostrando datos parciales).
-      const [pedRes, prodRes, ventasRes] = await Promise.allSettled([
+      const [pedRes, prodRes, ingRes, topRes] = await Promise.allSettled([
         pedidoService.todos({ silent: true }),
         productoService.listar({}, { silent: true }),
-        reporteService.ventas({}, { silent: true }),
+        reporteService.ingresos("dia", { silent: true }),
+        reporteService.productosMasVendidos({ silent: true }),
       ]);
 
       const peds  = pedRes.status  === "fulfilled" ? (pedRes.value.pedidos   || []) : [];
       const prods = prodRes.status === "fulfilled" ? (prodRes.value.productos || []) : [];
-      const vents = ventasRes.status === "fulfilled" ? ventasRes.value : null;
+      const ingresos = ingRes.status === "fulfilled" ? (ingRes.value.ingresos || []) : [];
+      const topP  = topRes.status === "fulfilled" ? (topRes.value.productos || []) : [];
 
       setPedidos(peds);
       setProductos(prods);
+      setTopProductos(topP.slice(0, 5));
 
       /* Construir datos de la gráfica */
-      if (vents?.ventas?.length) {
+      if (ingresos.length) {
         setChartData(
-          vents.ventas.slice(-9).map((v) => ({
-            label: MESES[new Date(v.fecha || v.mes || "").getMonth()] ?? String(v.mes || "").slice(0, 3),
-            value: Number(v.total || v.ingresos || 0),
-          }))
+          ingresos.slice(-9).map((v) => {
+            const date = new Date(v.etiqueta + "T00:00:00");
+            return {
+              label: `${date.getDate()} ${MESES[date.getMonth()]}`,
+              value: Number(v.total || 0),
+            };
+          })
         );
       } else {
-        /* Fallback: agrupar pedidos por mes */
-        const byMonth = {};
+        /* Fallback: agrupar pedidos por dia (no por mes para mejor curva) */
+        const byDay = {};
         peds.forEach((p) => {
           const d = new Date(p.Fecha_Pedido || "");
           if (!isNaN(d.getTime())) {
-            const k = `${d.getFullYear()}-${d.getMonth()}`;
-            if (!byMonth[k]) byMonth[k] = { label: MESES[d.getMonth()], value: 0, ts: d.getTime() };
-            byMonth[k].value += Number(p.Total || 0);
+            const k = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+            if (!byDay[k]) byDay[k] = { label: `${d.getDate()} ${MESES[d.getMonth()]}`, value: 0, ts: d.getTime() };
+            byDay[k].value += Number(p.Total || 0);
           }
         });
-        const entries = Object.values(byMonth).sort((a, b) => a.ts - b.ts).slice(-9);
+        const entries = Object.values(byDay).sort((a, b) => a.ts - b.ts).slice(-9);
         setChartData(entries);
       }
     } catch {
@@ -346,118 +351,101 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* ── Tabla de productos ── */}
-          <div className="rounded-2xl overflow-x-auto" style={CARD}>
-            <div className="px-6 py-4 flex items-center justify-between"
-              style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
-              <h2 className="text-base font-bold" style={{ color: "#1B2727" }}>Gestión de Productos</h2>
-              <Link to={`${base}/productos`}
-                className="text-xs font-semibold px-3 py-1.5 rounded-lg transition hover:opacity-80"
-                style={{ backgroundColor: "rgba(107,142,78,0.18)", color: "#3C5148" }}>
-                Ver todos
-              </Link>
+          {/* ── Tablas Inferiores: Top Productos y Gestión ── */}
+          <div className="grid lg:grid-cols-2 gap-4">
+            
+            {/* Top Productos */}
+            <div className="rounded-2xl flex flex-col" style={CARD}>
+              <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
+                <h2 className="text-base font-bold" style={{ color: "#1B2727" }}>🔥 Productos Más Vendidos</h2>
+                <Link to={`${base}/reportes`} className="text-xs font-semibold px-3 py-1.5 rounded-lg transition hover:opacity-80" style={{ backgroundColor: "rgba(245,158,11,0.15)", color: "#92400e" }}>
+                  Ver todos
+                </Link>
+              </div>
+              <div className="p-6 space-y-4">
+                {cargando ? (
+                  [...Array(4)].map((_, i) => <div key={i} className="h-10 rounded-xl animate-pulse" style={{ backgroundColor: "rgba(107,142,78,0.1)" }} />)
+                ) : topProductos.length === 0 ? (
+                  <p className="text-sm text-center py-6" style={{ color: "#6B8E4E" }}>Sin datos suficientes</p>
+                ) : (
+                  topProductos.map((tp, i) => (
+                    <div key={tp.Cod_Producto || tp.Nombre} className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm"
+                        style={{ backgroundColor: i === 0 ? "#fbbf24" : i === 1 ? "#9ca3af" : i === 2 ? "#b45309" : "rgba(107,142,78,0.1)", color: i <= 2 ? "#fff" : "#3C5148" }}>
+                        {i + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold truncate" style={{ color: "#1B2727" }}>{tp.Nombre}</p>
+                        <p className="text-xs" style={{ color: "#6B8E4E" }}>{tp.total_vendido} unidades vendidas</p>
+                      </div>
+                      <span className="font-bold text-sm" style={{ color: "#16a34a" }}>
+                        {fmtFull(tp.ingresos_generados)}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
 
-            <table className="w-full text-sm">
-              <thead>
-                <tr style={{ borderBottom: "1px solid rgba(107,142,78,0.1)" }}>
-                  {["Producto", "Categoria", "Precio", "Stock", "Estado"].map((h, i) => (
-                    <th key={h}
-                      className={`px-5 py-3 text-[11px] font-bold uppercase tracking-wider
-                        ${i === 0 ? "text-left" : ""}
-                        ${i === 1 ? "text-left hidden sm:table-cell" : ""}
-                        ${i >= 2 ? "text-center" : ""}`}
-                      style={{ color: "#6B8E4E" }}>
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {cargando ? (
-                  [...Array(5)].map((_, i) => (
-                    <tr key={i} style={{ borderTop: "1px solid rgba(107,142,78,0.08)" }}>
-                      <td colSpan={5} className="px-5 py-3">
-                        <div className="h-4 rounded animate-pulse"
-                          style={{ backgroundColor: "rgba(107,142,78,0.1)" }} />
-                      </td>
-                    </tr>
-                  ))
-                ) : recentProductos.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-5 py-10 text-center" style={{ color: "#6B8E4E" }}>
-                      Sin productos registrados
-                    </td>
+            {/* Tabla de Productos Recientes */}
+            <div className="rounded-2xl overflow-x-auto flex flex-col" style={CARD}>
+              <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
+                <h2 className="text-base font-bold" style={{ color: "#1B2727" }}>Gestión de Productos</h2>
+                <Link to={`${base}/productos`} className="text-xs font-semibold px-3 py-1.5 rounded-lg transition hover:opacity-80" style={{ backgroundColor: "rgba(107,142,78,0.18)", color: "#3C5148" }}>
+                  Inventario
+                </Link>
+              </div>
+
+              <table className="w-full text-sm">
+                <thead>
+                  <tr style={{ borderBottom: "1px solid rgba(107,142,78,0.1)" }}>
+                    {["Producto", "Stock", "Estado"].map((h, i) => (
+                      <th key={h} className={`px-5 py-3 text-[11px] font-bold uppercase tracking-wider ${i === 0 ? "text-left" : "text-center"}`} style={{ color: "#6B8E4E" }}>
+                        {h}
+                      </th>
+                    ))}
                   </tr>
-                ) : (
-                  recentProductos.map((prod) => {
-                    const stock  = Number(prod.Cantidad || 0);
-                    const activo = String(prod.Estado || "").toLowerCase() === "activo" || stock > 0;
-                    const stockColor = stock <= 5 ? "#f87171" : stock <= 20 ? "#fbbf24" : "#6B8E4E";
-                    const imagenProducto = prod.Imagen_url || prod.imagen_url || prod.Imagen || prod.Foto || "";
-                    return (
-                      <tr key={prod.Cod_Producto}
-                        style={{ borderTop: "1px solid rgba(107,142,78,0.08)" }}
-                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.025)"; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ""; }}>
-
-                        {/* Producto */}
-                        <td className="px-5 py-3">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl overflow-hidden flex-shrink-0"
-                              style={{ backgroundColor: "rgba(107,142,78,0.12)" }}>
-                              {imagenProducto ? (
-                                <img src={resolverImagen(imagenProducto)} alt={prod.Nombre}
-                                  className="w-full h-full object-cover" />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-base">📦</div>
-                              )}
-                            </div>
-                            <p className="font-semibold truncate max-w-[150px]"
-                              style={{ color: "#1B2727" }}>
-                              {prod.Nombre}
-                            </p>
-                          </div>
-                        </td>
-
-                        {/* Categoria */}
-                        <td className="px-5 py-3 hidden sm:table-cell">
-                          <span className="text-xs px-2 py-1 rounded-lg"
-                            style={{ backgroundColor: "rgba(107,142,78,0.12)", color: "#3C5148" }}>
-                            {prod.Categoria || prod.categoria || "—"}
-                          </span>
-                        </td>
-
-                        {/* Precio */}
-                        <td className="px-5 py-3 text-center">
-                          <p className="font-bold" style={{ color: "#1B2727" }}>
-                            {fmtFull(prod.Precio)}
-                          </p>
-                        </td>
-
-                        {/* Stock */}
-                        <td className="px-5 py-3 text-center">
-                          <span className="font-black text-base" style={{ color: stockColor }}>
-                            {stock}
-                          </span>
-                        </td>
-
-                        {/* Estado */}
-                        <td className="px-5 py-3 text-center">
-                          <span className="px-2.5 py-1 rounded-full text-xs font-bold"
-                            style={{
-                              backgroundColor: activo ? "rgba(107,142,78,0.2)" : "rgba(239,68,68,0.15)",
-                              color: activo ? "#6B8E4E" : "#f87171",
-                            }}>
-                            {activo ? "Activo" : "Inactivo"}
-                          </span>
+                </thead>
+                <tbody>
+                  {cargando ? (
+                    [...Array(4)].map((_, i) => (
+                      <tr key={i} style={{ borderTop: "1px solid rgba(107,142,78,0.08)" }}>
+                        <td colSpan={3} className="px-5 py-3">
+                          <div className="h-4 rounded animate-pulse" style={{ backgroundColor: "rgba(107,142,78,0.1)" }} />
                         </td>
                       </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+                    ))
+                  ) : recentProductos.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} className="px-5 py-10 text-center" style={{ color: "#6B8E4E" }}>Sin productos registrados</td>
+                    </tr>
+                  ) : (
+                    recentProductos.map((prod) => {
+                      const stock  = Number(prod.Cantidad || 0);
+                      const activo = String(prod.Estado || "").toLowerCase() === "activo" || stock > 0;
+                      const stockColor = stock <= 5 ? "#f87171" : stock <= 20 ? "#fbbf24" : "#6B8E4E";
+                      return (
+                        <tr key={prod.Cod_Producto} style={{ borderTop: "1px solid rgba(107,142,78,0.08)" }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.025)"; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ""; }}>
+                          <td className="px-5 py-3">
+                            <p className="font-semibold truncate max-w-[200px]" style={{ color: "#1B2727" }}>{prod.Nombre}</p>
+                            <p className="text-xs" style={{ color: "#6B8E4E" }}>{fmtFull(prod.Precio)}</p>
+                          </td>
+                          <td className="px-5 py-3 text-center">
+                            <span className="font-black text-base" style={{ color: stockColor }}>{stock}</span>
+                          </td>
+                          <td className="px-5 py-3 text-center">
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold" style={{ backgroundColor: activo ? "rgba(107,142,78,0.2)" : "rgba(239,68,68,0.15)", color: activo ? "#6B8E4E" : "#f87171" }}>
+                              {activo ? "Activo" : "Inactivo"}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    }).slice(0, 4)
+                  )}
+                </tbody>
+              </table>
+            </div>
+
           </div>
 
         </div>
