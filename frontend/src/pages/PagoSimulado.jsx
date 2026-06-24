@@ -89,8 +89,9 @@ export default function PagoSimulado() {
   // Carga el total del pedido para mostrarlo durante el pago
   useEffect(() => {
     if (!pedidoId) return;
+    // silent: si falla, simplemente no se muestra el total estimado (no es crítico).
     pedidoService
-      .obtener(pedidoId)
+      .obtener(pedidoId, { silent: true })
       .then((res) => {
         const monto = res.pedido?.Total_Carrito ?? res.pedido?.Monto_Pago;
         if (monto != null) setTotal(Number(monto));

@@ -190,14 +190,17 @@ export default function AdminReportes() {
     setExportando(true);
     try {
       const d = {};
+      // silent: la exportación tolera que cualquier sección falle individualmente
+      // (sigue generando el archivo con las secciones que sí cargaron).
+      const s = { silent: true };
       await Promise.all([
-        seccionesExport.has("pedidos")     && pedidoService.todos().then((r)    => { d.pedidos     = r.pedidos     || []; }).catch(() => { d.pedidos     = []; }),
-        seccionesExport.has("pagos")       && pagoService.todos().then((r)      => { d.pagos       = r.pagos       || []; }).catch(() => { d.pagos       = []; }),
-        seccionesExport.has("inventario")  && inventarioService.listar().then((r)=> { d.inventario  = r.inventario  || []; }).catch(() => { d.inventario  = []; }),
-        seccionesExport.has("domicilios")  && domicilioService.todos().then((r)  => { d.domicilios  = r.domicilios  || []; }).catch(() => { d.domicilios  = []; }),
-        seccionesExport.has("clientes")    && usuarioService.listar().then((r)   => { d.clientes    = (r.usuarios   || []).filter((u) => u.rol === "Cliente"); }).catch(() => { d.clientes = []; }),
-        seccionesExport.has("proveedores") && proveedorService.listar().then((r) => { d.proveedores = r.proveedores || []; }).catch(() => { d.proveedores = []; }),
-        seccionesExport.has("productos")   && Promise.all([productoService.listar(), categoriaService.listar()]).then(([pr, cr]) => { d.productos = pr.productos || []; d.categorias = cr.categorias || []; }).catch(() => { d.productos = []; d.categorias = []; }),
+        seccionesExport.has("pedidos")     && pedidoService.todos(s).then((r)    => { d.pedidos     = r.pedidos     || []; }).catch(() => { d.pedidos     = []; }),
+        seccionesExport.has("pagos")       && pagoService.todos(s).then((r)      => { d.pagos       = r.pagos       || []; }).catch(() => { d.pagos       = []; }),
+        seccionesExport.has("inventario")  && inventarioService.listar(s).then((r)=> { d.inventario  = r.inventario  || []; }).catch(() => { d.inventario  = []; }),
+        seccionesExport.has("domicilios")  && domicilioService.todos(s).then((r)  => { d.domicilios  = r.domicilios  || []; }).catch(() => { d.domicilios  = []; }),
+        seccionesExport.has("clientes")    && usuarioService.listar(s).then((r)   => { d.clientes    = (r.usuarios   || []).filter((u) => u.rol === "Cliente"); }).catch(() => { d.clientes = []; }),
+        seccionesExport.has("proveedores") && proveedorService.listar(s).then((r) => { d.proveedores = r.proveedores || []; }).catch(() => { d.proveedores = []; }),
+        seccionesExport.has("productos")   && Promise.all([productoService.listar({}, s), categoriaService.listar(s)]).then(([pr, cr]) => { d.productos = pr.productos || []; d.categorias = cr.categorias || []; }).catch(() => { d.productos = []; d.categorias = []; }),
       ].filter(Boolean));
 
       const seccionHTML = (titulo, filas, cabeceras) => `

@@ -33,13 +33,31 @@ if (in_array($_moduloCache, ['productos', 'categorias', 'ofertas'], true) && $_S
 unset($_rutaCache, $_moduloCache);
 
 require_once __DIR__ . '/../app/Helpers/AuditLog.php';
+require_once __DIR__ . '/../app/Helpers/Logger.php';
+require_once __DIR__ . '/../app/Exceptions/ApiException.php';
 
+// Handler global: ninguna excepción no controlada debe llegar al cliente con su
+// mensaje crudo (puede filtrar rutas, queries SQL o credenciales). Las ApiException
+// (lanzadas a propósito, p.ej. DatabaseConnectionException) sí traen un mensaje
+// público seguro y un código estable para que el frontend elija la pantalla de error
+// correcta; cualquier otra excepción se trata como 500 genérico. El detalle real
+// siempre se registra en backend/storage/logs, nunca en la respuesta HTTP.
 set_exception_handler(function (Throwable $e): void {
-    http_response_code(500);
+    $esApiException = $e instanceof ApiException;
+    $status  = $esApiException ? $e->getStatusCode() : 500;
+    $code    = $esApiException ? $e->getErrorCode()  : 'SERVER_ERROR';
+    $mensaje = $esApiException ? $e->getMessage()     : 'Error interno del servidor.';
+
+    Logger::error($e->getMessage(), [
+        'excepcion' => get_class($e),
+        'archivo'   => $e->getFile() . ':' . $e->getLine(),
+    ]);
+
+    http_response_code($status);
     echo json_encode([
         'success' => false,
-        'message' => 'Error interno del servidor.',
-        'detail'  => $e->getMessage()
+        'message' => $mensaje,
+        'code'    => $code,
     ]);
     exit;
 });
@@ -279,7 +297,7 @@ switch ($modulo) {
 
 function ruta404(): never {
     http_response_code(404);
-    echo json_encode(['success' => false, 'message' => 'Ruta no encontrada.']);
+    echo json_encode(['success' => false, 'message' => 'Ruta no encontrada.', 'code' => 'NOT_FOUND']);
     exit;
 }
 

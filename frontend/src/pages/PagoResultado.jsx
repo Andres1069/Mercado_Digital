@@ -39,7 +39,8 @@ export default function PagoResultado() {
     if (!pedidoId) { setError("Pedido inválido."); setCargando(false); return; }
 
     // Primera verificación: consulta a MP con el payment_id de la URL
-    pagoService.verificarMP(pedidoId, paymentId || null)
+    // silent: hay un fallback inline (estado tomado de la URL) si MP no responde.
+    pagoService.verificarMP(pedidoId, paymentId || null, { silent: true })
       .then((res) => aplicarPago(res.pago))
       .catch(() => {
         // Fallback: usar el status que MP puso en la URL
@@ -56,7 +57,7 @@ export default function PagoResultado() {
       if (intentos.current >= POLL_MAX) { detenerPolling(); return; }
 
       try {
-        const res = await pagoService.verificarMP(pedidoId, paymentId || null);
+        const res = await pagoService.verificarMP(pedidoId, paymentId || null, { silent: true });
         aplicarPago(res.pago);
       } catch { /* silencioso */ }
     }, POLL_INTERVAL);

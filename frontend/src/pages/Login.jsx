@@ -1,11 +1,12 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Mail,
   Lock,
   Eye,
   EyeOff,
   Home,
-  UserPlus
+  UserPlus,
+  Clock3
 } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -39,13 +40,38 @@ export default function Login() {
   const [verNueva, setVerNueva] = useState(false);
   const [verConfirmar, setVerConfirmar] = useState(false);
 
+  // Cuenta bloqueada por intentos fallidos: cronómetro hasta que se puede reintentar.
+  const [bloqueadoHasta, setBloqueadoHasta] = useState(null); // epoch ms
+  const [segundosRestantes, setSegundosRestantes] = useState(0);
+
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
   const handleChangeReset = (e) => setFormReset({ ...formReset, [e.target.name]: e.target.value });
 
   const resetToken = useMemo(() => formReset.token || tokenFromUrl, [formReset.token, tokenFromUrl]);
 
+  useEffect(() => {
+    if (!bloqueadoHasta) return;
+
+    const actualizar = () => {
+      const restante = Math.max(0, Math.ceil((bloqueadoHasta - Date.now()) / 1000));
+      setSegundosRestantes(restante);
+      if (restante <= 0) {
+        setBloqueadoHasta(null);
+        setError("");
+      }
+    };
+
+    actualizar();
+    const id = setInterval(actualizar, 1000);
+    return () => clearInterval(id);
+  }, [bloqueadoHasta]);
+
+  const formatoMMSS = (segundos) =>
+    `${Math.floor(segundos / 60)}:${String(segundos % 60).padStart(2, "0")}`;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (bloqueadoHasta) return;
     setError("");
     setCargando(true);
 
@@ -64,6 +90,9 @@ export default function Login() {
 
       navigate("/tienda");
     } catch (err) {
+      if (err.code === "ACCOUNT_LOCKED" && err.data?.retry_after) {
+        setBloqueadoHasta(Date.now() + err.data.retry_after * 1000);
+      }
       setError(err.message);
     } finally {
       setCargando(false);
@@ -163,7 +192,20 @@ export default function Login() {
         <div className="p-7 md:p-10 lg:p-12 flex flex-col justify-center">
           {error && (
             <div className="px-4 py-3 rounded-2xl mb-6 text-sm border border-rose-200 bg-rose-50 text-rose-700">
-              {error}
+              {bloqueadoHasta ? (
+                <div className="flex items-center gap-3">
+                  <Clock3 className="w-5 h-5 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold">Cuenta bloqueada por demasiados intentos fallidos.</p>
+                    <p>
+                      Podrás volver a intentarlo en{" "}
+                      <span className="font-bold tabular-nums">{formatoMMSS(segundosRestantes)}</span>.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                error
+              )}
             </div>
           )}
 
@@ -193,8 +235,9 @@ export default function Login() {
                     value={form.correo}
                     onChange={handleChange}
                     required
+                    disabled={!!bloqueadoHasta}
                     placeholder="tucorreo@ejemplo.com"
-                    className="md-input pl-12"
+                    className="md-input pl-12 disabled:opacity-60"
                   />
                 </div>
 
@@ -207,8 +250,9 @@ export default function Login() {
                       value={form.contrasena}
                       onChange={handleChange}
                       required
+                      disabled={!!bloqueadoHasta}
                       placeholder="********"
-                      className="md-input pr-12"
+                      className="md-input pr-12 disabled:opacity-60"
                     />
                     <button
                       type="button"
@@ -224,11 +268,15 @@ export default function Login() {
 
                 <button
                   type="submit"
-                  disabled={cargando}
+                  disabled={cargando || !!bloqueadoHasta}
                   className="w-full text-white font-semibold py-3 rounded-xl text-sm transition disabled:opacity-60"
                   style={{ background: "#6B8E4E" }}
                 >
-                  {cargando ? "Ingresando..." : "Ingresar"}
+                  {bloqueadoHasta
+                    ? `Bloqueado (${formatoMMSS(segundosRestantes)})`
+                    : cargando
+                    ? "Ingresando..."
+                    : "Ingresar"}
                 </button>
               </form>
 
