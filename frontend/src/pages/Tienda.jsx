@@ -142,7 +142,7 @@ export default function Tienda() {
     }
     return lista;
   })();
-  const coloresCat = ["#6B8E4E", "#06b6d4", "#3C5148", "#6B8E4E", "#3C5148", "#f59e0b", "#6B8E4E", "#6B8E4E", "#ef4444", "#3C5148"];
+  const coloresCat = ["#6B8E4E", "#397e44", "#3C5148", "#6B8E4E", "#3C5148", "#f59e0b", "#6B8E4E", "#6B8E4E", "#ef4444", "#3C5148"];
 
   return (
     <div className="min-h-screen bg-white">

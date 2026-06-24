@@ -427,7 +427,14 @@ class PedidoModel {
     }
 
     public function actualizarTipoEntrega(int $codPedido, int $numDocumento, string $tipoEntrega): bool {
-        $tipoEntrega = in_array($tipoEntrega, ['Domicilio', 'Recoger_Tienda'], true) ? $tipoEntrega : 'Domicilio';
+        $tipo = strtolower(trim($tipoEntrega));
+        $mapa = [
+            'domicilio' => 'Domicilio',
+            'recoger_tienda' => 'Recoger_Tienda',
+            'recoger tienda' => 'Recoger_Tienda',
+            'recoger-en-tienda' => 'Recoger_Tienda',
+        ];
+        $tipoEntrega = $mapa[$tipo] ?? 'Domicilio';
         $stmt = $this->db->prepare(
             "UPDATE pedido p
              INNER JOIN usuario_pedido up ON up.Cod_pedido = p.Cod_Pedido

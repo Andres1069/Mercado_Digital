@@ -33,10 +33,10 @@ export function cargarLeaflet() {
   return leafletPromise;
 }
 
-export async function geocodificarDireccion(direccion) {
+export async function geocodificarDireccion(direccion, barrio = "Chicala del Sur") {
   const params = new URLSearchParams({
     format: "jsonv2",
-    q: `${direccion}, Chicala del Sur, Bogota, Colombia`,
+    q: `${direccion}, ${barrio}, Bogota, Colombia`,
     countrycodes: "co",
     limit: "1",
     addressdetails: "1",

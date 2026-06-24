@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
@@ -283,13 +283,19 @@ export default function Navbar({ carritoCount }) {
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = esOscuro
-                    ? "rgba(107,142,78,0.12)"
-                    : "rgba(93, 124, 74, 0.08)";
+                    ? "rgba(107,142,78,0.18)"
+                    : "rgba(93,124,74,0.14)";
                   e.currentTarget.style.color = "#5d7c4a";
+                  e.currentTarget.style.boxShadow = esOscuro
+                    ? "0 10px 24px rgba(0,0,0,0.18)"
+                    : "0 10px 24px rgba(93,124,74,0.18)";
+                  e.currentTarget.style.transform = "translateY(-1px) scale(1.03)";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = "transparent";
                   e.currentTarget.style.color = esOscuro ? "#e2e8f0" : "#1e2918";
+                  e.currentTarget.style.boxShadow = "none";
+                  e.currentTarget.style.transform = "none";
                 }}
               >
                 <BasketIcon className="w-[34px] h-[34px]" />

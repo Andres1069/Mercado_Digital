@@ -81,8 +81,8 @@ export default function PagoResultado() {
   }
 
   const estado     = pago?.Estado_Pago || "Pendiente";
-  const tipoEntrega = pago?.Tipo_Entrega || "Domicilio";
-  const recogeEnTienda = tipoEntrega === "Recoger_Tienda";
+  const tipoEntrega = String(pago?.Tipo_Entrega || "Domicilio").toLowerCase();
+  const recogeEnTienda = tipoEntrega === "recoger_tienda";
   const aprobado   = estado === "Completado";
   const rechazado  = estado === "Fallido";
   const pendiente  = !aprobado && !rechazado;
@@ -207,7 +207,7 @@ export default function PagoResultado() {
               <button
                 onClick={() => navigate("/mis-pedidos")}
                 className="w-full py-3 rounded-2xl text-sm font-bold border transition"
-                style={{ borderColor: "#fcd34d", color: "#92400e" }}
+                style={{ borderColor: "#509c3d", color: "#1f8027" }}
               >
                 Ver mis pedidos
               </button>

@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { pagoService, pedidoService } from "../services/api";
 import { useCart } from "../context/CartContext";
+import AddressConfirmationModal from "../components/AddressConfirmationModal";
 
 const METODOS = [
   { id: "Tarjeta",   label: "Tarjeta",   icon: "💳" },
@@ -36,6 +37,20 @@ function formatPhoneDisplay(v) {
   return v.replace(/(\d{3})(\d{3})(\d{0,4})/, "$1 $2 $3").trim();
 }
 
+function getExpiryYear(expiracion) {
+  const match = String(expiracion || "").match(/^(\d{2})\/(\d{2})$/);
+  if (!match) return null;
+  const year = Number(match[2]);
+  if (!Number.isFinite(year)) return null;
+  return 2000 + year;
+}
+
+function isCardExpired(expiracion) {
+  const expiryYear = getExpiryYear(expiracion);
+  if (!expiryYear) return false;
+  return expiryYear <= new Date().getFullYear();
+}
+
 const APP_INFO = {
   Nequi: {
     nombre: "Nequi",
@@ -64,7 +79,7 @@ export default function PagoSimulado() {
   const { clearCart } = useCart();
 
   const pedidoId = Number(params.get("pedido"));
-  const entrega  = params.get("entrega") || "domicilio";
+  const entrega  = String(params.get("entrega") || "Domicilio").toLowerCase();
 
   const [metodo, setMetodo] = useState("Tarjeta");
   const [form, setForm] = useState({
@@ -74,6 +89,8 @@ export default function PagoSimulado() {
     nombre_tarjeta: "",
     celular:        "",
     clave_dinamica: "",
+    barrio:         "Bosa Brasil",
+    direccion:      "",
   });
   const [procesando, setProcesando] = useState(false);
   const [pasoProceso, setPasoProceso] = useState(0);
@@ -82,6 +99,14 @@ export default function PagoSimulado() {
   const [error,      setError]      = useState("");
   const [contador,   setContador]   = useState(null);
   const [total,      setTotal]      = useState(null);
+  const [mostrarModalDireccion, setMostrarModalDireccion] = useState(false);
+  const [direccionConfirmada, setDireccionConfirmada] = useState(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem("md_checkout_delivery_address") || "null");
+    } catch {
+      return null;
+    }
+  });
   const enviandoRef = useRef(false);
   const timerRef    = useRef(null);
   const otpRefs     = useRef([]);
@@ -158,6 +183,8 @@ export default function PagoSimulado() {
         return "El número de tarjeta debe tener 16 dígitos.";
       if (!/^\d{2}\/\d{2}$/.test(form.expiracion))
         return "La fecha de expiración debe tener el formato MM/AA.";
+      if (isCardExpired(form.expiracion))
+        return "La tarjeta está caducada.";
       if (form.cvv.length < 3)
         return "El CVV debe tener al menos 3 dígitos.";
       if (!form.nombre_tarjeta.trim())
@@ -171,9 +198,27 @@ export default function PagoSimulado() {
     return "";
   }
 
+  const tarjetaValida =
+    form.numero_tarjeta.replace(/\s/g, "").length === 16 &&
+    /^\d{2}\/\d{2}$/.test(form.expiracion) &&
+    !isCardExpired(form.expiracion) &&
+    form.cvv.length >= 3 &&
+    form.nombre_tarjeta.trim().length > 0;
+  const transferenciaValida =
+    form.celular.length === 10 &&
+    form.clave_dinamica.replace(/\D/g, "").length === 4;
+  const puedePagar =
+    (entrega !== "domicilio" || !!direccionConfirmada) &&
+    (metodo === "Tarjeta" ? tarjetaValida : transferenciaValida);
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (enviandoRef.current) return;
+
+    if (entrega === "domicilio" && !direccionConfirmada) {
+      setMostrarModalDireccion(true);
+      return;
+    }
 
     const errMsg = validar();
     if (errMsg) { setError(errMsg); return; }
@@ -231,6 +276,11 @@ export default function PagoSimulado() {
   return (
     <div className="min-h-screen md-app-bg">
       <Navbar />
+      <AddressConfirmationModal
+        open={mostrarModalDireccion}
+        onClose={() => setMostrarModalDireccion(false)}
+        onConfirm={(payload) => setDireccionConfirmada(payload)}
+      />
 
       {/* Overlay de carga */}
       {procesando && (
@@ -394,6 +444,24 @@ export default function PagoSimulado() {
                   {m.label}
                 </button>
               ))}
+            </div>
+
+            <div className="space-y-3 mb-5 rounded-2xl border border-gray-200 p-4 bg-white/70">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                {direccionConfirmada
+                  ? <>
+                      <span className="font-bold text-slate-800">Dirección confirmada:</span>{" "}
+                      {direccionConfirmada.direccion}
+                    </>
+                  : "Antes de pagar, confirma tu dirección en la ventana emergente."}
+              </div>
+              <button
+                type="button"
+                onClick={() => setMostrarModalDireccion(true)}
+                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+              >
+                {direccionConfirmada ? "Cambiar dirección" : "Confirmar dirección"}
+              </button>
             </div>
 
             {/* ── Campos Tarjeta ── */}
@@ -585,7 +653,7 @@ export default function PagoSimulado() {
 
             <button
               type="submit"
-              disabled={procesando}
+              disabled={procesando || !puedePagar}
               className="w-full mt-5 py-3.5 rounded-2xl text-white font-extrabold text-base disabled:opacity-50 hover:opacity-90 active:scale-[0.98] transition"
               style={{ background: "linear-gradient(135deg,#3C5148,#6B8E4E)" }}
             >

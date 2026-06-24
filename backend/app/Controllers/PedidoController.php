@@ -121,15 +121,23 @@ class PedidoController {
         if ($doc <= 0) $this->err('No se pudo identificar el usuario.', 401);
 
         $body = $this->body();
-        $tipo = trim((string)($body['tipo_entrega'] ?? ''));
-        if (!in_array($tipo, ['Domicilio', 'Recoger_Tienda'], true)) {
+        $tipo = strtolower(trim((string)($body['tipo_entrega'] ?? '')));
+        $mapa = [
+            'domicilio' => 'Domicilio',
+            'recoger_tienda' => 'Recoger_Tienda',
+            'recoger tienda' => 'Recoger_Tienda',
+            'recoger-en-tienda' => 'Recoger_Tienda',
+        ];
+        if (!isset($mapa[$tipo])) {
             $this->err('Tipo de entrega invalido.');
         }
 
-        $ok = $this->model->actualizarTipoEntrega($id, $doc, $tipo);
+        $tipoCanonico = $mapa[$tipo];
+
+        $ok = $this->model->actualizarTipoEntrega($id, $doc, $tipoCanonico);
         if (!$ok) $this->err('Pedido no encontrado o sin permiso para actualizarlo.', 404);
 
-        $this->ok(['tipo_entrega' => $tipo], 'Tipo de entrega actualizado.');
+        $this->ok(['tipo_entrega' => $tipoCanonico], 'Tipo de entrega actualizado.');
     }
 
     // PUT /pedidos/{id}/estado  (admin/empleado)
