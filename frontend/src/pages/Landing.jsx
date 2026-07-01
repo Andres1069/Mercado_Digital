@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ThemeToggle from "../components/ThemeToggle";
 import { productoService, ofertaService, categoriaService, resolverImagen } from "../services/api";
 import { useTheme } from "../context/ThemeContext";
@@ -214,6 +214,7 @@ const slides = [...slidesBase, ...slidesBase, ...slidesBase];
 
 export default function Landing() {
   const { esOscuro } = useTheme();
+  const navigate = useNavigate();
   const [activeSlide, setActiveSlide] = useState(0);
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -600,7 +601,9 @@ export default function Landing() {
                     className="flex-none px-3"
                     style={{ width: `${100 / itemsPerView}%` }}
                   >
-                    <div className="h-full rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border flex flex-col group cursor-pointer"
+                    <div 
+                      onClick={() => navigate('/login')}
+                      className="h-full rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border flex flex-col group cursor-pointer"
                       style={{
                         backgroundColor: esOscuro ? "#142018" : "#ffffff",
                         borderColor: esOscuro ? "rgba(79,106,75,0.18)" : "#e5e7eb",

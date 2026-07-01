@@ -53,6 +53,7 @@ function codigoDesdeStatus(status) {
     case 401: return "UNAUTHORIZED";
     case 403: return "FORBIDDEN";
     case 404: return "NOT_FOUND";
+    case 409: return "CONFLICT";
     default: return "SERVER_ERROR";
   }
 }

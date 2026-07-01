@@ -164,7 +164,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 md:p-6 relative" style={{ backgroundColor: esOscuro ? "#0d1a12" : "#f8fafc" }}>
       <div
-        className="w-full max-w-lg md:max-w-5xl rounded-[2rem] shadow-lg overflow-hidden md:grid md:grid-cols-[1fr,1fr]"
+        className="w-full max-w-lg md:max-w-[900px] md:h-[640px] rounded-[2rem] shadow-lg overflow-hidden md:grid md:grid-cols-[1.1fr,1fr]"
         style={{
           backgroundColor: esOscuro ? "#142018" : "#ffffff",
           border: `1px solid ${esOscuro ? "rgba(79,106,75,0.18)" : "#e5e7eb"}`,
@@ -207,33 +207,36 @@ export default function Login() {
           </div>
         </div>
 
-        <div className="p-7 md:p-10 lg:p-12 flex flex-col justify-center" style={{ backgroundColor: esOscuro ? "#142018" : "#ffffff" }}>
-          {error && (
-            <div className="px-4 py-3 rounded-2xl mb-6 text-sm border border-rose-200 bg-rose-50 text-rose-700">
-              {bloqueadoHasta ? (
-                <div className="flex items-center gap-3">
-                  <Clock3 className="w-5 h-5 flex-shrink-0" />
-                  <div>
-                    <p className="font-semibold">Cuenta bloqueada por demasiados intentos fallidos.</p>
-                    <p>
-                      Podrás volver a intentarlo en{" "}
-                      <span className="font-bold tabular-nums">{formatoMMSS(segundosRestantes)}</span>.
-                    </p>
+        <div className="p-7 md:p-10 lg:px-10 lg:py-8 flex flex-col justify-center relative" style={{ backgroundColor: esOscuro ? "#142018" : "#ffffff" }}>
+          <div className="absolute top-6 left-0 right-0 px-7 md:px-10">
+            {error && (
+              <div className="px-4 py-3 rounded-2xl text-sm border border-rose-200 bg-rose-50 text-rose-700 w-full animate-fade-in shadow-sm">
+                {bloqueadoHasta ? (
+                  <div className="flex items-center gap-3">
+                    <Clock3 className="w-5 h-5 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold">Cuenta bloqueada.</p>
+                      <p>
+                        Intenta en{" "}
+                        <span className="font-bold tabular-nums">{formatoMMSS(segundosRestantes)}</span>.
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                error
-              )}
-            </div>
-          )}
+                ) : (
+                  error
+                )}
+              </div>
+            )}
 
-          {reason === "session" && (
-            <div className="px-4 py-3 rounded-2xl mb-6 text-sm border border-amber-200 bg-amber-50 text-amber-800">
-              Tu sesión fue cerrada porque iniciaste en otro dispositivo o el token expiró. Inicia sesión nuevamente.
-            </div>
-          )}
+            {reason === "session" && (
+              <div className="px-4 py-3 rounded-2xl text-sm border border-amber-200 bg-amber-50 text-amber-800 w-full animate-fade-in shadow-sm">
+                Tu sesión expiró. Inicia sesión nuevamente.
+              </div>
+            )}
+          </div>
 
-          {!mostrarReset && (
+          <div className="w-full mt-4">
+            {!mostrarReset && (
             <div className="max-w-xl mx-auto w-full">
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="text-center mb-6">
@@ -300,11 +303,11 @@ export default function Login() {
                 </button>
               </form>
 
-              <div className="mt-6 pt-6 border-t border-[var(--md-border)] text-center">
+              <div className="mt-5 text-center">
                 <button
                   type="button"
                   onClick={abrirReset}
-                  className="text-sm font-semibold md-accent-text hover:opacity-80 transition"
+                  className="text-sm font-semibold md-accent-text hover:underline transition"
                 >
                   Olvidé mi contraseña
                 </button>
@@ -470,6 +473,7 @@ export default function Login() {
               Volver al inicio
             </Link>
           </div>
+        </div>
         </div>
       </div>
 

@@ -91,6 +91,7 @@ require_once __DIR__ . '/../app/Controllers/MetodoPagoConfigController.php';
 require_once __DIR__ . '/../app/Models/ProveedorModel.php';
 require_once __DIR__ . '/../app/Controllers/ProveedorController.php';
 require_once __DIR__ . '/../app/Controllers/ContactoController.php';
+require_once __DIR__ . '/../app/Controllers/ChatbotController.php';
 
 $ruta   = $_GET['ruta'] ?? '';
 $metodo = $_SERVER['REQUEST_METHOD'];
@@ -109,17 +110,26 @@ switch ($modulo) {
 
         break;
 
+    case 'chatbot':
+        $ctrl = new ChatbotController();
+        match(true) {
+            $metodo === 'POST' && $accion === 'consultar-pedido' => $ctrl->consultarPedido(),
+            $metodo === 'GET' && $accion === 'ofertas' => $ctrl->ofertas(),
+            default => ruta404()
+        };
+        break;
+
     case 'auth':
         $ctrl = new AuthController();
         match(true) {
-            $metodo === 'POST' && $accion === 'login'    => $ctrl->login(),
-            $metodo === 'POST' && $accion === 'registro' => $ctrl->registro(),
+            $metodo === 'POST' && $accion === 'login'            => $ctrl->login(),
+            $metodo === 'POST' && $accion === 'registro'         => $ctrl->registro(),
             $metodo === 'POST' && $accion === 'cambiar-password' => $ctrl->cambiarPassword(),
-            $metodo === 'POST' && $accion === 'reset-request' => $ctrl->resetRequest(),
-            $metodo === 'POST' && $accion === 'reset-confirm' => $ctrl->resetConfirm(),
-            $metodo === 'POST' && $accion === 'logout'   => $ctrl->logout(),
-            $metodo === 'GET'  && $accion === 'me'       => $ctrl->me(),
-            $metodo === 'PUT'  && $accion === 'perfil'   => $ctrl->actualizarPerfil(),
+            $metodo === 'POST' && $accion === 'reset-request'    => $ctrl->resetRequest(),
+            $metodo === 'POST' && $accion === 'reset-confirm'    => $ctrl->resetConfirm(),
+            $metodo === 'POST' && $accion === 'logout'           => $ctrl->logout(),
+            $metodo === 'GET'  && $accion === 'me'               => $ctrl->me(),
+            $metodo === 'PUT'  && $accion === 'perfil'           => $ctrl->actualizarPerfil(),
             default => ruta404()
         };
         break;

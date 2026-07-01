@@ -46,7 +46,7 @@ import AdminCategorias from "./pages/admin/AdminCategorias";
 import AdminProveedores from "./pages/admin/AdminProveedores";
 import RouteTitle from "./components/RouteTitle";
 import Footer from "./components/Footer";
-import WhatsAppButton from "./components/WhatsAppButton";
+import Chatbot from "./components/Chatbot";
 
 const ESTADOS_PENDIENTES_ADMIN = ["pendiente", "preparando", "en preparacion", "en proceso", "procesando", "confirmado"];
 
@@ -289,7 +289,7 @@ function AppContent() {
       </div>
       {location.pathname === "/" && <Footer />}
       <AdminPendingOrdersNotice />
-      <WhatsAppButton />
+      <Chatbot />
     </div>
   );
 }
