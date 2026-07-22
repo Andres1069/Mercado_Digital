@@ -26,10 +26,12 @@
 - **💳 Pagos Locales**: Integración de pagos mediante transferencias y códigos QR (Nequi y Daviplata) con validación administrativa.
 - **🛍️ Catálogo de Productos**: Gestión de productos, categorías y promociones
 - **📦 Sistema de Pedidos**: Creación, seguimiento y gestión de pedidos
-- **🚚 Módulo de Domicilios**: Gestión de entregas y seguimiento de envíos
+- **🚚 Módulo de Domicilios Avanzado**: Gestión de entregas, seguimiento de envíos y subida de evidencias fotográficas
 - **👥 Gestión de Usuarios**: Roles diferenciados (Cliente, Empleado, Proveedor, Administrador)
-- **📊 Reportes y Análitica**: Dashboard con estadísticas de ventas e inventario
-- **🎨 Interfaz Responsiva**: Frontend moderno con Tailwind CSS y React
+- **📊 Reportes y Analítica**: Dashboard mejorado con estadísticas de ventas e inventario
+- **💬 Soporte y Asistencia**: Integración de Chatbot interactivo
+- **📧 Notificaciones**: Alertas y confirmaciones de pedidos por correo electrónico
+- **🎨 Interfaz Responsiva**: Frontend moderno y optimizado con Tailwind CSS y React, incluyendo mejoras en Login y navegación
 
 ---
 
@@ -62,18 +64,14 @@ cd mercado_digital
 
 ### 2. Configurar Backend
 
-```bash
-# Copiar archivo de configuración
-cp backend/config/Database.php.example backend/config/Database.php
+1. **Editar credenciales de base de datos:**
+   Abre y edita las propiedades en el archivo `backend/config/Database.php` con tus credenciales locales.
 
-# Editar credenciales de base de datos
-nano backend/config/Database.php
-```
-
-**Importar esquema de base de datos:**
+2. **Importar esquema de base de datos y migraciones:**
 
 ```bash
 mysql -u usuario -p nombre_bd < backend/config/mercado_digital.sql
+mysql -u usuario -p nombre_bd < backend/config/migracion_oferta.sql
 ```
 
 ### 3. Configurar Frontend
@@ -117,7 +115,6 @@ mercado_digital/
 │   │   ├── Database.php        # Configuración de BD
 │   │   ├── JWT.php             # Configuración JWT
 │   │   ├── Mailer.php          # SMTP
-│   │   ├── mercadopago.php     # (Obsoleto/No utilizado en la versión actual)
 │   ├── public/
 │   │   ├── index.php           # Punto de entrada (router)
 │   │   └── uploads/            # Archivos subidos
@@ -142,28 +139,14 @@ mercado_digital/
 
 ## ⚙️ Configuración
 
-### Variables de Entorno (Backend)
+### Configuración del Backend (Archivos nativos)
 
-Crear archivo `backend/config/.env` con:
+El backend no utiliza un archivo `.env` por defecto, por lo que las configuraciones se hacen directamente en los archivos de la carpeta `backend/config/`:
 
-```php
-// Database
-DB_HOST=localhost
-DB_USER=root
-DB_PASS=
-DB_NAME=mercado_digital
-
-// JWT
-JWT_SECRET=tu_clave_secreta_muy_segura_aqui
-
-// Pagos Locales (Nequi/Daviplata) se configuran directamente en la Base de Datos o Panel de Administración.
-
-// SMTP (recuperación de contraseña)
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USER=tu_email@gmail.com
-MAIL_PASS=tu_contraseña_app
-```
+- **Base de Datos:** Edita las propiedades `$host`, `$db_name`, `$username` y `$password` en el archivo `Database.php`.
+- **JWT:** Modifica la variable estática `$secretKey` en `JWT.php`.
+- **Servidor SMTP (Correos):** Configura las credenciales por defecto (`MAIL_USER`, `MAIL_PASS`) en `MailConfig.php`.
+- **Pagos Locales (Nequi/Daviplata):** Se configuran directamente en la Base de Datos o desde el Panel de Administración.
 
 ---
 
@@ -311,8 +294,9 @@ Este proyecto está bajo licencia privada. Todos los derechos reservados.
 
 Para reportar bugs o sugerencias, contactar al equipo de desarrollo.
 
-**Email:** desarrollo@mercadodigital.com
+**Email:** mercado.digital.bog@gmail.com
+**Telefono** +57 3244314271
 
 ---
 
-**Última actualización:** Mayo 2026
+**Última actualización:** Julio 2026
