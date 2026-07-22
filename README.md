@@ -1,6 +1,6 @@
 # Mercado Digital
 
-**Plataforma de e-commerce integral con autenticación JWT, procesamiento de pagos con Mercado Pago y sistema de gestión de pedidos y domicilios.**
+**Plataforma de e-commerce integral con autenticación JWT, procesamiento de pagos locales (Nequi/Daviplata) y sistema de gestión de pedidos y domicilios.**
 
 ---
 
@@ -23,7 +23,7 @@
 ### Funcionalidades Principales
 
 - **🔐 Autenticación Segura**: JWT con validación de sesión única por dispositivo
-- **💳 Pasarela de Pagos**: Integración completa con Mercado Pago
+- **💳 Pagos Locales**: Integración de pagos mediante transferencias y códigos QR (Nequi y Daviplata) con validación administrativa.
 - **🛍️ Catálogo de Productos**: Gestión de productos, categorías y promociones
 - **📦 Sistema de Pedidos**: Creación, seguimiento y gestión de pedidos
 - **🚚 Módulo de Domicilios**: Gestión de entregas y seguimiento de envíos
@@ -46,7 +46,7 @@
 - **npm** o **pnpm**
 
 ### Servicios Externos
-- Cuenta en **Mercado Pago** (sandbox y producción)
+- Cuentas de **Nequi** y/o **Daviplata** para recepción de pagos
 - Servidor SMTP configurado (para recuperación de contraseña)
 
 ---
@@ -117,7 +117,7 @@ mercado_digital/
 │   │   ├── Database.php        # Configuración de BD
 │   │   ├── JWT.php             # Configuración JWT
 │   │   ├── Mailer.php          # SMTP
-│   │   └── mercadopago.php     # Credenciales de Mercado Pago
+│   │   ├── mercadopago.php     # (Obsoleto/No utilizado en la versión actual)
 │   ├── public/
 │   │   ├── index.php           # Punto de entrada (router)
 │   │   └── uploads/            # Archivos subidos
@@ -156,9 +156,7 @@ DB_NAME=mercado_digital
 // JWT
 JWT_SECRET=tu_clave_secreta_muy_segura_aqui
 
-// Mercado Pago
-MP_ACCESS_TOKEN=tu_token_aqui
-MP_WEBHOOK_URL=https://tudominio.com/mercado_digital/backend/public/pago/webhook
+// Pagos Locales (Nequi/Daviplata) se configuran directamente en la Base de Datos o Panel de Administración.
 
 // SMTP (recuperación de contraseña)
 MAIL_HOST=smtp.gmail.com
@@ -236,8 +234,8 @@ PUT    /pedidos/{id}/estado     - Cambiar estado
 #### Pagos
 ```
 GET    /pago/{pedido}           - Obtener pago
-POST   /pago/{pedido}/preferencia - Crear preferencia Mercado Pago
-GET    /pago/{pedido}/verificar-mp - Verificar pago
+POST   /pago/registrar          - Registrar comprobante de pago (Nequi/Daviplata)
+POST   /pago/verificar          - Verificar pago (Admin)
 ```
 
 **Documentación completa de endpoints disponible en `backend/docs/API.md`** (próximamente)
