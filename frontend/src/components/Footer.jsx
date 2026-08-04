@@ -24,156 +24,156 @@ export default function Footer({ compact = false }) {
             {/* BRANDING */}
             <div className="md:col-span-5 space-y-6">
               <Link to="/" className="inline-block overflow-hidden">
-              <img
-                src={esOscuro ? "/logo/Logo-Mercado-Digital-Blanco.png" : "/logo/Logo-Mercado-Digital.png"}
-                alt="Mercado Digital Logo"
-                className="h-12 scale-2 origin-left"
-              />
-            </Link>
+                <img
+                  src={esOscuro ? "/logo/Logo-Mercado-Digital-Blanco.png" : "/logo/Logo-Mercado-Digital.png"}
+                  alt="Mercado Digital Logo"
+                  className="h-12 scale-2 origin-left"
+                />
+              </Link>
 
-            <p
-              className="max-w-sm text-sm leading-relaxed"
-              style={{
-                color: esOscuro ? "#cbd5e1" : "#475569",
-              }}
-            >
-              Transformando la experiencia de compra online con
-              seguridad y rapidez. Únete a nuestra comunidad para
-              recibir ofertas exclusivas.
-            </p>
-          </div>
+              <p
+                className="max-w-sm text-sm leading-relaxed"
+                style={{
+                  color: esOscuro ? "#cbd5e1" : "#475569",
+                }}
+              >
+                Transformando la experiencia de compra online con
+                seguridad y rapidez. Únete a nuestra comunidad para
+                recibir ofertas exclusivas.
+              </p>
+            </div>
 
-          {/* NAVEGACIÓN */}
-          <div className="md:col-span-3 space-y-5">
-            <h3
-              className="text-[10px] uppercase tracking-[0.3em] font-bold"
-              style={{
-                color: esOscuro ? "#8aab7e" : "#64748b",
-              }}
-            >
-              Navegación
-            </h3>
+            {/* NAVEGACIÓN */}
+            <div className="md:col-span-3 space-y-5">
+              <h3
+                className="text-[10px] uppercase tracking-[0.3em] font-bold"
+                style={{
+                  color: esOscuro ? "#8aab7e" : "#64748b",
+                }}
+              >
+                Navegación
+              </h3>
 
-            <ul className="space-y-3 text-sm font-medium">
-              {[
-                ["Inicio", "/"],
-                ["Tienda", "/tienda"],
-                ["Ofertas", "/ofertas"],
-                ["Mi Cuenta", "/perfil"],
-              ].map(([label, path]) => (
-                <li key={label}>
-                  <Link
-                    to={path}
-                    className="transition-colors duration-200"
+              <ul className="space-y-3 text-sm font-medium">
+                {[
+                  ["Inicio", "/"],
+                  ["Tienda", "/tienda"],
+                  ["Ofertas", "/ofertas"],
+                  ["Mi Cuenta", "/perfil"],
+                ].map(([label, path]) => (
+                  <li key={label}>
+                    <Link
+                      to={path}
+                      className="transition-colors duration-200"
+                      style={{
+                        color: esOscuro
+                          ? "#b7d8a3"
+                          : "#475569",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = "#6B8E4E";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = esOscuro
+                          ? "#b7d8a3"
+                          : "#475569";
+                      }}
+                    >
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* CONTACTO */}
+            <div className="md:col-span-4 space-y-5">
+              <h3
+                className="text-[10px] uppercase tracking-[0.3em] font-bold"
+                style={{
+                  color: esOscuro ? "#8aab7e" : "#64748b",
+                }}
+              >
+                Contacto
+              </h3>
+
+              <ul className="space-y-4 text-sm">
+                <li className="flex items-center gap-3">
+                  <span
+                    className="flex h-9 w-9 items-center justify-center rounded-2xl"
                     style={{
-                      color: esOscuro
-                        ? "#b7d8a3"
-                        : "#475569",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = "#6B8E4E";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = esOscuro
-                        ? "#b7d8a3"
-                        : "#475569";
+                      background: esOscuro
+                        ? "rgba(107,142,78,0.12)"
+                        : "rgba(15,23,42,0.05)",
                     }}
                   >
-                    {label}
-                  </Link>
+                    📧
+                  </span>
+
+                  <a
+                    href="mailto:mercado.digital.bog@gmail.com"
+                    className="transition-colors"
+                    style={{
+                      color: esOscuro
+                        ? "#cbd5e1"
+                        : "#475569",
+                    }}
+                  >
+                    mercado.digital.bog@gmail.com
+                  </a>
                 </li>
-              ))}
-            </ul>
+
+                <li className="flex items-center gap-3">
+                  <span
+                    className="flex h-9 w-9 items-center justify-center rounded-2xl"
+                    style={{
+                      background: esOscuro
+                        ? "rgba(107,142,78,0.12)"
+                        : "rgba(15,23,42,0.05)",
+                    }}
+                  >
+                    📞
+                  </span>
+
+                  <span
+                    style={{
+                      color: esOscuro
+                        ? "#cbd5e1"
+                        : "#475569",
+                    }}
+                  >
+                    +57 324 431 4271
+                  </span>
+                </li>
+
+                <li className="flex gap-4 pt-2">
+                  <a
+                    href="#"
+                    className="flex h-11 w-11 items-center justify-center rounded-2xl transition-all text-xl"
+                    style={{
+                      background: esOscuro
+                        ? "rgba(107,142,78,0.12)"
+                        : "rgba(15,23,42,0.05)",
+                    }}
+                  >
+                    𝕏
+                  </a>
+
+                  <a
+                    href="#"
+                    className="flex h-11 w-11 items-center justify-center rounded-2xl transition-all text-xl"
+                    style={{
+                      background: esOscuro
+                        ? "rgba(107,142,78,0.12)"
+                        : "rgba(15,23,42,0.05)",
+                    }}
+                  >
+                    📸
+                  </a>
+                </li>
+              </ul>
+            </div>
           </div>
-
-          {/* CONTACTO */}
-          <div className="md:col-span-4 space-y-5">
-            <h3
-              className="text-[10px] uppercase tracking-[0.3em] font-bold"
-              style={{
-                color: esOscuro ? "#8aab7e" : "#64748b",
-              }}
-            >
-              Contacto
-            </h3>
-
-            <ul className="space-y-4 text-sm">
-              <li className="flex items-center gap-3">
-                <span
-                  className="flex h-9 w-9 items-center justify-center rounded-2xl"
-                  style={{
-                    background: esOscuro
-                      ? "rgba(107,142,78,0.12)"
-                      : "rgba(15,23,42,0.05)",
-                  }}
-                >
-                  📧
-                </span>
-
-                <a
-                  href="mailto:hola@mercadodigital.com"
-                  className="transition-colors"
-                  style={{
-                    color: esOscuro
-                      ? "#cbd5e1"
-                      : "#475569",
-                  }}
-                >
-                  hola@mercadodigital.com
-                </a>
-              </li>
-
-              <li className="flex items-center gap-3">
-                <span
-                  className="flex h-9 w-9 items-center justify-center rounded-2xl"
-                  style={{
-                    background: esOscuro
-                      ? "rgba(107,142,78,0.12)"
-                      : "rgba(15,23,42,0.05)",
-                  }}
-                >
-                  📞
-                </span>
-
-                <span
-                  style={{
-                    color: esOscuro
-                      ? "#cbd5e1"
-                      : "#475569",
-                  }}
-                >
-                  +57 300 000 0000
-                </span>
-              </li>
-
-              <li className="flex gap-4 pt-2">
-                <a
-                  href="#"
-                  className="flex h-11 w-11 items-center justify-center rounded-2xl transition-all text-xl"
-                  style={{
-                    background: esOscuro
-                      ? "rgba(107,142,78,0.12)"
-                      : "rgba(15,23,42,0.05)",
-                  }}
-                >
-                  𝕏
-                </a>
-
-                <a
-                  href="#"
-                  className="flex h-11 w-11 items-center justify-center rounded-2xl transition-all text-xl"
-                  style={{
-                    background: esOscuro
-                      ? "rgba(107,142,78,0.12)"
-                      : "rgba(15,23,42,0.05)",
-                  }}
-                >
-                  📸
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
         )}
 
         {/* SECCIÓN INFERIOR */}
