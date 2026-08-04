@@ -11,6 +11,9 @@ ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
+# Pasar variables de entorno a PHP
+RUN echo "PassEnv DB_HOST DB_PORT DB_NAME DB_USER DB_PASS" >> /etc/apache2/conf-available/environment.conf && a2enconf environment
+
 # Copiar el código fuente
 COPY . /var/www/html/
 
