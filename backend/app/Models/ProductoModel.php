@@ -12,9 +12,9 @@ class ProductoModel {
     }
 
     private function ensureImageAdjustColumns(): void {
-        $this->db->exec("ALTER TABLE producto ADD COLUMN IF NOT EXISTS Imagen_zoom DECIMAL(4,2) NOT NULL DEFAULT 1.00");
-        $this->db->exec("ALTER TABLE producto ADD COLUMN IF NOT EXISTS Imagen_pos_x DECIMAL(5,2) NOT NULL DEFAULT 50.00");
-        $this->db->exec("ALTER TABLE producto ADD COLUMN IF NOT EXISTS Imagen_pos_y DECIMAL(5,2) NOT NULL DEFAULT 50.00");
+        try { $this->db->exec("ALTER TABLE producto ADD COLUMN Imagen_zoom DECIMAL(4,2) NOT NULL DEFAULT 1.00"); } catch (PDOException $e) {}
+        try { $this->db->exec("ALTER TABLE producto ADD COLUMN Imagen_pos_x DECIMAL(5,2) NOT NULL DEFAULT 50.00"); } catch (PDOException $e) {}
+        try { $this->db->exec("ALTER TABLE producto ADD COLUMN Imagen_pos_y DECIMAL(5,2) NOT NULL DEFAULT 50.00"); } catch (PDOException $e) {}
     }
 
     public function getAll(array $filtros = [], int $pagina = 0, int $limite = 0): array {
@@ -122,7 +122,7 @@ class ProductoModel {
         ]);
         $codProducto = (int)$this->db->lastInsertId();
 
-        // Crear fila en inventario automáticamente con el stock inicial
+        // Crear fila en inventario automÃ¡ticamente con el stock inicial
         $this->db->prepare(
             "INSERT INTO inventario (Stock, Registrar_Entradas, Registrar_Salidas, Fecha_Actualizacion, Novedades, Cod_Producto)
              VALUES (:stock, :entradas, 0, NOW(), 'Stock inicial', :prod)"

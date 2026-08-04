@@ -18,11 +18,11 @@ class DomicilioModel {
 
     private function ensureComprobanteColumns(): void {
         try {
-            $this->db->exec("ALTER TABLE domicilio ADD COLUMN IF NOT EXISTS Comprobante_Entrega MEDIUMTEXT DEFAULT NULL");
-            $this->db->exec("ALTER TABLE domicilio ADD COLUMN IF NOT EXISTS Recibido_Por VARCHAR(120) DEFAULT NULL");
-            $this->db->exec("ALTER TABLE domicilio ADD COLUMN IF NOT EXISTS Documento_Recibe VARCHAR(40) DEFAULT NULL");
-            $this->db->exec("ALTER TABLE domicilio ADD COLUMN IF NOT EXISTS Observaciones_Entrega VARCHAR(255) DEFAULT NULL");
-            $this->db->exec("ALTER TABLE domicilio ADD COLUMN IF NOT EXISTS Fecha_Entrega DATETIME DEFAULT NULL");
+        try { $this->db->exec("ALTER TABLE domicilio ADD COLUMN Comprobante_Entrega MEDIUMTEXT DEFAULT NULL"); } catch (PDOException $e) {}
+        try { $this->db->exec("ALTER TABLE domicilio ADD COLUMN Recibido_Por VARCHAR(120) DEFAULT NULL"); } catch (PDOException $e) {}
+        try { $this->db->exec("ALTER TABLE domicilio ADD COLUMN Documento_Recibe VARCHAR(40) DEFAULT NULL"); } catch (PDOException $e) {}
+        try { $this->db->exec("ALTER TABLE domicilio ADD COLUMN Observaciones_Entrega VARCHAR(255) DEFAULT NULL"); } catch (PDOException $e) {}
+        try { $this->db->exec("ALTER TABLE domicilio ADD COLUMN Fecha_Entrega DATETIME DEFAULT NULL"); } catch (PDOException $e) {}
         } catch (Throwable) {
             error_log('[DomicilioModel] No se pudo sincronizar columnas de comprobante: ' . $e->getMessage());
         }
@@ -230,7 +230,7 @@ class DomicilioModel {
             $vals = ['NOW()', ':estado', ':up'];
             $params = [':estado' => $estado, ':up' => $usuarioPedidoId];
 
-            // Campos opcionales según tu BD actual (si existen, los usamos).
+            // Campos opcionales segÃºn tu BD actual (si existen, los usamos).
             $map = [
                 'Direccion_entrega' => 'direccion',
                 'Telefono' => 'telefono',
@@ -295,7 +295,7 @@ class DomicilioModel {
             $stmt->execute([':pedido' => $pedidoId, ':doc' => $numDocumento]);
             $ok = $stmt->rowCount() > 0;
 
-            // Si hay domicilio, también lo cancelamos.
+            // Si hay domicilio, tambiÃ©n lo cancelamos.
             $stmt = $this->db->prepare(
                 "UPDATE domicilio d
                  INNER JOIN usuario_pedido up ON up.Cod_usuario_pedido = d.Cod_Usuario_Pedido
@@ -326,7 +326,7 @@ class DomicilioModel {
      * Seguimiento: como el esquema actual no tiene tabla de historial, devolvemos el estado actual.
      */
     public function seguimiento(int $numDocumento, int $pedidoId): array {
-        // Si existe la tabla de historial, devolvemos la línea de tiempo.
+        // Si existe la tabla de historial, devolvemos la lÃ­nea de tiempo.
         if ($this->tieneHistorial && $this->hasHistorialCol('Cod_pedido') && $this->hasHistorialCol('Estado') && $this->hasHistorialCol('Fecha')) {
             $detalle = $this->detallePorDocumento($numDocumento, $pedidoId);
             if (!$detalle) {

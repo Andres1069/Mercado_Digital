@@ -1,0 +1,10 @@
+/vendor/
+/node_modules/
+/storage/logs/*.log
+!/storage/logs/.gitkeep
+/storage/reset_tokens.log
+/storage/reset_codes.json
+.env
+.DS_Store
+*.err.log
+*.out.log

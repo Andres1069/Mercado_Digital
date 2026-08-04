@@ -22,10 +22,10 @@ class PedidoModel {
 
     private function ensureVentaColumns(): void {
         try {
-            $this->db->exec("ALTER TABLE pedido ADD COLUMN IF NOT EXISTS Canal_Venta VARCHAR(20) NOT NULL DEFAULT 'Online'");
-            $this->db->exec("ALTER TABLE pedido ADD COLUMN IF NOT EXISTS Tipo_Entrega VARCHAR(20) NOT NULL DEFAULT 'Domicilio'");
-            $this->db->exec("ALTER TABLE pedido ADD COLUMN IF NOT EXISTS Num_Documento_Vendedor INT DEFAULT NULL");
-            $this->db->exec("ALTER TABLE pedido ADD COLUMN IF NOT EXISTS Observaciones_Venta VARCHAR(255) DEFAULT NULL");
+        try { $this->db->exec("ALTER TABLE pedido ADD COLUMN Canal_Venta VARCHAR(20) NOT NULL DEFAULT 'Online'"); } catch (PDOException $e) {}
+        try { $this->db->exec("ALTER TABLE pedido ADD COLUMN Tipo_Entrega VARCHAR(20) NOT NULL DEFAULT 'Domicilio'"); } catch (PDOException $e) {}
+        try { $this->db->exec("ALTER TABLE pedido ADD COLUMN Num_Documento_Vendedor INT DEFAULT NULL"); } catch (PDOException $e) {}
+        try { $this->db->exec("ALTER TABLE pedido ADD COLUMN Observaciones_Venta VARCHAR(255) DEFAULT NULL"); } catch (PDOException $e) {}
         } catch (Throwable $e) {
             error_log('[PedidoModel] No se pudo sincronizar columnas de venta: ' . $e->getMessage());
         }
@@ -237,8 +237,8 @@ class PedidoModel {
      * Guarda el snapshot en DB: carrito_item, pedido, usuario_pedido, pago, detalle_pedido.
      */
     /**
-     * Verifica stock de todos los ítems antes de abrir la transacción.
-     * Lanza RuntimeException con los productos problemáticos si alguno falla.
+     * Verifica stock de todos los Ã­tems antes de abrir la transacciÃ³n.
+     * Lanza RuntimeException con los productos problemÃ¡ticos si alguno falla.
      */
     private function verificarStock(array $items): void {
         $stmtChk = $this->db->prepare(
@@ -266,7 +266,7 @@ class PedidoModel {
     }
 
     public function crear(int $numDocumento, array $items, string $metodoPago, int $montoTotal, array $extra = []): int {
-        // Validar stock ANTES de abrir la transacción para no hacer rollback innecesario
+        // Validar stock ANTES de abrir la transacciÃ³n para no hacer rollback innecesario
         $this->verificarStock($items);
 
         $this->db->beginTransaction();
@@ -301,7 +301,7 @@ class PedidoModel {
                 $precio = (int)($item['precio'] ?? 0);
                 $stmtItem->execute([
                     ':qty'     => $qty,
-                    ':precio'  => $precio * $qty,   // Precio total de la línea
+                    ':precio'  => $precio * $qty,   // Precio total de la lÃ­nea
                     ':prod'    => (int)($item['id'] ?? 0),
                     ':carrito' => $codCarrito,
                 ]);

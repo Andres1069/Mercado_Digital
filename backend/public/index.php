@@ -9,8 +9,8 @@ $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $originPermitido = false;
 if ($origin) {
     $originPermitido = (bool)preg_match(
-        // Acepta localhost/127 y rangos privados (para probar desde celular) en cualquier puerto típico de dev.
-        '/^https?:\/\/(localhost|127\.0\.0\.1|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})(:\d{2,5})?$/',
+        // Acepta localhost, IPs locales y dominios de Vercel
+        '/^https?:\/\/(localhost|127\.0\.0\.1|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}|.*\.vercel\.app)(:\d{2,5})?$/',
         $origin
     );
 }

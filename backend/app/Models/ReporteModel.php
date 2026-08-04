@@ -12,9 +12,9 @@ class ReporteModel {
 
     private function ensureVentaColumns(): void {
         try {
-            $this->db->exec("ALTER TABLE pedido ADD COLUMN IF NOT EXISTS Canal_Venta VARCHAR(20) NOT NULL DEFAULT 'Online'");
-            $this->db->exec("ALTER TABLE pedido ADD COLUMN IF NOT EXISTS Num_Documento_Vendedor INT DEFAULT NULL");
-            $this->db->exec("ALTER TABLE pedido ADD COLUMN IF NOT EXISTS Observaciones_Venta VARCHAR(255) DEFAULT NULL");
+        try { $this->db->exec("ALTER TABLE pedido ADD COLUMN Canal_Venta VARCHAR(20) NOT NULL DEFAULT 'Online'"); } catch (PDOException $e) {}
+        try { $this->db->exec("ALTER TABLE pedido ADD COLUMN Num_Documento_Vendedor INT DEFAULT NULL"); } catch (PDOException $e) {}
+        try { $this->db->exec("ALTER TABLE pedido ADD COLUMN Observaciones_Venta VARCHAR(255) DEFAULT NULL"); } catch (PDOException $e) {}
         } catch (Throwable $e) {
             error_log('[ReporteModel] No se pudo sincronizar columnas de venta: ' . $e->getMessage());
         }

@@ -39,7 +39,7 @@ class UsuarioModel {
     }
 
     private function verificarColumnaEstado(): bool {
-        // Compatibilidad: si la BD aún no tiene `usuario.Estado`, no debe romper listados/login.
+        // Compatibilidad: si la BD aÃºn no tiene `usuario.Estado`, no debe romper listados/login.
         try {
             $stmt = $this->db->prepare(
                 "SELECT COUNT(*)
