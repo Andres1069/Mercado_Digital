@@ -36,10 +36,10 @@ class Database {
             ];
             try {
                 $this->connection = new PDO($dsn, $this->username, $this->password, $options);
-            } catch (PDOException $e) {
-                Logger::error('No se pudo conectar a la base de datos', ['detalle' => $e->getMessage()]);
-                throw new DatabaseConnectionException();
-            }
+            } catch (PDOException $exception) {
+            Logger::error("Error de conexión a la base de datos: " . $exception->getMessage());
+            throw new DatabaseConnectionException("Error real de BD: " . $exception->getMessage());
+        }
         }
         return $this->connection;
     }
