@@ -129,7 +129,7 @@ export default function AdminDomicilios() {
     formData.append("pedido_id", comprobanteTarget?.Cod_Pedido || "");
 
     try {
-      const response = await fetch("http://localhost/mercado_digital/backend/public/upload_evidencia.php", {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/upload_evidencia.php`, {
         method: "POST",
         body: formData,
       });

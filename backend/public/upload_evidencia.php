@@ -61,7 +61,13 @@ if (move_uploaded_file($file['tmp_name'], $destination)) {
     // Generate URL
     $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'];
-    $baseUrl = $protocol . '://' . $host . '/mercado_digital/backend/public';
+    $baseUrl = $protocol . '://' . $host;
+    
+    // Si estamos en localhost, agregamos la ruta de XAMPP. En Render va directo.
+    if (strpos($host, 'localhost') !== false || strpos($host, '127.0.0.1') !== false) {
+        $baseUrl .= '/mercado_digital/backend/public';
+    }
+    
     $url = $baseUrl . '/uploads/evidencias/' . $filename;
     
     echo json_encode(['success' => true, 'url' => $url, 'message' => 'File uploaded successfully']);
