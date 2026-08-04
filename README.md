@@ -62,42 +62,44 @@ git clone <repository-url>
 cd mercado_digital
 ```
 
-### 2. Configurar Backend
+### 2. Configuración del Backend
 
-1. **Editar credenciales de base de datos:**
-   Abre y edita las propiedades en el archivo `backend/config/Database.php` con tus credenciales locales.
+El backend está diseñado para conectarse a una base de datos MySQL (local o en la nube como Aiven) mediante variables de entorno.
 
-2. **Importar esquema de base de datos y migraciones:**
+**Variables de entorno requeridas en tu servidor (ej: Render):**
+- `DB_HOST`
+- `DB_PORT`
+- `DB_NAME`
+- `DB_USER`
+- `DB_PASS`
 
+*(Si trabajas en local con XAMPP, puedes hardcodearlas temporalmente en `backend/config/Database.php` o usar apache `SetEnv`).*
+
+**Importar esquema de base de datos:**
 ```bash
 mysql -u usuario -p nombre_bd < backend/config/mercado_digital.sql
-mysql -u usuario -p nombre_bd < backend/config/migracion_oferta.sql
 ```
 
-### 3. Configurar Frontend
+### 3. Configuración del Frontend
 
 ```bash
 cd frontend
 npm install
-
-# Crear archivo .env (opcional)
-cp .env.example .env
 ```
 
-**Variables de entorno (opcional):**
+**Conexión con el Backend:**
+- **Local:** `frontend/.env.development`
+- **Producción (Vercel):** `frontend/.env.production`
+
+Asegúrate de definir la URL correcta de tu API en esos archivos:
 ```env
-VITE_API_BASE_URL=http://localhost/mercado_digital/backend/public
+VITE_API_BASE_URL=https://tu-backend-en-render.onrender.com
 ```
 
-### 4. Iniciar Desarrollo
+### 4. Despliegue en la Nube (Recomendado)
 
-```bash
-# Terminal 1: Frontend (Vite dev server)
-cd frontend
-npm run dev
-
-# Terminal 2: Backend (requiere XAMPP o servidor PHP)
-# Acceder a: http://localhost/mercado_digital
+- **Frontend (Vercel):** Conecta tu repositorio de GitHub, selecciona el Root Directory como `frontend` y Vercel se encarga del resto.
+- **Backend (Render):** Crea un Web Service usando `Docker`, conéctalo al repositorio y configura las Variables de Entorno de tu base de datos.
 ```
 
 ---
