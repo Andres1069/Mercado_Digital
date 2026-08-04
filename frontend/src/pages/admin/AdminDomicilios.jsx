@@ -389,7 +389,7 @@ export default function AdminDomicilios() {
                   <span className="text-sm font-semibold" style={{ color: "#6B8E4E" }}>
                     {subiendoFoto ? "Subiendo foto..." : "Tomar foto o subir imagen"}
                   </span>
-                  <input type="file" accept="image/*" capture="environment" className="hidden" disabled={subiendoFoto} onChange={handleSubirFoto} />
+                  <input type="file" accept="image/*" className="hidden" disabled={subiendoFoto} onChange={handleSubirFoto} />
                 </label>
               )}
               
