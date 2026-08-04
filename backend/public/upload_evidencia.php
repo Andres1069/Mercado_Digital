@@ -24,15 +24,17 @@ if (!isset($_FILES['evidencia']) || $_FILES['evidencia']['error'] !== UPLOAD_ERR
 
 $file = $_FILES['evidencia'];
 
-// Validate file type
-$allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+// Desactivar warnings HTML para no romper la respuesta JSON
+error_reporting(0);
+
 $finfo = finfo_open(FILEINFO_MIME_TYPE);
 $mimeType = finfo_file($finfo, $file['tmp_name']);
 finfo_close($finfo);
 
-if (!in_array($mimeType, $allowedTypes)) {
+// Validate file type (basico)
+if (!str_starts_with($mimeType, 'image/') && $mimeType !== 'application/octet-stream') {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Invalid file type. Only JPG, PNG, GIF, and WEBP are allowed.']);
+    echo json_encode(['success' => false, 'message' => 'El archivo debe ser una imagen. Detectado: ' . $mimeType]);
     exit;
 }
 
