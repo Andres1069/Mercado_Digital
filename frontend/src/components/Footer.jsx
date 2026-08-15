@@ -17,10 +17,10 @@ export default function Footer({ compact = false }) {
         color: esOscuro ? "#f8fafc" : "#111827",
       }}
     >
-      <div className={`max-w-7xl mx-auto px-6 ${compact ? "py-4" : "py-12"}`}>
+      <div className={`max-w-7xl mx-auto px-4 sm:px-6 ${compact ? "py-4" : "py-12"}`}>
         {/* SECCIÓN SUPERIOR */}
         {!compact && (
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-12 pb-12">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 pb-12">
             {/* BRANDING */}
             <div className="md:col-span-5 space-y-6">
               <Link to="/" className="inline-block overflow-hidden">
@@ -178,7 +178,7 @@ export default function Footer({ compact = false }) {
 
         {/* SECCIÓN INFERIOR */}
         <div
-          className={`${compact ? "" : "pt-8 border-t"} flex flex-col md:flex-row justify-between items-center gap-6`}
+          className={`${compact ? "" : "pt-8 border-t"} flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6`}
           style={{
             borderColor: esOscuro
               ? "rgba(79,106,75,0.18)"
@@ -196,7 +196,7 @@ export default function Footer({ compact = false }) {
           </p>
 
           <div
-            className="flex gap-8 text-[11px] font-bold tracking-wider uppercase"
+            className="flex flex-wrap justify-center gap-4 sm:gap-8 text-[11px] font-bold tracking-wider uppercase"
             style={{
               color: esOscuro ? "#94a3b8" : "#64748b",
             }}

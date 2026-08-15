@@ -244,7 +244,7 @@ export default function AdminPedidos() {
     <div className="flex min-h-screen" style={{ backgroundColor: "#D5DDDF" }}>
       <Sidebar />
       <div className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3 mb-6">
             <div>
               <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Gestion de Pedidos</h1>
@@ -258,7 +258,7 @@ export default function AdminPedidos() {
             </button>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
             {resumenCards.map(({ label, value, icono, color, bg }) => (
               <div key={label} className="rounded-2xl px-4 py-3" style={CARD}>
                 <div className="flex items-center justify-between gap-3">
@@ -275,7 +275,7 @@ export default function AdminPedidos() {
           </div>
 
           <div className="mb-5 rounded-2xl p-3" style={CARD}>
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col lg:flex-row gap-3">
               <div className="relative flex-1">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
                   <Clock3 className="w-4 h-4" />
@@ -286,7 +286,7 @@ export default function AdminPedidos() {
                   style={INPUT_STYLE} />
               </div>
               <select value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}
-                className="px-4 py-2.5 rounded-xl text-sm focus:outline-none"
+                className="w-full lg:w-auto px-4 py-2.5 rounded-xl text-sm focus:outline-none"
                 style={INPUT_STYLE}>
                 <option>Todos</option>
                 {ESTADOS.map((e) => <option key={e}>{e}</option>)}
@@ -346,7 +346,7 @@ export default function AdminPedidos() {
                     <tbody key={grupo.id}>
                       <tr>
                         <td colSpan={8} className="px-4 py-3" style={{ backgroundColor: grupo.fondo, borderTop: "1px solid rgba(107,142,78,0.14)" }}>
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
                               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/70" style={{ color: grupo.color }}>
                                 <Icon className="w-4 h-4" />

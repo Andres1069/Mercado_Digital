@@ -162,7 +162,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 md:p-6 relative" style={{ backgroundColor: esOscuro ? "#0d1a12" : "#f8fafc" }}>
+    <div className="min-h-screen flex items-start md:items-center justify-center p-4 md:p-6 relative overflow-x-hidden" style={{ backgroundColor: esOscuro ? "#0d1a12" : "#f8fafc" }}>
       <div
         className="w-full max-w-lg md:max-w-[900px] md:h-[640px] rounded-[2rem] shadow-lg overflow-hidden md:grid md:grid-cols-[1.1fr,1fr]"
         style={{
@@ -171,7 +171,7 @@ export default function Login() {
         }}
       >
         <div
-          className="px-6 py-8 text-white md:px-10 md:py-12 flex flex-col justify-between"
+          className="px-5 py-6 sm:px-6 sm:py-8 text-white md:px-10 md:py-12 flex flex-col justify-between"
           style={{
             background: esOscuro
               ? "linear-gradient(145deg, #0a1f10 0%, #142a18 52%, #1f3d1f 100%)"

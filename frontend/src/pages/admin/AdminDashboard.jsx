@@ -226,10 +226,10 @@ export default function AdminDashboard() {
       <Sidebar />
 
       <div className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
-        <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
 
           {/* ── Header ── */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div>
               <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Dashboard</h1>
               <p className="text-sm mt-0.5" style={{ color: "#3C5148" }}>
@@ -244,7 +244,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* ── Stat cards ── */}
-          <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
             {STATS.map(({ label, value, iconClass, color, bg, to }) => (
               <Link key={label} to={to}
                 className="rounded-2xl p-5 flex items-center gap-4 transition hover:-translate-y-0.5"
@@ -263,10 +263,10 @@ export default function AdminDashboard() {
           </div>
 
           {/* ── Gráfica + Pedidos recientes ── */}
-          <div className="grid lg:grid-cols-[1.3fr,0.7fr] gap-4 mb-4">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.3fr,0.7fr] gap-4 mb-4">
 
             {/* Ventas por día */}
-            <div className="rounded-2xl p-6" style={CARD}>
+            <div className="rounded-2xl p-4 sm:p-6" style={CARD}>
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
                 <div>
                   <h2 className="text-xl font-semibold" style={{ color: "#1B2727" }}>Ventas por Dia</h2>
@@ -296,7 +296,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Pedidos recientes */}
-            <div className="rounded-2xl p-6 flex flex-col" style={CARD}>
+            <div className="rounded-2xl p-4 sm:p-6 flex flex-col" style={CARD}>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-base font-bold" style={{ color: "#1B2727" }}>Pedidos Recientes</h2>
                 <Link to={`${base}/pedidos`}
@@ -352,7 +352,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* ── Tablas Inferiores: Top Productos y Gestión ── */}
-          <div className="grid lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             
             {/* Top Productos */}
             <div className="rounded-2xl flex flex-col" style={CARD}>
@@ -396,7 +396,7 @@ export default function AdminDashboard() {
                 </Link>
               </div>
 
-              <table className="w-full text-sm">
+              <table className="w-full min-w-[640px] text-sm">
                 <thead>
                   <tr style={{ borderBottom: "1px solid rgba(107,142,78,0.1)" }}>
                     {["Producto", "Stock", "Estado"].map((h, i) => (
