@@ -58,7 +58,7 @@ export default function Navbar({ carritoCount }) {
         }}
       >
         <div
-          className="max-w-7xl mx-auto px-3 sm:px-5 py-3 flex items-center gap-3 sm:gap-4"
+          className="max-w-7xl mx-auto px-3 sm:px-5 py-3 flex flex-wrap items-center gap-3 sm:gap-4 min-w-0"
           style={{ color: esOscuro ? "#f8fafc" : "#111827" }}
         >
           <Link
@@ -176,7 +176,7 @@ export default function Navbar({ carritoCount }) {
             </div>
           )}
 
-          <div className="flex items-center gap-2 sm:gap-3 ml-auto">
+          <div className="flex items-center gap-2 sm:gap-3 ml-auto flex-shrink-0">
             {!esAdmin() && !esEmpleado() && (
               <ThemeToggle
                 iconOnly
