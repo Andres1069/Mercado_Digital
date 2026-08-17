@@ -18,6 +18,10 @@ class Mailer {
         $from     = MAIL_FROM;
         $fromName = MAIL_FROM_NAME;
 
+        if (defined('MAIL_API_KEY') && MAIL_API_KEY !== '') {
+            return self::sendViaHttpApi($to, $subject, $bodyText, $bodyHtml);
+        }
+
         if ($user === 'tucorreo@gmail.com' || $user === '' || $pass === '' || $pass === 'tuAppPassword16chars') {
             error_log("[Mailer] Credenciales SMTP no configuradas en backend/config/MailConfig.php");
             return false;
@@ -128,5 +132,68 @@ class Mailer {
             error_log("[Mailer] Excepcion: " . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * Envia un correo mediante API HTTP (Brevo o Resend) evitando los puertos SMTP bloqueados.
+     */
+    private static function sendViaHttpApi(string $to, string $subject, string $bodyText, ?string $bodyHtml = null): bool {
+        $apiKey = MAIL_API_KEY;
+        $provider = defined('MAIL_PROVIDER') ? MAIL_PROVIDER : 'brevo';
+        $fromEmail = MAIL_FROM;
+        $fromName = MAIL_FROM_NAME;
+
+        $url = '';
+        $headers = [
+            'Content-Type: application/json',
+            'Accept: application/json'
+        ];
+        $payload = [];
+
+        if ($provider === 'resend') {
+            $url = 'https://api.resend.com/emails';
+            $headers[] = 'Authorization: Bearer ' . $apiKey;
+            $payload = [
+                'from' => "{$fromName} <{$fromEmail}>",
+                'to' => [$to],
+                'subject' => $subject,
+                'text' => $bodyText
+            ];
+            if ($bodyHtml) {
+                $payload['html'] = $bodyHtml;
+            }
+        } else {
+            // Default: brevo (Sendinblue)
+            $url = 'https://api.brevo.com/v3/smtp/email';
+            $headers[] = 'api-key: ' . $apiKey;
+            $payload = [
+                'sender' => ['name' => $fromName, 'email' => $fromEmail],
+                'to' => [['email' => $to]],
+                'subject' => $subject,
+                'textContent' => $bodyText
+            ];
+            if ($bodyHtml) {
+                $payload['htmlContent'] = $bodyHtml;
+            }
+        }
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        if ($httpCode >= 200 && $httpCode < 300) {
+            return true;
+        }
+
+        error_log("[Mailer API] Error enviando via {$provider}. HTTP {$httpCode}. Response: {$response}. cURL Error: {$curlError}");
+        return false;
     }
 }
