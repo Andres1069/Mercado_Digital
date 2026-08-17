@@ -253,7 +253,7 @@ class AuthController {
         $origin  = $_SERVER['HTTP_ORIGIN'] ?? '';
         $enviado = $this->enviarCorreoReset($usuario['Correo'], $codigo, $origin);
         if (!$enviado) {
-            $this->error('No fue posible enviar el codigo al correo configurado. Verifica SMTP e intenta de nuevo.', 500);
+            $this->error('No fue posible enviar el código. Es posible que el servidor de alojamiento (Render) esté bloqueando los puertos SMTP. Verifica tu configuración.', 400);
         }
 
         $this->limpiarResetStore($store);
