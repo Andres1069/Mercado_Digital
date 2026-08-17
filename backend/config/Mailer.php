@@ -23,7 +23,10 @@ class Mailer {
             return false;
         }
 
-        $fp = @stream_socket_client("tcp://{$host}:{$port}", $errno, $errstr, 15);
+        // Forzar IPv4 para evitar timeouts de IPv6 en algunos servidores/XAMPP
+        $hostIp = gethostbyname($host);
+        $protocol = ($port == 465) ? 'ssl' : 'tcp';
+        $fp = @stream_socket_client("{$protocol}://{$hostIp}:{$port}", $errno, $errstr, 15);
         if (!$fp) {
             error_log("[Mailer] No se pudo conectar a {$host}:{$port} - {$errstr} ({$errno})");
             return false;
