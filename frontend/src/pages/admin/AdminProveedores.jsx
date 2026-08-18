@@ -321,9 +321,16 @@ export default function AdminProveedores() {
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
-                  {["Proveedor", "Teléfono", "Correo", "Productos", "Stock crítico", "Acciones"].map((h) => (
-                    <th key={h} className="px-5 py-3.5 text-left text-xs font-bold uppercase tracking-wider" style={{ color: "#6B8E4E" }}>
-                      {h}
+                  {[
+                    { label: "Proveedor", cls: "" },
+                    { label: "Teléfono", cls: "hidden sm:table-cell" },
+                    { label: "Correo", cls: "hidden md:table-cell" },
+                    { label: "Productos", cls: "hidden sm:table-cell" },
+                    { label: "Stock crítico", cls: "" },
+                    { label: "Acciones", cls: "" },
+                  ].map(({ label, cls }) => (
+                    <th key={label} className={`px-5 py-3.5 text-left text-xs font-bold uppercase tracking-wider ${cls}`} style={{ color: "#6B8E4E" }}>
+                      {label}
                     </th>
                   ))}
                 </tr>
@@ -349,20 +356,22 @@ export default function AdminProveedores() {
                       style={{ borderTop: "1px solid rgba(107,142,78,0.08)" }}
                       onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(107,142,78,0.06)"}
                       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ""}>
-                      <td className="px-5 py-4">
-                        <p className="font-semibold" style={{ color: "#1B2727" }}>{p.Nombre_proveedor}</p>
+                      <td className="px-5 py-4 max-w-[150px] sm:max-w-none">
+                        <p className="font-semibold truncate" style={{ color: "#1B2727" }}>{p.Nombre_proveedor}</p>
+                        <p className="sm:hidden text-xs mt-0.5 truncate" style={{ color: "#6B8E4E" }}>{p.Telefono_proveedor}</p>
+                        <p className="md:hidden text-xs truncate" style={{ color: "#6B8E4E" }}>{p.Correo_proveedor}</p>
                       </td>
-                      <td className="px-5 py-4">
+                      <td className="px-5 py-4 hidden sm:table-cell">
                         <a href={`tel:${p.Telefono_proveedor}`} className="hover:underline" style={{ color: "#3C5148" }}>
                           {p.Telefono_proveedor}
                         </a>
                       </td>
-                      <td className="px-5 py-4">
+                      <td className="px-5 py-4 hidden md:table-cell">
                         <a href={`mailto:${p.Correo_proveedor}`} className="hover:underline" style={{ color: "#3C5148" }}>
                           {p.Correo_proveedor}
                         </a>
                       </td>
-                      <td className="px-5 py-4 text-center font-semibold" style={{ color: "#3C5148" }}>
+                      <td className="px-5 py-4 hidden sm:table-cell text-center font-semibold" style={{ color: "#3C5148" }}>
                         {p.total_productos || 0}
                       </td>
                       <td className="px-5 py-4 text-center">
@@ -377,15 +386,15 @@ export default function AdminProveedores() {
                         )}
                       </td>
                       <td className="px-5 py-4">
-                        <div className="flex items-center justify-center gap-2">
+                        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-center gap-1.5 lg:gap-2">
                           <a href={`mailto:${p.Correo_proveedor}`}
-                            className="px-3 py-1.5 rounded-xl text-xs font-semibold transition"
+                            className="px-3 py-1.5 rounded-xl text-xs font-semibold transition whitespace-nowrap"
                             style={{ border: "1px solid rgba(107,142,78,0.4)", color: "#3C5148" }}
                             title="Contactar por correo">
                             Contactar
                           </a>
                           <button onClick={() => abrirEditar(p)}
-                            className="px-3 py-1.5 rounded-xl text-xs font-semibold transition"
+                            className="px-3 py-1.5 rounded-xl text-xs font-semibold transition whitespace-nowrap"
                             style={{ border: "1px solid rgba(107,142,78,0.4)", color: "#3C5148" }}>
                             Editar
                           </button>

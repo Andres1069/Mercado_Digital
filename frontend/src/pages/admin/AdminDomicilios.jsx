@@ -224,11 +224,19 @@ export default function AdminDomicilios() {
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
-                  {["Pedido", "Cliente", "Dirección", "Pago", "Estado", "Evidencia", "Cambiar estado"].map((h, i) => (
-                    <th key={h}
-                      className={`px-4 py-3 text-xs font-bold uppercase tracking-wider ${i === 1 ? "hidden md:table-cell text-left" : ""} ${i === 2 ? "hidden lg:table-cell text-left" : ""} ${i === 3 ? "hidden md:table-cell text-center" : ""} ${i >= 4 ? "text-center" : ""} ${i === 0 ? "text-left" : ""}`}
+                  {[
+                    { label: "Pedido", cls: "text-left" },
+                    { label: "Cliente", cls: "hidden lg:table-cell text-left" },
+                    { label: "Dirección", cls: "hidden xl:table-cell text-left" },
+                    { label: "Pago", cls: "hidden lg:table-cell text-center" },
+                    { label: "Estado", cls: "hidden sm:table-cell text-center" },
+                    { label: "Evidencia", cls: "hidden sm:table-cell text-center" },
+                    { label: "Cambiar estado", cls: "text-center" },
+                  ].map(({ label, cls }) => (
+                    <th key={label}
+                      className={`px-4 py-3 text-xs font-bold uppercase tracking-wider ${cls}`}
                       style={{ color: "#6B8E4E" }}>
-                      {h}
+                      {label}
                     </th>
                   ))}
                 </tr>
@@ -259,14 +267,25 @@ export default function AdminDomicilios() {
                         <td className="px-4 py-3">
                           <p className="font-bold" style={{ color: "#1B2727" }}>#{d.Cod_Pedido}</p>
                           <p className="text-xs" style={{ color: "#6B8E4E" }}>{formatFecha(d.Fecha_Domicilio)}</p>
+                          <div className="sm:hidden mt-1.5 flex items-center gap-1.5 flex-wrap">
+                            <span className="px-2 py-0.5 rounded-full text-xs font-semibold"
+                              style={{ backgroundColor: badge.bg, color: badge.text }}>
+                              {d.Estado_Domicilio || "Pendiente"}
+                            </span>
+                            {(d.Estado_Domicilio === "Entregado" || d.Comprobante_Entrega || d.Recibido_Por) && (
+                              <span className="text-xs font-semibold" style={{ color: d.Comprobante_Entrega ? "#3C5148" : "#92400e" }}>
+                                {d.Comprobante_Entrega ? "Evidencia disponible" : "Evidencia pendiente"}
+                              </span>
+                            )}
+                          </div>
                         </td>
-                        <td className="px-4 py-3 hidden md:table-cell">
+                        <td className="px-4 py-3 hidden lg:table-cell">
                           <p className="font-medium" style={{ color: "#3C5148" }}>{d.Nombre} {d.Apellido}</p>
                           <p className="text-xs" style={{ color: "#6B8E4E" }}>
                             {d.Telefono_entrega || d.Telefono_cliente || d.Num_Documento}
                           </p>
                         </td>
-                        <td className="px-4 py-3 hidden lg:table-cell">
+                        <td className="px-4 py-3 hidden xl:table-cell">
                           <p className="text-xs max-w-52 truncate" style={{ color: "#3C5148" }}>
                             {d.Direccion_entrega || <span style={{ color: "#1B2727", fontStyle: "italic" }}>Sin direccion</span>}
                           </p>
@@ -276,19 +295,19 @@ export default function AdminDomicilios() {
                             </p>
                           )}
                         </td>
-                        <td className="px-4 py-3 hidden md:table-cell text-center">
+                        <td className="px-4 py-3 hidden lg:table-cell text-center">
                           <p className="text-xs" style={{ color: "#6B8E4E" }}>{d.Metodo_Pago || "-"}</p>
                           <p className="text-xs font-semibold" style={{ color: d.verificacion === "aprobado" ? "#6B8E4E" : "#fbbf24" }}>
                             {d.verificacion || "pendiente"}
                           </p>
                         </td>
-                        <td className="px-4 py-3 text-center">
+                        <td className="px-4 py-3 hidden sm:table-cell text-center">
                           <span className="px-2 py-1 rounded-full text-xs font-semibold"
                             style={{ backgroundColor: badge.bg, color: badge.text }}>
                             {d.Estado_Domicilio || "Pendiente"}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-center">
+                        <td className="px-4 py-3 hidden sm:table-cell text-center">
                           {d.Estado_Domicilio === "Entregado" || d.Comprobante_Entrega || d.Recibido_Por ? (
                             <button
                               type="button"

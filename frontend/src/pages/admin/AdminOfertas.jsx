@@ -347,7 +347,7 @@ export default function AdminOfertas() {
                   <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider hidden md:table-cell" style={{ color: "#6B8E4E" }}>Producto</th>
                   <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider" style={{ color: "#6B8E4E" }}>Descuento</th>
                   <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider hidden md:table-cell" style={{ color: "#6B8E4E" }}>Vigencia</th>
-                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider" style={{ color: "#6B8E4E" }}>Estado</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider hidden sm:table-cell" style={{ color: "#6B8E4E" }}>Estado</th>
                   {esAdmin() && <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider" style={{ color: "#6B8E4E" }}>Acciones</th>}
                 </tr>
               </thead>
@@ -378,6 +378,10 @@ export default function AdminOfertas() {
                         <td className="px-4 py-3">
                           <p className="font-semibold" style={{ color: "#1B2727" }}>{o.Titulo}</p>
                           {o.Descripcion && <p className="text-xs" style={{ color: "#6B8E4E" }}>{o.Descripcion}</p>}
+                          <span className="sm:hidden inline-block mt-1.5 px-2 py-0.5 rounded-full text-xs font-bold"
+                            style={{ backgroundColor: color.bg, color: color.text }}>
+                            {estado}
+                          </span>
                         </td>
                         <td className="px-4 py-3 hidden md:table-cell text-sm" style={{ color: "#3C5148" }}>
                           {o.nombre_producto || "Sin producto"}
@@ -396,7 +400,7 @@ export default function AdminOfertas() {
                           <div>Inicio: {formatDateTime(o.Fecha_Inicio)}</div>
                           <div>Fin: {formatDateTime(o.Fecha_Fin)}</div>
                         </td>
-                        <td className="px-4 py-3 text-center">
+                        <td className="px-4 py-3 hidden sm:table-cell text-center">
                           <span className="px-2.5 py-1 rounded-full text-xs font-bold"
                             style={{ backgroundColor: color.bg, color: color.text }}>
                             {estado}
@@ -404,14 +408,14 @@ export default function AdminOfertas() {
                         </td>
                         {esAdmin() && (
                           <td className="px-4 py-3">
-                            <div className="flex items-center justify-center gap-2">
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-1.5 sm:gap-2">
                               <button onClick={() => abrirEditar(o)}
-                                className="px-3 py-1.5 rounded-lg text-xs font-semibold transition"
+                                className="px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap"
                                 style={{ border: "1px solid rgba(107,142,78,0.4)", color: "#3C5148" }}>
                                 Editar
                               </button>
                               <button onClick={() => setConfirmar(o.Cod_Oferta)}
-                                className="px-3 py-1.5 rounded-lg text-xs font-semibold transition"
+                                className="px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap"
                                 style={{ border: "1px solid rgba(239,68,68,0.4)", color: "#f87171" }}>
                                 Eliminar
                               </button>

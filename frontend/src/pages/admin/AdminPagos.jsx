@@ -126,10 +126,19 @@ export default function AdminPagos() {
               <table className="w-full text-sm">
                 <thead>
                   <tr style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
-                    {["#Pago","#Pedido","Cliente","Método","Monto","ID Transacción","Método MP","Estado"].map((h) => (
-                      <th key={h} className="px-4 py-3.5 text-left text-xs font-bold uppercase tracking-wider whitespace-nowrap"
+                    {[
+                      { label: "#Pago", cls: "" },
+                      { label: "#Pedido", cls: "hidden md:table-cell" },
+                      { label: "Cliente", cls: "" },
+                      { label: "Método", cls: "hidden sm:table-cell" },
+                      { label: "Monto", cls: "" },
+                      { label: "ID Transacción", cls: "hidden lg:table-cell" },
+                      { label: "Método MP", cls: "hidden lg:table-cell" },
+                      { label: "Estado", cls: "" },
+                    ].map(({ label, cls }) => (
+                      <th key={label} className={`px-4 py-3.5 text-left text-xs font-bold uppercase tracking-wider whitespace-nowrap ${cls}`}
                         style={{ color: "#6B8E4E" }}>
-                        {h}
+                        {label}
                       </th>
                     ))}
                   </tr>
@@ -144,27 +153,28 @@ export default function AdminPagos() {
                       <td className="px-4 py-3.5 font-mono font-bold whitespace-nowrap" style={{ color: "#3C5148" }}>
                         #{p.Cod_Pago}
                       </td>
-                      <td className="px-4 py-3.5 font-mono whitespace-nowrap" style={{ color: "#6B8E4E" }}>
+                      <td className="px-4 py-3.5 hidden md:table-cell font-mono whitespace-nowrap" style={{ color: "#6B8E4E" }}>
                         #{p.Cod_pedido}
                       </td>
-                      <td className="px-4 py-3.5 whitespace-nowrap">
+                      <td className="px-4 py-3.5">
                         <p className="font-semibold" style={{ color: "#1B2727" }}>{p.cliente_nombre} {p.cliente_apellido}</p>
                         <p className="text-xs" style={{ color: "#6B8E4E" }}>{p.cliente_documento}</p>
+                        <p className="sm:hidden text-xs mt-0.5" style={{ color: "#3C5148" }}>{p.Metodo_Pago}</p>
                       </td>
-                      <td className="px-4 py-3.5 font-semibold whitespace-nowrap" style={{ color: "#3C5148" }}>
+                      <td className="px-4 py-3.5 hidden sm:table-cell font-semibold whitespace-nowrap" style={{ color: "#3C5148" }}>
                         {p.Metodo_Pago}
                       </td>
                       <td className="px-4 py-3.5 font-extrabold whitespace-nowrap" style={{ color: "#6B8E4E" }}>
                         {fmt(p.Monto_Pago)}
                       </td>
-                      <td className="px-4 py-3.5">
+                      <td className="px-4 py-3.5 hidden lg:table-cell">
                         {p.mp_payment_id ? (
                           <span className="font-mono text-xs" style={{ color: "#3C5148" }}>{p.mp_payment_id}</span>
                         ) : (
                           <span className="text-xs" style={{ color: "#94a3b8" }}>—</span>
                         )}
                       </td>
-                      <td className="px-4 py-3.5 whitespace-nowrap" style={{ color: "#3C5148" }}>
+                      <td className="px-4 py-3.5 hidden lg:table-cell whitespace-nowrap" style={{ color: "#3C5148" }}>
                         {p.mp_payment_method
                           ? (METODO_LABEL[p.mp_payment_method] || p.mp_payment_method)
                           : <span className="text-xs" style={{ color: "#94a3b8" }}>—</span>
