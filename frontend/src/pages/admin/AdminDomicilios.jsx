@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import Sidebar from "../../components/Sidebar";
-import { domicilioService } from "../../services/api";
+import { domicilioService, BASE_URL } from "../../services/api";
 
 const ESTADOS = ["Pendiente", "En preparacion", "En camino", "Entregado", "Cancelado"];
 const CARD = { backgroundColor: "#FFFFFF", border: "1px solid #B2C5B2", boxShadow: "0 2px 8px rgba(27,39,39,0.06)" };
@@ -129,7 +129,7 @@ export default function AdminDomicilios() {
     formData.append("pedido_id", comprobanteTarget?.Cod_Pedido || "");
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/upload_evidencia.php`, {
+      const response = await fetch(`${BASE_URL}/upload_evidencia.php`, {
         method: "POST",
         body: formData,
       });

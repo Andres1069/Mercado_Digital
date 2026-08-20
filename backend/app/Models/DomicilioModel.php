@@ -23,7 +23,7 @@ class DomicilioModel {
         try { $this->db->exec("ALTER TABLE domicilio ADD COLUMN Documento_Recibe VARCHAR(40) DEFAULT NULL"); } catch (PDOException $e) {}
         try { $this->db->exec("ALTER TABLE domicilio ADD COLUMN Observaciones_Entrega VARCHAR(255) DEFAULT NULL"); } catch (PDOException $e) {}
         try { $this->db->exec("ALTER TABLE domicilio ADD COLUMN Fecha_Entrega DATETIME DEFAULT NULL"); } catch (PDOException $e) {}
-        } catch (Throwable) {
+        } catch (Throwable $e) {
             error_log('[DomicilioModel] No se pudo sincronizar columnas de comprobante: ' . $e->getMessage());
         }
     }
@@ -271,7 +271,7 @@ class DomicilioModel {
 
             $this->db->commit();
             return ['created' => true, 'domicilio' => $domicilio];
-        } catch (Throwable) {
+        } catch (Throwable $e) {
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
@@ -314,7 +314,7 @@ class DomicilioModel {
 
             $this->db->commit();
             return $ok;
-        } catch (Throwable) {
+        } catch (Throwable $e) {
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
@@ -493,7 +493,7 @@ class DomicilioModel {
 
             $this->db->commit();
             return true;
-        } catch (Throwable) {
+        } catch (Throwable $e) {
             if ($this->db->inTransaction()) $this->db->rollBack();
             throw $e;
         }
