@@ -27,6 +27,9 @@ jobs:
           # Aiven MySQL requiere conexión SSL segura por defecto
           mysqldump -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASS" --ssl-mode=REQUIRED --set-gtid-purged=OFF "$DB_NAME" > $BACKUP_FILE
           
+          # Reemplazar la collation moderna de MySQL 8 por una compatible con el MariaDB antiguo de XAMPP local
+          sed -i 's/utf8mb4_0900_ai_ci/utf8mb4_unicode_ci/g' $BACKUP_FILE
+          
           # Guardamos el nombre del archivo para pasarlo al siguiente paso
           echo "BACKUP_FILENAME=$BACKUP_FILE" >> $GITHUB_ENV
 
