@@ -104,6 +104,40 @@ VITE_API_BASE_URL=https://tu-backend-en-render.onrender.com
 
 ---
 
+## 💾 Respaldos Automáticos (Backups)
+
+El proyecto cuenta con un sistema de **respaldos automáticos diarios** de la base de datos (Aiven) hacia Google Drive, utilizando **GitHub Actions**. El respaldo se ejecuta todos los días a las 3:00 AM UTC, o de forma manual.
+
+### Requisitos Previos para Google Drive
+1. Ve a [Google Cloud Console](https://console.cloud.google.com/) y crea un nuevo proyecto.
+2. Habilita la **Google Drive API**.
+3. Ve a "Credenciales" y crea una **Cuenta de Servicio (Service Account)**.
+4. Genera una clave JSON para esta cuenta y descárgala.
+5. Abre el JSON descargado, copia el correo que aparece en `"client_email"`.
+6. Ve a tu Google Drive, crea una carpeta llamada `MercadoDigital_Backups` y compártela (con permisos de Editor) con ese correo (`client_email`).
+7. Entra a esa carpeta en Google Drive y copia el **ID de la carpeta** que aparece en la URL (los caracteres después de `/folders/`).
+
+### Configuración en GitHub
+Para que el respaldo funcione, debes ir a tu repositorio en GitHub -> **Settings** -> **Secrets and variables** -> **Actions** y crear los siguientes secretos (Repository Secrets):
+
+- `DB_HOST`: Host de tu base de datos en Aiven.
+- `DB_PORT`: Puerto de tu base de datos (ej. 25060).
+- `DB_USER`: Usuario de la base de datos.
+- `DB_PASS`: Contraseña de la base de datos.
+- `DB_NAME`: Nombre de la base de datos.
+- `GDRIVE_CREDENTIALS`: Pega aquí todo el contenido del archivo JSON que descargaste de Google Cloud.
+- `GDRIVE_FOLDER_ID`: El ID de la carpeta de Google Drive que copiaste en el paso anterior.
+
+### Cómo Validar que Funciona
+1. En tu repositorio de GitHub, ve a la pestaña **Actions**.
+2. En el panel izquierdo, selecciona **"Backup Aiven DB to Google Drive"**.
+3. Haz clic en el botón **"Run workflow"** a la derecha y presiona "Run workflow".
+4. Espera a que termine (debe marcar un check verde).
+5. Ve a tu carpeta compartida en Google Drive. Deberías ver un archivo nuevo llamado `backup_mercadodigital_YYYY-MM-DD_HH-MM-SS.sql`.
+6. Puedes descargar este archivo `.sql` e importarlo localmente en XAMPP (`http://localhost/phpmyadmin`) para validar que toda la información y estructura esté intacta.
+
+---
+
 ## 📁 Estructura del Proyecto
 
 ```
