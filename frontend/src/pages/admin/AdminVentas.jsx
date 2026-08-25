@@ -146,7 +146,7 @@ export default function AdminVentas() {
     <div className="flex min-h-screen" style={{ backgroundColor: "#D5DDDF" }}>
       <Sidebar />
       <div className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3 mb-6">
             <div>
               <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Ventas en tienda</h1>
@@ -176,7 +176,7 @@ export default function AdminVentas() {
 
           <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_390px] gap-6 items-start">
             <section className="rounded-2xl p-4 sm:p-5" style={CARD}>
-              <div className="flex flex-col lg:flex-row gap-3 mb-4">
+              <div className="flex flex-col xl:flex-row gap-3 mb-4">
                 <div className="relative flex-1">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm" style={{ color: "#6B8E4E" }}>
                     Buscar
@@ -189,7 +189,7 @@ export default function AdminVentas() {
                     style={INPUT}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-2 lg:w-64">
+                <div className="grid grid-cols-2 gap-2 xl:w-64">
                   <div className="rounded-xl px-3 py-2" style={{ backgroundColor: "rgba(107,142,78,0.08)", border: "1px solid rgba(107,142,78,0.16)" }}>
                     <p className="text-[10px] uppercase font-bold tracking-wide" style={{ color: "#6B8E4E" }}>Resultados</p>
                     <p className="text-lg font-black leading-tight" style={{ color: "#1B2727" }}>{filtrados.length}</p>
@@ -220,13 +220,13 @@ export default function AdminVentas() {
                 })}
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 min-h-[620px] content-start">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 min-h-[620px] content-start">
                 {cargando ? (
                   [...Array(PRODUCTOS_POR_PAGINA)].map((_, i) => (
                     <div key={i} className="h-[110px] rounded-2xl animate-pulse" style={{ backgroundColor: "rgba(107,142,78,0.08)" }} />
                   ))
                 ) : productosPagina.length === 0 ? (
-                  <div className="lg:col-span-2 rounded-2xl py-16 text-center" style={{ backgroundColor: "rgba(107,142,78,0.06)", color: "#6B8E4E" }}>
+                  <div className="sm:col-span-2 rounded-2xl py-16 text-center" style={{ backgroundColor: "rgba(107,142,78,0.06)", color: "#6B8E4E" }}>
                     <p className="font-bold">No hay productos para mostrar</p>
                     <p className="text-sm mt-1">Prueba otra busqueda o categoria.</p>
                   </div>

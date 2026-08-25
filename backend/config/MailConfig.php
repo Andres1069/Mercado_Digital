@@ -21,6 +21,8 @@ if (!function_exists('md_mail_env')) {
 define('MAIL_HOST', md_mail_env('MAIL_HOST', 'smtp.gmail.com'));
 define('MAIL_PORT', (int) md_mail_env('MAIL_PORT', '587'));
 define('MAIL_USER', md_mail_env('MAIL_USER', 'mercado.digital.bog@gmail.com'));
-define('MAIL_PASS', md_mail_env('MAIL_PASS', 'lmfv gssx iytc iyli'));
+define('MAIL_PASS', md_mail_env('MAIL_PASS', ''));
+define('MAIL_API_KEY', md_mail_env('MAIL_API_KEY', ''));
+define('MAIL_PROVIDER', md_mail_env('MAIL_PROVIDER', 'brevo'));
 define('MAIL_FROM', md_mail_env('MAIL_FROM', MAIL_USER));
 define('MAIL_FROM_NAME', md_mail_env('MAIL_FROM_NAME', 'Mercado Digital'));

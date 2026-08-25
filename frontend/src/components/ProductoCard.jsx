@@ -49,11 +49,12 @@ export default function ProductoCard({ producto, onAgregar, esFavorito = false, 
           ? <img
               src={imagen}
               alt={producto.Nombre}
-              className="relative z-10 h-full w-full object-cover p-1 drop-shadow-sm"
+              className="relative z-10 max-w-full max-h-full p-2 drop-shadow-sm"
               loading="lazy"
               style={{
                 transform: `scale(${imagenZoom})`,
                 transformOrigin: `${imagenPosX}% ${imagenPosY}%`,
+                objectFit: "contain"
               }}
             />
           : <span className="text-6xl">{emoji}</span>

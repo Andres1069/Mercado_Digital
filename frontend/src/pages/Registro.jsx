@@ -118,21 +118,27 @@ export default function Registro() {
   };
 
   return (
-    <div className="min-h-screen md-app-bg flex items-center justify-center p-4 md:p-6">
+    <div className="min-h-screen md-app-bg flex items-start md:items-center justify-center p-4 md:p-6 relative pb-12 overflow-x-hidden">
       <div className="w-full max-w-md lg:max-w-6xl bg-white rounded-[1rem] shadow-lg border border-gray-100 overflow-hidden lg:grid lg:grid-cols-[1.05fr,1.1fr]">
         <div
-          className="px-7 py-8 text-white lg:px-10 lg:py-12 flex flex-col justify-between"
+          className="px-5 py-6 sm:px-7 sm:py-8 text-white lg:px-10 lg:py-12 flex flex-col justify-between"
           style={{ background: "linear-gradient(155deg, #3C5148 0%, #6B8E4E 58%, #B2C5B2 100%)" }}
         >
           <div>
-            <p className="text-xs uppercase tracking-[0.35em] text-white/70 font-semibold">Mercado Digital</p>
-            <h1 className="text-2xl lg:text-4xl font-black mt-3 leading-tight">Crea tu cuenta</h1>
-            <p className="text-white/85 text-sm lg:text-base mt-3 max-w-md">
+            <img
+              src="/logo/Logo-Mercado-Digital-Blanco.png"
+              alt="Mercado Digital"
+              className="h-10 lg:h-12 w-auto mb-4 drop-shadow-md object-contain"
+            />
+            <h1 className="text-3xl lg:text-[2.2rem] font-black leading-[1.1] tracking-tight drop-shadow-sm">
+              Crea tu cuenta
+            </h1>
+            <p className="text-white/85 text-sm mt-3 font-medium leading-relaxed max-w-[90%]">
               Registra tus datos para comprar, guardar tu perfil y recibir acceso inmediato a la tienda.
             </p>
             <div className="mt-6 overflow-hidden rounded-[0.9rem] border border-white/15 bg-white/10 shadow-2xl shadow-black/20">
               <img
-                src="/registrarse.png"
+                src="/registro/registrarse.png"
                 alt="Registro en Mercado Digital"
                 className="h-44 w-full object-cover object-center sm:h-56 lg:h-72"
                 onError={(e) => { e.currentTarget.style.display = "none"; }}
@@ -143,17 +149,17 @@ export default function Registro() {
 
         </div>
 
-        <div className="p-7 lg:p-9 xl:p-10">
+        <div className="p-5 sm:p-7 lg:p-9 xl:p-10">
           {error && <div className="px-4 py-3 rounded-2xl mb-6 text-sm border border-rose-200 bg-rose-50 text-rose-700">{error}</div>}
 
           <form onSubmit={handleSubmit} className="space-y-3 lg:space-y-3">
-            <div className="grid sm:grid-cols-2 gap-4 lg:gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-3">
               <input type="number" name="num_documento" value={form.num_documento} onChange={handleChange} required placeholder="Numero de documento" className="md-input sm:col-span-2" />
               <input type="text" name="nombre" value={form.nombre} onChange={handleChange} required placeholder="Nombre" className="md-input" />
               <input type="text" name="apellido" value={form.apellido} onChange={handleChange} required placeholder="Apellido" className="md-input" />
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4 lg:gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-3">
               <input type="email" name="correo" value={form.correo} onChange={handleChange} required placeholder="Correo electronico" className="md-input sm:col-span-2" />
               <input type="tel" name="telefono" value={form.telefono} onChange={handleChange} placeholder="Teléfono" className="md-input" />
               <select name="barrio" value={form.barrio} onChange={handleChange} required className="md-input">
@@ -168,7 +174,7 @@ export default function Registro() {
               </p>
             )}
 
-            <div className="grid sm:grid-cols-2 gap-4 lg:gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-3">
               <div className="relative">
                 <input
                   type={verContrasena ? "text" : "password"}
@@ -239,7 +245,7 @@ export default function Registro() {
             </button>
           </form>
 
-          <div className="mt-6 lg:mt-7 grid gap-3 sm:grid-cols-2">
+          <div className="mt-6 lg:mt-7 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Link
               to="/login"
               className="w-full flex items-center justify-center gap-2 py-3 rounded-[0.85rem] border-2 text-sm font-bold transition hover:opacity-90"
@@ -256,6 +262,12 @@ export default function Registro() {
             </Link>
           </div>
         </div>
+      </div>
+
+      <div className="absolute bottom-4 left-0 right-0 text-center text-slate-500">
+        <p className="text-[8px] uppercase tracking-wider font-semibold">
+          &copy; {new Date().getFullYear()} Mercado Digital S.A.S. Todos los derechos reservados.
+        </p>
       </div>
 
       <PasswordRequirements

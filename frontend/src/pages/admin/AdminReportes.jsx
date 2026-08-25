@@ -190,14 +190,17 @@ export default function AdminReportes() {
     setExportando(true);
     try {
       const d = {};
+      // silent: la exportación tolera que cualquier sección falle individualmente
+      // (sigue generando el archivo con las secciones que sí cargaron).
+      const s = { silent: true };
       await Promise.all([
-        seccionesExport.has("pedidos")     && pedidoService.todos().then((r)    => { d.pedidos     = r.pedidos     || []; }).catch(() => { d.pedidos     = []; }),
-        seccionesExport.has("pagos")       && pagoService.todos().then((r)      => { d.pagos       = r.pagos       || []; }).catch(() => { d.pagos       = []; }),
-        seccionesExport.has("inventario")  && inventarioService.listar().then((r)=> { d.inventario  = r.inventario  || []; }).catch(() => { d.inventario  = []; }),
-        seccionesExport.has("domicilios")  && domicilioService.todos().then((r)  => { d.domicilios  = r.domicilios  || []; }).catch(() => { d.domicilios  = []; }),
-        seccionesExport.has("clientes")    && usuarioService.listar().then((r)   => { d.clientes    = (r.usuarios   || []).filter((u) => u.rol === "Cliente"); }).catch(() => { d.clientes = []; }),
-        seccionesExport.has("proveedores") && proveedorService.listar().then((r) => { d.proveedores = r.proveedores || []; }).catch(() => { d.proveedores = []; }),
-        seccionesExport.has("productos")   && Promise.all([productoService.listar(), categoriaService.listar()]).then(([pr, cr]) => { d.productos = pr.productos || []; d.categorias = cr.categorias || []; }).catch(() => { d.productos = []; d.categorias = []; }),
+        seccionesExport.has("pedidos")     && pedidoService.todos(s).then((r)    => { d.pedidos     = r.pedidos     || []; }).catch(() => { d.pedidos     = []; }),
+        seccionesExport.has("pagos")       && pagoService.todos(s).then((r)      => { d.pagos       = r.pagos       || []; }).catch(() => { d.pagos       = []; }),
+        seccionesExport.has("inventario")  && inventarioService.listar(s).then((r)=> { d.inventario  = r.inventario  || []; }).catch(() => { d.inventario  = []; }),
+        seccionesExport.has("domicilios")  && domicilioService.todos(s).then((r)  => { d.domicilios  = r.domicilios  || []; }).catch(() => { d.domicilios  = []; }),
+        seccionesExport.has("clientes")    && usuarioService.listar(s).then((r)   => { d.clientes    = (r.usuarios   || []).filter((u) => u.rol === "Cliente"); }).catch(() => { d.clientes = []; }),
+        seccionesExport.has("proveedores") && proveedorService.listar(s).then((r) => { d.proveedores = r.proveedores || []; }).catch(() => { d.proveedores = []; }),
+        seccionesExport.has("productos")   && Promise.all([productoService.listar({}, s), categoriaService.listar(s)]).then(([pr, cr]) => { d.productos = pr.productos || []; d.categorias = cr.categorias || []; }).catch(() => { d.productos = []; d.categorias = []; }),
       ].filter(Boolean));
 
       const seccionHTML = (titulo, filas, cabeceras) => `
@@ -370,30 +373,30 @@ export default function AdminReportes() {
       <Sidebar />
       <div className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+      <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
+        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3 mb-6">
           <div>
             <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Reportes y Validacion</h1>
             <p className="text-sm mt-1" style={{ color: "#3C5148" }}>
               Consulta ventas, ingresos y productos vendidos entre {etiquetaRango}.
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
             {!esEmp && (
               <select value={periodo} onChange={(e) => setPeriodo(e.target.value)}
-                className="rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={INPUT_STYLE}>
+                className="w-full sm:w-auto rounded-xl px-4 py-2.5 text-sm focus:outline-none" style={INPUT_STYLE}>
                 <option value="mes">Ingresos por mes</option>
                 <option value="dia">Ingresos por dia</option>
               </select>
             )}
             <button onClick={() => cargarDatos(periodo, rangoActivo)} disabled={cargando}
-              className="text-white font-semibold px-4 py-2.5 rounded-xl text-sm disabled:opacity-60 transition"
+              className="text-white font-semibold px-4 py-2.5 rounded-xl text-sm disabled:opacity-60 transition w-full sm:w-auto"
               style={{ backgroundColor: "#6B8E4E" }}>
               {cargando ? "Actualizando..." : "Actualizar"}
             </button>
             {!esEmp && (
               <button onClick={() => setModalExport(true)} disabled={cargando}
-                className="font-semibold px-4 py-2.5 rounded-xl text-sm transition disabled:opacity-60"
+                className="font-semibold px-4 py-2.5 rounded-xl text-sm transition disabled:opacity-60 w-full sm:w-auto"
                 style={{ backgroundColor: "#B2C5B2", border: "1px solid #B2C5B2", color: "#1B2727" }}>
                 Exportar PDF
               </button>
@@ -584,7 +587,7 @@ export default function AdminReportes() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full min-w-[900px] text-sm">
                 <thead>
                   <tr style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
                     {["Código","Fecha","Tipo","Usuario","Descripción","Detalles"].map((h, i) => (

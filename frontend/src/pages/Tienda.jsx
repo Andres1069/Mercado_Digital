@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import ProductoCard from "../components/ProductoCard";
 import { productoService, ofertaService, categoriaService } from "../services/api";
 import { useCart } from "../context/CartContext";
@@ -142,27 +143,19 @@ export default function Tienda() {
     }
     return lista;
   })();
-  const coloresCat = ["#6B8E4E", "#06b6d4", "#3C5148", "#6B8E4E", "#3C5148", "#f59e0b", "#6B8E4E", "#6B8E4E", "#ef4444", "#3C5148"];
+  const coloresCat = ["#6B8E4E", "#397e44", "#3C5148", "#6B8E4E", "#3C5148", "#f59e0b", "#6B8E4E", "#6B8E4E", "#ef4444", "#3C5148"];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen flex flex-col bg-white">
       <Navbar />
 
-      {notif && (
-        <div
-          className="fixed bottom-24 left-4 right-4 sm:left-auto sm:right-28 sm:bottom-6 sm:max-w-sm text-white px-5 py-3 rounded-2xl shadow-2xl z-[60] font-semibold text-sm"
-          style={{ background: "linear-gradient(135deg, #6B8E4E, #3C5148)" }}
-        >
-          {notif}
-        </div>
-      )}
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
 
         {/* Banner de ofertas */}
         {ofertas.length > 0 && !verOfertas && (
           <div
-            className="relative overflow-hidden rounded-3xl mb-8 p-7 text-white shadow-xl"
+            className="relative overflow-hidden rounded-3xl mb-8 p-5 sm:p-7 text-white shadow-xl"
             style={{ background: "linear-gradient(135deg, #6B8E4E 0%, #3C5148 50%, #1B2727 100%)" }}
           >
             <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full opacity-20 bg-white" />
@@ -179,7 +172,7 @@ export default function Tienda() {
               </div>
               <button
                 onClick={() => setVerOfertas(true)}
-                className="shrink-0 bg-white font-bold px-5 sm:px-6 py-2.5 sm:py-3 rounded-2xl hover:scale-105 transition-transform text-sm shadow-lg"
+                className="shrink-0 bg-white font-bold px-5 sm:px-6 py-2.5 sm:py-3 rounded-2xl hover:scale-105 transition-transform text-sm shadow-lg w-full sm:w-auto"
                 style={{ color: "#6B8E4E" }}
               >
                 Ver ofertas
@@ -189,7 +182,7 @@ export default function Tienda() {
         )}
 
         {/* Layout principal: sidebar + productos */}
-        <div className="flex gap-6 items-start">
+        <div className="flex flex-col md:flex-row gap-6 items-start">
 
           {/* Sidebar izquierdo */}
           <aside className="hidden md:flex flex-col gap-4 w-56 flex-shrink-0 sticky top-4">
@@ -277,7 +270,7 @@ export default function Tienda() {
           </aside>
 
           {/* Contenido principal */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 w-full">
 
             {/* Búsqueda móvil */}
             <div className="md:hidden relative mb-4">
@@ -324,7 +317,7 @@ export default function Tienda() {
             </div>
 
             {/* Encabezado resultados */}
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-5">
               <h2 className="text-xl font-extrabold text-gray-800">
                 {verOfertas ? "Productos en oferta" : catActiva ? categorias.find((c) => c.Cod_Categoria === catActiva)?.Nombre : "Todos los productos"}
               </h2>
@@ -333,7 +326,7 @@ export default function Tienda() {
 
             {/* Grid de productos */}
             {cargando ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {[...Array(8)].map((_, i) => (
                   <div key={i} className="bg-white rounded-2xl h-72 animate-pulse border border-gray-100">
                     <div className="bg-gray-100 h-44 rounded-t-2xl" />
@@ -352,7 +345,7 @@ export default function Tienda() {
                 <p className="text-sm mt-1">Intenta con otra búsqueda o categoría</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {productosFiltrados.map((p) => (
                   <ProductoCard
                     key={p.Cod_Producto}
@@ -367,6 +360,7 @@ export default function Tienda() {
           </div>
         </div>
       </div>
+      <Footer compact={true} />
     </div>
   );
 }

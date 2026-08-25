@@ -91,26 +91,28 @@ export function AuthProvider({ children }) {
     sessionStorage.setItem("md_usuario", JSON.stringify(nuevoUsuario));
   };
 
-  // Cerrar sesión: notifica al backend y limpia estado local
   const cerrarSesion = async () => {
-    try {
-      // Intenta notificar al backend sobre el logout
-      await authService.logout();
-    } catch {
-      // Continúa con el logout local incluso si hay error
-    } finally {
-      // Siempre limpia el estado local
-      setToken(null);
-      setUsuario(null);
-      sessionStorage.removeItem("md_token");
-      sessionStorage.removeItem("md_usuario");
-      
-      // Destruir cookies de la aplicación
-      const deleteCookie = (name) => {
-        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-      };
-      deleteCookie("md_token");
-      deleteCookie("md_usuario");
+    // 1. Limpia el estado local de inmediato para evitar race conditions
+    // (p. ej. que una navegación dispare requests con un token que se está invalidando)
+    const tokenViejo = token;
+    setToken(null);
+    setUsuario(null);
+    sessionStorage.removeItem("md_token");
+    sessionStorage.removeItem("md_usuario");
+
+    const deleteCookie = (name) => {
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+    };
+    deleteCookie("md_token");
+    deleteCookie("md_usuario");
+
+    // 2. Notifica al backend en segundo plano
+    if (tokenViejo) {
+      try {
+        await authService.logout();
+      } catch {
+        // Ignora errores del logout en el backend
+      }
     }
   };
 

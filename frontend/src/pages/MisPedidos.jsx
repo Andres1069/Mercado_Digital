@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import { pedidoService } from "../services/api";
 
 function badgeColor(estado) {
@@ -45,10 +47,10 @@ export default function MisPedidos() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen flex flex-col md-app-bg">
       <Navbar />
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-6 sm:mt-8 mb-8 flex-1 w-full">
         <div className="flex flex-wrap items-end justify-between gap-3 mb-6">
           <div>
             <h1 className="text-2xl font-extrabold text-gray-800">Mis pedidos</h1>
@@ -149,6 +151,7 @@ export default function MisPedidos() {
           </table>
         </div>
       </div>
+      <Footer compact={true} />
     </div>
   );
 }

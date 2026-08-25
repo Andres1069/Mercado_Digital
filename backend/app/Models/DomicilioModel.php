@@ -18,11 +18,11 @@ class DomicilioModel {
 
     private function ensureComprobanteColumns(): void {
         try {
-            $this->db->exec("ALTER TABLE domicilio ADD COLUMN IF NOT EXISTS Comprobante_Entrega MEDIUMTEXT DEFAULT NULL");
-            $this->db->exec("ALTER TABLE domicilio ADD COLUMN IF NOT EXISTS Recibido_Por VARCHAR(120) DEFAULT NULL");
-            $this->db->exec("ALTER TABLE domicilio ADD COLUMN IF NOT EXISTS Documento_Recibe VARCHAR(40) DEFAULT NULL");
-            $this->db->exec("ALTER TABLE domicilio ADD COLUMN IF NOT EXISTS Observaciones_Entrega VARCHAR(255) DEFAULT NULL");
-            $this->db->exec("ALTER TABLE domicilio ADD COLUMN IF NOT EXISTS Fecha_Entrega DATETIME DEFAULT NULL");
+        try { $this->db->exec("ALTER TABLE domicilio ADD COLUMN Comprobante_Entrega MEDIUMTEXT DEFAULT NULL"); } catch (PDOException $e) {}
+        try { $this->db->exec("ALTER TABLE domicilio ADD COLUMN Recibido_Por VARCHAR(120) DEFAULT NULL"); } catch (PDOException $e) {}
+        try { $this->db->exec("ALTER TABLE domicilio ADD COLUMN Documento_Recibe VARCHAR(40) DEFAULT NULL"); } catch (PDOException $e) {}
+        try { $this->db->exec("ALTER TABLE domicilio ADD COLUMN Observaciones_Entrega VARCHAR(255) DEFAULT NULL"); } catch (PDOException $e) {}
+        try { $this->db->exec("ALTER TABLE domicilio ADD COLUMN Fecha_Entrega DATETIME DEFAULT NULL"); } catch (PDOException $e) {}
         } catch (Throwable $e) {
             error_log('[DomicilioModel] No se pudo sincronizar columnas de comprobante: ' . $e->getMessage());
         }
@@ -41,7 +41,7 @@ class DomicilioModel {
                 static fn($r) => (string)$r['COLUMN_NAME'],
                 $stmt->fetchAll() ?: []
             ));
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             $this->domicilioCols = [];
         }
 
@@ -57,7 +57,7 @@ class DomicilioModel {
                 static fn($r) => (string)$r['COLUMN_NAME'],
                 $stmt->fetchAll() ?: []
             ));
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             $this->pagoCols = [];
         }
 
@@ -71,7 +71,7 @@ class DomicilioModel {
             );
             $stmt->execute();
             $this->tieneHistorial = (int)$stmt->fetchColumn() > 0;
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             $this->tieneHistorial = false;
         }
 
@@ -88,7 +88,7 @@ class DomicilioModel {
                     static fn($r) => (string)$r['COLUMN_NAME'],
                     $stmt->fetchAll() ?: []
                 ));
-            } catch (Throwable $e) {
+            } catch (Throwable) {
                 $this->historialCols = [];
             }
         }
@@ -230,7 +230,7 @@ class DomicilioModel {
             $vals = ['NOW()', ':estado', ':up'];
             $params = [':estado' => $estado, ':up' => $usuarioPedidoId];
 
-            // Campos opcionales según tu BD actual (si existen, los usamos).
+            // Campos opcionales segÃºn tu BD actual (si existen, los usamos).
             $map = [
                 'Direccion_entrega' => 'direccion',
                 'Telefono' => 'telefono',
@@ -295,7 +295,7 @@ class DomicilioModel {
             $stmt->execute([':pedido' => $pedidoId, ':doc' => $numDocumento]);
             $ok = $stmt->rowCount() > 0;
 
-            // Si hay domicilio, también lo cancelamos.
+            // Si hay domicilio, tambiÃ©n lo cancelamos.
             $stmt = $this->db->prepare(
                 "UPDATE domicilio d
                  INNER JOIN usuario_pedido up ON up.Cod_usuario_pedido = d.Cod_Usuario_Pedido
@@ -326,7 +326,7 @@ class DomicilioModel {
      * Seguimiento: como el esquema actual no tiene tabla de historial, devolvemos el estado actual.
      */
     public function seguimiento(int $numDocumento, int $pedidoId): array {
-        // Si existe la tabla de historial, devolvemos la línea de tiempo.
+        // Si existe la tabla de historial, devolvemos la lÃ­nea de tiempo.
         if ($this->tieneHistorial && $this->hasHistorialCol('Cod_pedido') && $this->hasHistorialCol('Estado') && $this->hasHistorialCol('Fecha')) {
             $detalle = $this->detallePorDocumento($numDocumento, $pedidoId);
             if (!$detalle) {
@@ -379,12 +379,17 @@ class DomicilioModel {
     /**
      * Lista todos los domicilios con info del cliente y pedido (para admin).
      */
-    public function getAll(): array {
+    public function getAll(int $pagina = 0, int $limite = 0): array {
         $extra = [];
         if ($this->hasDomicilioCol('Direccion_entrega')) $extra[] = 'd.Direccion_entrega';
         if ($this->hasDomicilioCol('Telefono'))          $extra[] = 'd.Telefono AS Telefono_entrega';
         if ($this->hasDomicilioCol('Notas'))             $extra[] = 'd.Notas';
         if ($this->hasDomicilioCol('Costo_envio'))       $extra[] = 'd.Costo_envio';
+        if ($this->hasDomicilioCol('Comprobante_Entrega')) $extra[] = 'd.Comprobante_Entrega';
+        if ($this->hasDomicilioCol('Recibido_Por'))        $extra[] = 'd.Recibido_Por';
+        if ($this->hasDomicilioCol('Documento_Recibe'))    $extra[] = 'd.Documento_Recibe';
+        if ($this->hasDomicilioCol('Observaciones_Entrega')) $extra[] = 'd.Observaciones_Entrega';
+        if ($this->hasDomicilioCol('Fecha_Entrega'))       $extra[] = 'd.Fecha_Entrega';
 
         $selectExtra = $extra ? ",\n                    " . implode(",\n                    ", $extra) : '';
 
@@ -408,6 +413,21 @@ class DomicilioModel {
                 INNER JOIN persona per        ON per.Num_Documento      = up.Num_Documento
                 LEFT  JOIN pago pa            ON pa.Cod_pedido          = p.Cod_Pedido
                 ORDER BY d.Fecha DESC";
+
+        if ($pagina > 0 && $limite > 0) {
+            $cntStmt = $this->db->prepare("SELECT COUNT(*) FROM ($sql) AS _c");
+            $cntStmt->execute();
+            $total  = (int)$cntStmt->fetchColumn();
+            $offset = ($pagina - 1) * $limite;
+            $stmt   = $this->db->prepare($sql . " LIMIT $limite OFFSET $offset");
+            $stmt->execute();
+            return [
+                'datos'   => $stmt->fetchAll(PDO::FETCH_ASSOC),
+                'total'   => $total,
+                'pagina'  => $pagina,
+                'paginas' => max(1, (int)ceil($total / $limite)),
+            ];
+        }
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
@@ -477,5 +497,24 @@ class DomicilioModel {
             if ($this->db->inTransaction()) $this->db->rollBack();
             throw $e;
         }
+    }
+
+    /**
+     * Obtiene los datos del cliente (correo, nombre) y el pedido asociado a un domicilio.
+     */
+    public function getContactoPorDomicilio(int $codDomicilio): array {
+        $sql = "SELECT 
+                    per.Correo, 
+                    per.Nombre, 
+                    per.Apellido, 
+                    p.Cod_Pedido
+                FROM domicilio d
+                INNER JOIN usuario_pedido up ON up.Cod_usuario_pedido = d.Cod_Usuario_Pedido
+                INNER JOIN persona per ON per.Num_Documento = up.Num_Documento
+                INNER JOIN pedido p ON p.Cod_Pedido = up.Cod_pedido
+                WHERE d.Cod_Domicilio = :id LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':id' => $codDomicilio]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
     }
 }

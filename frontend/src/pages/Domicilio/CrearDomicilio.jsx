@@ -13,11 +13,26 @@ export default function CrearDomicilio() {
   const direccionRegistrada = usuario?.Direccion || "";
   const telefonoRegistrado  = usuario?.Telefono  || "";
   const nombreUsuario       = [usuario?.Nombre, usuario?.Apellido].filter(Boolean).join(" ");
+  const direccionPendiente = (() => {
+    try {
+      return JSON.parse(sessionStorage.getItem("md_checkout_delivery_address") || "null");
+    } catch {
+      return null;
+    }
+  })();
+  const shippingQuote = (() => {
+    try {
+      return JSON.parse(sessionStorage.getItem("md_checkout_shipping_quote") || "null");
+    } catch {
+      return null;
+    }
+  })();
 
   // "confirmar" → muestra la dirección guardada para validar
   // "formulario" → muestra campos para escribir una nueva dirección
-  const [fase, setFase]       = useState(direccionRegistrada ? "confirmar" : "formulario");
-  const [form, setForm]       = useState({ direccion: "", telefono: telefonoRegistrado, notas: "" });
+  const direccionInicial = direccionPendiente?.direccion || direccionRegistrada;
+  const [fase, setFase]       = useState(direccionInicial ? "confirmar" : "formulario");
+  const [form, setForm]       = useState({ direccion: direccionInicial || "", telefono: telefonoRegistrado, notas: "" });
   const [cargando, setCargando] = useState(false);
   const [error, setError]     = useState("");
 
@@ -42,8 +57,9 @@ export default function CrearDomicilio() {
         direccion:   direccion.trim(),
         telefono:    telefono?.trim() || null,
         notas:       notas?.trim()    || null,
-        costo_envio: 7900,
+        costo_envio: shippingQuote ? Number(shippingQuote.costoEnvio) : 7900,
       });
+      sessionStorage.removeItem("md_checkout_delivery_address");
       navigate("/mis-pedidos");
     } catch (e) {
       setError(e.message || "No se pudo registrar el domicilio. Inténtalo de nuevo.");
@@ -54,7 +70,7 @@ export default function CrearDomicilio() {
 
   // "Sí, enviar aquí" → registra con la dirección guardada, sin formulario
   function handleUsarDireccionRegistrada() {
-    registrarEnvio(direccionRegistrada, telefonoRegistrado, "");
+    registrarEnvio(direccionPendiente?.direccion || direccionRegistrada, telefonoRegistrado, "");
   }
 
   // Envío del formulario de nueva dirección

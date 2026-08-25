@@ -1,18 +1,20 @@
 import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import { resolverImagen, pedidoService } from "../services/api";
 import { useCart } from "../context/CartContext";
+import { calcularCostoEnvio, DEFAULT_SHIPPING_RULES } from "../utils/shipping";
 
 const OPCIONES_ENTREGA = [
   {
-    id: "domicilio",
+    id: "Domicilio",
     titulo: "Envío a domicilio",
     descripcion: "Recibe tu pedido en la dirección que registres",
     icono: "🛵",
   },
   {
-    id: "tienda",
+    id: "Recoger_Tienda",
     titulo: "Recoger en tienda",
     descripcion: "Pasa a recoger tu pedido en nuestro punto de venta",
     icono: "🏪",
@@ -30,9 +32,16 @@ export default function Carrito() {
   const [procesando, setProcesando]     = useState(false);
   const [error, setError]               = useState("");
   const enviandoRef = useRef(false);
+  const distanciaKm = 0;
 
-  const envio  = subtotal > 70000 || items.length === 0 ? 0 : 7900;
-  const total  = subtotal + envio;
+  const reglasEnvio = {
+    ...DEFAULT_SHIPPING_RULES,
+  };
+
+  const resumenEnvio = calcularCostoEnvio(items, distanciaKm, reglasEnvio);
+  const envio = (items.length === 0 || tipoEntrega === "Recoger_Tienda") ? 0 : resumenEnvio.costoEnvio;
+  const total = items.length === 0 ? 0 : subtotal + envio;
+  const envioGratis = tipoEntrega === "Recoger_Tienda" ? true : resumenEnvio.envioGratis;
 
   function abrirModal() {
     setTipoEntrega("");
@@ -65,7 +74,7 @@ export default function Carrito() {
         monto_total: total,
       });
       setMostrarModal(false);
-      navigate(`/pago/simulado?pedido=${res.cod_pedido}&entrega=${tipoEntrega}`);
+      navigate(`/pago/simulado?pedido=${res.cod_pedido}&entrega=${encodeURIComponent(tipoEntrega)}`);
     } catch (e) {
       setError(e.message || "No se pudo procesar el pedido.");
     } finally {
@@ -75,10 +84,10 @@ export default function Carrito() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8 mb-16 flex-1 w-full">
         <div className="flex flex-wrap items-end justify-between gap-3 mb-6">
           <div>
             <h1 className="text-2xl font-extrabold text-gray-800">Carrito de compras</h1>
@@ -194,6 +203,9 @@ export default function Carrito() {
               <div className="mb-4 rounded-2xl border border-green-200 bg-green-50 px-3 py-3 text-xs font-semibold leading-relaxed text-green-800">
                 {HORARIO_PEDIDOS}
               </div>
+              <div className="mb-4 rounded-2xl border border-sky-200 bg-sky-50 px-3 py-3 text-xs font-semibold leading-relaxed text-sky-800">
+                Compra mínima para envío gratis: $20.000 COP. Si tu carrito baja de ese valor, se cobrará domicilio según la distancia.
+              </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal</span>
@@ -208,6 +220,11 @@ export default function Carrito() {
                   <span>${Number(total).toLocaleString("es-CO")}</span>
                 </div>
               </div>
+              {envioGratis && (
+                <div className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">
+                  🎉 ¡Tu envío es gratis!
+                </div>
+              )}
 
               {error && (
                 <div
@@ -236,6 +253,7 @@ export default function Carrito() {
           </div>
         )}
       </div>
+      <Footer compact={true} />
 
       {/* ── Modal de checkout ── */}
       {mostrarModal && (
@@ -271,7 +289,7 @@ export default function Carrito() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-gray-800">{op.titulo}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{op.descripcion}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{op.id === "Recoger_Tienda" ? "No requiere dirección" : op.descripcion}</p>
                   </div>
                   <div
                     className="w-4 h-4 rounded-full border-2 shrink-0"
@@ -287,6 +305,9 @@ export default function Carrito() {
             <div className="flex items-center justify-between text-sm font-bold text-gray-800 mb-5">
               <span>Total a pagar</span>
               <span>${Number(total).toLocaleString("es-CO")}</span>
+            </div>
+            <div className="mb-4 rounded-2xl border border-sky-200 bg-sky-50 px-3 py-3 text-xs font-semibold leading-relaxed text-sky-800">
+              Compra mínima para envío gratis: $20.000 COP. Si tu carrito baja de ese valor, se cobrará domicilio según la distancia.
             </div>
 
             {error && (

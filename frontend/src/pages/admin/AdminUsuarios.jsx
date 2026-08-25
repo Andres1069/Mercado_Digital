@@ -202,7 +202,7 @@ export default function AdminUsuarios() {
           </div>
         )}
 
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
             <div>
               <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Gestión de Usuarios</h1>
@@ -230,7 +230,7 @@ export default function AdminUsuarios() {
           </div>
 
           <div className="rounded-2xl overflow-x-auto" style={CARD}>
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[860px] text-sm">
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
                   {["Documento", "Usuario", "Contacto", "Rol", "Estado", "Acciones"].map((h, i) => (

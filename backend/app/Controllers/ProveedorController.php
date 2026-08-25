@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../Models/ProveedorModel.php';
 require_once __DIR__ . '/../Middleware/AuthMiddleware.php';
+require_once __DIR__ . '/../Helpers/AuditLog.php';
 
 class ProveedorController {
     private ProveedorModel $model;
@@ -29,30 +30,33 @@ class ProveedorController {
 
     // POST /proveedores
     public function crear(): void {
-        AuthMiddleware::requireRole(['Administrador']);
+        $payload = AuthMiddleware::requireRole(['Administrador']);
         $body = $this->body();
         if (empty($body['nombre']) || empty($body['telefono']) || empty($body['correo'])) {
             $this->err('Nombre, telefono y correo son requeridos.', 400);
         }
         $id = $this->model->crear($body);
+        AuditLog::registrar('crear', 'proveedor', $id, (int)($payload['num_documento'] ?? 0), $body['nombre'] ?? null);
         $this->ok(['id' => $id], 'Proveedor creado exitosamente.', 201);
     }
 
     // PUT /proveedores/:id
     public function actualizar(int $id): void {
-        AuthMiddleware::requireRole(['Administrador']);
+        $payload = AuthMiddleware::requireRole(['Administrador']);
         $body = $this->body();
         if (empty($body['nombre']) || empty($body['telefono']) || empty($body['correo'])) {
             $this->err('Nombre, telefono y correo son requeridos.', 400);
         }
         $this->model->actualizar($id, $body);
+        AuditLog::registrar('editar', 'proveedor', $id, (int)($payload['num_documento'] ?? 0), $body['nombre'] ?? null);
         $this->ok([], 'Proveedor actualizado.');
     }
 
     // DELETE /proveedores/:id
     public function eliminar(int $id): void {
-        AuthMiddleware::requireRole(['Administrador']);
+        $payload = AuthMiddleware::requireRole(['Administrador']);
         $this->model->eliminar($id);
+        AuditLog::registrar('eliminar', 'proveedor', $id, (int)($payload['num_documento'] ?? 0));
         $this->ok([], 'Proveedor eliminado.');
     }
 

@@ -3,6 +3,7 @@
 
 require_once __DIR__ . '/../Models/InventarioModel.php';
 require_once __DIR__ . '/../Middleware/AuthMiddleware.php';
+require_once __DIR__ . '/../Helpers/AuditLog.php';
 
 class InventarioController {
     private InventarioModel $model;
@@ -34,7 +35,7 @@ class InventarioController {
 
     // PUT /inventario/{id}  body: {stock, entradas?, salidas?}
     public function actualizar(int $id): void {
-        AuthMiddleware::requireRole(['Administrador', 'Empleado']);
+        $payload = AuthMiddleware::requireRole(['Administrador', 'Empleado']);
         $body = $this->body();
 
         if (!isset($body['stock'])) $this->err('El campo stock es requerido.');
@@ -47,6 +48,7 @@ class InventarioController {
 
         $ok = $this->model->actualizar($id, $stock, $entradas, $salidas);
         if (!$ok) $this->err('Registro de inventario no encontrado.', 404);
+        AuditLog::registrar('editar', 'inventario', $id, (int)($payload['num_documento'] ?? 0), "stock=$stock");
         $this->ok([], 'Inventario actualizado.');
     }
 

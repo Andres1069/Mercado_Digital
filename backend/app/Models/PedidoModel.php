@@ -22,10 +22,10 @@ class PedidoModel {
 
     private function ensureVentaColumns(): void {
         try {
-            $this->db->exec("ALTER TABLE pedido ADD COLUMN IF NOT EXISTS Canal_Venta VARCHAR(20) NOT NULL DEFAULT 'Online'");
-            $this->db->exec("ALTER TABLE pedido ADD COLUMN IF NOT EXISTS Tipo_Entrega VARCHAR(20) NOT NULL DEFAULT 'Domicilio'");
-            $this->db->exec("ALTER TABLE pedido ADD COLUMN IF NOT EXISTS Num_Documento_Vendedor INT DEFAULT NULL");
-            $this->db->exec("ALTER TABLE pedido ADD COLUMN IF NOT EXISTS Observaciones_Venta VARCHAR(255) DEFAULT NULL");
+        try { $this->db->exec("ALTER TABLE pedido ADD COLUMN Canal_Venta VARCHAR(20) NOT NULL DEFAULT 'Online'"); } catch (PDOException $e) {}
+        try { $this->db->exec("ALTER TABLE pedido ADD COLUMN Tipo_Entrega VARCHAR(20) NOT NULL DEFAULT 'Domicilio'"); } catch (PDOException $e) {}
+        try { $this->db->exec("ALTER TABLE pedido ADD COLUMN Num_Documento_Vendedor INT DEFAULT NULL"); } catch (PDOException $e) {}
+        try { $this->db->exec("ALTER TABLE pedido ADD COLUMN Observaciones_Venta VARCHAR(255) DEFAULT NULL"); } catch (PDOException $e) {}
         } catch (Throwable $e) {
             error_log('[PedidoModel] No se pudo sincronizar columnas de venta: ' . $e->getMessage());
         }
@@ -46,7 +46,7 @@ class PedidoModel {
             );
             $stmt->execute([':tabla' => $tabla]);
             return array_map(static fn($r) => (string)$r['COLUMN_NAME'], $stmt->fetchAll(PDO::FETCH_ASSOC) ?: []);
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             return [];
         }
     }
@@ -103,7 +103,7 @@ class PedidoModel {
         return $stmt->fetchAll();
     }
 
-    public function getAll(): array {
+    public function getAll(int $pagina = 0, int $limite = 0): array {
         $sql = "SELECT
                     p.Cod_Pedido,
                     p.Fecha_Pedido,
@@ -138,6 +138,21 @@ class PedidoModel {
                 INNER JOIN pago pa ON pa.Cod_pedido = p.Cod_Pedido
                 LEFT JOIN domicilio d ON d.Cod_Usuario_Pedido = up.Cod_usuario_pedido
                 ORDER BY p.Fecha_Pedido DESC";
+
+        if ($pagina > 0 && $limite > 0) {
+            $cntStmt = $this->db->prepare("SELECT COUNT(*) FROM ($sql) AS _c");
+            $cntStmt->execute();
+            $total  = (int)$cntStmt->fetchColumn();
+            $offset = ($pagina - 1) * $limite;
+            $stmt   = $this->db->prepare($sql . " LIMIT $limite OFFSET $offset");
+            $stmt->execute();
+            return [
+                'datos'   => $stmt->fetchAll(),
+                'total'   => $total,
+                'pagina'  => $pagina,
+                'paginas' => max(1, (int)ceil($total / $limite)),
+            ];
+        }
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
@@ -221,7 +236,39 @@ class PedidoModel {
      * Crea un pedido desde los items del carrito del frontend (localStorage).
      * Guarda el snapshot en DB: carrito_item, pedido, usuario_pedido, pago, detalle_pedido.
      */
+    /**
+     * Verifica stock de todos los Ã­tems antes de abrir la transacciÃ³n.
+     * Lanza RuntimeException con los productos problemÃ¡ticos si alguno falla.
+     */
+    private function verificarStock(array $items): void {
+        $stmtChk = $this->db->prepare(
+            "SELECT p.Nombre, i.Stock
+             FROM producto p
+             LEFT JOIN inventario i ON i.Cod_Producto = p.Cod_Producto
+             WHERE p.Cod_Producto = :prod"
+        );
+        $agotados = [];
+        foreach ($items as $item) {
+            $stmtChk->execute([':prod' => (int)($item['id'] ?? 0)]);
+            $row = $stmtChk->fetch(PDO::FETCH_ASSOC);
+            if (!$row) continue; // producto inexistente, lo detecta el FK del INSERT
+            $qty = max(1, (int)($item['cantidad'] ?? 1));
+            if ($row['Stock'] !== null && (int)$row['Stock'] < $qty) {
+                $disponible = (int)$row['Stock'];
+                $agotados[] = $disponible <= 0
+                    ? "{$row['Nombre']} (agotado)"
+                    : "{$row['Nombre']} (solo $disponible disponibles, pediste $qty)";
+            }
+        }
+        if (!empty($agotados)) {
+            throw new RuntimeException('Sin stock suficiente: ' . implode('; ', $agotados));
+        }
+    }
+
     public function crear(int $numDocumento, array $items, string $metodoPago, int $montoTotal, array $extra = []): int {
+        // Validar stock ANTES de abrir la transacciÃ³n para no hacer rollback innecesario
+        $this->verificarStock($items);
+
         $this->db->beginTransaction();
         try {
             // 1. Obtener (o crear) el carrito del usuario
@@ -254,7 +301,7 @@ class PedidoModel {
                 $precio = (int)($item['precio'] ?? 0);
                 $stmtItem->execute([
                     ':qty'     => $qty,
-                    ':precio'  => $precio * $qty,   // Precio total de la línea
+                    ':precio'  => $precio * $qty,   // Precio total de la lÃ­nea
                     ':prod'    => (int)($item['id'] ?? 0),
                     ':carrito' => $codCarrito,
                 ]);
@@ -297,34 +344,7 @@ class PedidoModel {
             );
             $stmt->execute([':pedido' => $codPedido, ':metodo' => $metodoPago, ':monto' => $montoTotal, ':estado_pago' => $estadoPago]);
 
-            // 7. Validar stock disponible antes de insertar el detalle
-            // LEFT JOIN: si el producto no tiene fila en inventario se omite la validación.
-            $stmtChk = $this->db->prepare(
-                "SELECT p.Nombre, i.Stock
-                 FROM producto p
-                 LEFT JOIN inventario i ON i.Cod_Producto = p.Cod_Producto
-                 WHERE p.Cod_Producto = :prod"
-            );
-            $agotados = [];
-            foreach ($items as $item) {
-                $stmtChk->execute([':prod' => (int)($item['id'] ?? 0)]);
-                $row = $stmtChk->fetch(PDO::FETCH_ASSOC);
-                if (!$row) continue; // producto inexistente, el INSERT fallará solo
-                $qty  = max(1, (int)($item['cantidad'] ?? 1));
-                // Solo bloquear si existe registro en inventario Y el stock es insuficiente
-                if ($row['Stock'] !== null && (int)$row['Stock'] < $qty) {
-                    $nombre     = $row['Nombre'];
-                    $disponible = (int)$row['Stock'];
-                    $agotados[] = $disponible <= 0
-                        ? "$nombre (agotado)"
-                        : "$nombre (solo $disponible disponibles, pediste $qty)";
-                }
-            }
-            if (!empty($agotados)) {
-                throw new RuntimeException('Sin stock suficiente: ' . implode('; ', $agotados));
-            }
-
-            // 8. Crear detalle_pedido (el trigger tr_bajar_inventario descuenta el stock)
+            // 7. Crear detalle_pedido (el trigger tr_bajar_inventario descuenta el stock)
             $stmtDet = $this->db->prepare(
                 "INSERT INTO detalle_pedido (Cantidad, Precio_unitario, Subtotal, Cod_Pedido, Cod_Producto)
                  VALUES (:qty, :precio, :subtotal, :pedido, :prod)"
@@ -407,7 +427,14 @@ class PedidoModel {
     }
 
     public function actualizarTipoEntrega(int $codPedido, int $numDocumento, string $tipoEntrega): bool {
-        $tipoEntrega = in_array($tipoEntrega, ['Domicilio', 'Recoger_Tienda'], true) ? $tipoEntrega : 'Domicilio';
+        $tipo = strtolower(trim($tipoEntrega));
+        $mapa = [
+            'domicilio' => 'Domicilio',
+            'recoger_tienda' => 'Recoger_Tienda',
+            'recoger tienda' => 'Recoger_Tienda',
+            'recoger-en-tienda' => 'Recoger_Tienda',
+        ];
+        $tipoEntrega = $mapa[$tipo] ?? 'Domicilio';
         $stmt = $this->db->prepare(
             "UPDATE pedido p
              INNER JOIN usuario_pedido up ON up.Cod_pedido = p.Cod_Pedido

@@ -1,0 +1,38 @@
+name: Backup Aiven DB to Google Drive
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # Todos los días a las 3:00 AM UTC
+  workflow_dispatch: # Permite ejecutar el backup manualmente desde GitHub
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Instalar MySQL Client
+        run: sudo apt-get update && sudo apt-get install -y mysql-client
+
+      - name: Crear Backup de la Base de Datos (Aiven)
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+        run: |
+          DATE=$(date +'%Y-%m-%d_%H-%M-%S')
+          BACKUP_FILE="backup_mercadodigital_${DATE}.sql"
+          echo "Creando dump: $BACKUP_FILE"
+          
+          # Aiven MySQL requiere conexión SSL segura por defecto
+          mysqldump -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASS" --ssl-mode=REQUIRED --set-gtid-purged=OFF "$DB_NAME" > $BACKUP_FILE
+          
+          # Guardamos el nombre del archivo para pasarlo al siguiente paso
+          echo "BACKUP_FILENAME=$BACKUP_FILE" >> $GITHUB_ENV
+
+      - name: Subir Backup a GitHub Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup
+          path: ${{ env.BACKUP_FILENAME }}
+          retention-days: 90

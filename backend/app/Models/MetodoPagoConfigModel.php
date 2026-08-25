@@ -10,7 +10,7 @@ class MetodoPagoConfigModel {
         $this->ensureTable();
     }
 
-    // ── Garantiza que la tabla existe y tiene los dos métodos sembrados ────
+    // â”€â”€ Garantiza que la tabla existe y tiene los dos mÃ©todos sembrados â”€â”€â”€â”€
     private function ensureTable(): void {
         $this->db->exec("
             CREATE TABLE IF NOT EXISTS `metodo_pago_config` (

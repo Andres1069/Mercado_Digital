@@ -3,6 +3,7 @@
 
 require_once __DIR__ . '/../Models/OfertaModel.php';
 require_once __DIR__ . '/../Middleware/AuthMiddleware.php';
+require_once __DIR__ . '/../Helpers/AuditLog.php';
 
 class OfertaController {
     private OfertaModel $model;
@@ -24,7 +25,7 @@ class OfertaController {
 
     // POST /api/ofertas  (admin)
     public function crear(): void {
-        AuthMiddleware::requireRole(['Administrador']);
+        $payload = AuthMiddleware::requireRole(['Administrador']);
         $body = $this->body();
 
         if (empty($body['titulo']) || empty($body['porcentaje_descuento'])) {
@@ -34,23 +35,26 @@ class OfertaController {
         $this->validarFechas($body, false);
 
         $id = $this->model->crear($body);
+        AuditLog::registrar('crear', 'oferta', $id, (int)($payload['num_documento'] ?? 0), $body['titulo'] ?? null);
         $this->ok(['id' => $id], 'Oferta creada.', 201);
     }
 
     // PUT /api/ofertas/:id  (admin)
     public function actualizar(int $id): void {
-        AuthMiddleware::requireRole(['Administrador']);
+        $payload = AuthMiddleware::requireRole(['Administrador']);
         $body = $this->body();
 
         $this->validarFechas($body, true);
         $this->model->actualizar($id, $body);
+        AuditLog::registrar('editar', 'oferta', $id, (int)($payload['num_documento'] ?? 0), $body['titulo'] ?? null);
         $this->ok([], 'Oferta actualizada.');
     }
 
     // DELETE /api/ofertas/:id  (admin)
     public function eliminar(int $id): void {
-        AuthMiddleware::requireRole(['Administrador']);
+        $payload = AuthMiddleware::requireRole(['Administrador']);
         $this->model->eliminar($id);
+        AuditLog::registrar('eliminar', 'oferta', $id, (int)($payload['num_documento'] ?? 0));
         $this->ok([], 'Oferta eliminada.');
     }
 

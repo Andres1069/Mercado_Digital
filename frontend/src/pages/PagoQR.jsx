@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { pagoService, pedidoService } from "../services/api";
+import AddressConfirmationModal from "../components/AddressConfirmationModal";
 
 const HORARIO_PEDIDOS = "Los pedidos se realizan de lunes a viernes de 10 AM a 5 PM. Fines de semana de 10 AM a 4 PM.";
 
@@ -14,15 +15,24 @@ export default function PagoQR() {
   const [cargando,  setCargando]  = useState(true);
   const [error,     setError]     = useState("");
   const [redirigiendo, setRedirigiendo] = useState(false);
-  const [tipoEntrega, setTipoEntrega] = useState("Domicilio");
+  const [tipoEntrega, setTipoEntrega] = useState("domicilio");
+  const [mostrarModalDireccion, setMostrarModalDireccion] = useState(false);
+  const [direccionConfirmada, setDireccionConfirmada] = useState(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem("md_checkout_delivery_address") || "null");
+    } catch {
+      return null;
+    }
+  });
 
+  const requiereDireccion = tipoEntrega === "domicilio";
   useEffect(() => {
     if (!pedidoId) { setError("Pedido inválido."); setCargando(false); return; }
 
     pagoService.obtener(pedidoId)
       .then((res) => {
         setPago(res.pago);
-        if (res.pago?.Tipo_Entrega) setTipoEntrega(res.pago.Tipo_Entrega);
+        if (res.pago?.Tipo_Entrega) setTipoEntrega(String(res.pago.Tipo_Entrega).toLowerCase());
         // Si ya está completado, ir directo al resultado
         if (res.pago?.Estado_Pago === "Completado") {
           navigate(`/pago/resultado?pedido=${pedidoId}&status=approved`);
@@ -33,6 +43,10 @@ export default function PagoQR() {
   }, [pedidoId, navigate]);
 
   async function handlePagar() {
+    if (requiereDireccion && !direccionConfirmada) {
+      setMostrarModalDireccion(true);
+      return;
+    }
     setError("");
     setRedirigiendo(true);
     const ventanaPago = window.open("about:blank", "_blank");
@@ -76,6 +90,11 @@ export default function PagoQR() {
   return (
     <div className="min-h-screen md-app-bg">
       <Navbar />
+      <AddressConfirmationModal
+        open={mostrarModalDireccion}
+        onClose={() => setMostrarModalDireccion(false)}
+        onConfirm={(payload) => setDireccionConfirmada(payload)}
+      />
 
       <div className="max-w-lg mx-auto px-4 py-10">
 
@@ -115,12 +134,12 @@ export default function PagoQR() {
           <div className="grid gap-3">
             {[
               {
-                value: "Domicilio",
+                value: "domicilio",
                 title: "Que lo lleven a mi casa",
                 text: "Despacharemos el pedido a la direccion que registres despues del pago.",
               },
               {
-                value: "Recoger_Tienda",
+                value: "recoger_tienda",
                 title: "Pasar por el pedido a tienda",
                 text: "Prepararemos tu pedido para recogerlo en tienda dentro del horario de atencion.",
               },
@@ -145,6 +164,13 @@ export default function PagoQR() {
               );
             })}
           </div>
+          {requiereDireccion && (
+            <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
+              {direccionConfirmada
+                ? `Dirección confirmada: ${direccionConfirmada.direccion}`
+                : "Debes confirmar tu dirección antes de pagar."}
+            </div>
+          )}
         </div>
 
         {/* Métodos aceptados */}
@@ -177,7 +203,7 @@ export default function PagoQR() {
               "Haz clic en «Pagar con MercadoPago» para abrir la pasarela en una pestana nueva.",
               "Elige tu método de pago: Nequi, Daviplata, tarjeta débito/crédito u otros.",
               `Confirma el pago de ${fmt(pago?.Monto_Pago)}.`,
-              tipoEntrega === "Domicilio"
+              tipoEntrega === "domicilio"
                 ? "Al aprobarse el pago, registra la direccion para el domicilio."
                 : "Al aprobarse el pago, tu pedido quedara listo para gestion de recogida en tienda.",
               "Si cancelas en MercadoPago, serás redirigido al carrito para continuar.",
@@ -198,7 +224,7 @@ export default function PagoQR() {
         <div className="space-y-3">
           <button
             onClick={handlePagar}
-            disabled={redirigiendo || !pago}
+            disabled={redirigiendo || !pago || (requiereDireccion && !direccionConfirmada)}
             className="w-full py-4 rounded-2xl text-white font-extrabold text-base disabled:opacity-50 transition"
             style={{ background: "linear-gradient(135deg,#009EE3,#00BCFF)" }}
           >

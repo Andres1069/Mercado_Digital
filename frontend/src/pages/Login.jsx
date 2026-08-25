@@ -1,15 +1,17 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Mail,
   Lock,
   Eye,
   EyeOff,
   Home,
-  UserPlus
+  UserPlus,
+  Clock3
 } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { authService } from "../services/api";
+import { useTheme } from "../context/ThemeContext";
 
 const loginInicial = { correo: "", contrasena: "" };
 const resetInicial = { correo: "", token: "", nueva_contrasena: "", confirmar_contrasena: "" };
@@ -21,6 +23,7 @@ function OjoIcon({ abierto }) {
 
 export default function Login() {
   const { iniciarSesion } = useAuth();
+  const { esOscuro } = useTheme();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const reason = searchParams.get("reason");
@@ -39,13 +42,38 @@ export default function Login() {
   const [verNueva, setVerNueva] = useState(false);
   const [verConfirmar, setVerConfirmar] = useState(false);
 
+  // Cuenta bloqueada por intentos fallidos: cronómetro hasta que se puede reintentar.
+  const [bloqueadoHasta, setBloqueadoHasta] = useState(null); // epoch ms
+  const [segundosRestantes, setSegundosRestantes] = useState(0);
+
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
   const handleChangeReset = (e) => setFormReset({ ...formReset, [e.target.name]: e.target.value });
 
   const resetToken = useMemo(() => formReset.token || tokenFromUrl, [formReset.token, tokenFromUrl]);
 
+  useEffect(() => {
+    if (!bloqueadoHasta) return;
+
+    const actualizar = () => {
+      const restante = Math.max(0, Math.ceil((bloqueadoHasta - Date.now()) / 1000));
+      setSegundosRestantes(restante);
+      if (restante <= 0) {
+        setBloqueadoHasta(null);
+        setError("");
+      }
+    };
+
+    actualizar();
+    const id = setInterval(actualizar, 1000);
+    return () => clearInterval(id);
+  }, [bloqueadoHasta]);
+
+  const formatoMMSS = (segundos) =>
+    `${Math.floor(segundos / 60)}:${String(segundos % 60).padStart(2, "0")}`;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (bloqueadoHasta) return;
     setError("");
     setCargando(true);
 
@@ -64,6 +92,9 @@ export default function Login() {
 
       navigate("/tienda");
     } catch (err) {
+      if (err.code === "ACCOUNT_LOCKED" && err.data?.retry_after) {
+        setBloqueadoHasta(Date.now() + err.data.retry_after * 1000);
+      }
       setError(err.message);
     } finally {
       setCargando(false);
@@ -131,60 +162,93 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen md-app-bg flex items-center justify-center p-4 md:p-6">
-      <div className="w-full max-w-lg md:max-w-5xl bg-white rounded-[2rem] shadow-lg border border-gray-100 overflow-hidden md:grid md:grid-cols-[1fr,1fr]">
+    <div className="min-h-screen flex items-start md:items-center justify-center p-4 md:p-6 relative overflow-x-hidden" style={{ backgroundColor: esOscuro ? "#0d1a12" : "#f8fafc" }}>
+      <div
+        className="w-full max-w-lg md:max-w-[900px] md:h-[640px] rounded-[2rem] shadow-lg overflow-hidden md:grid md:grid-cols-[1.1fr,1fr]"
+        style={{
+          backgroundColor: esOscuro ? "#142018" : "#ffffff",
+          border: `1px solid ${esOscuro ? "rgba(79,106,75,0.18)" : "#e5e7eb"}`,
+        }}
+      >
         <div
-          className="px-6 py-8 text-white md:px-10 md:py-12 flex flex-col justify-between"
-          style={{ background: "linear-gradient(145deg, #1B2727 0%, #3C5148 52%, #6B8E4E 100%)" }}
+          className="px-5 py-6 sm:px-6 sm:py-8 text-white md:px-10 md:py-12 flex flex-col justify-between"
+          style={{
+            background: esOscuro
+              ? "linear-gradient(145deg, #0a1f10 0%, #142a18 52%, #1f3d1f 100%)"
+              : "linear-gradient(145deg, #1B2727 0%, #3C5148 52%, #6B8E4E 100%)",
+          }}
         >
           <div className="max-w-md">
-            <p className="text-xs uppercase tracking-[0.35em] text-white/70 font-semibold">Mercado Digital</p>
-            <h1 className="text-2xl md:text-4xl font-black mt-3 leading-tight">Bienvenido de nuevo</h1>
-            <p className="text-white/80 text-sm md:text-base mt-3">
+            <img
+              src="/logo/Logo-Mercado-Digital-Blanco.png"
+              alt="Mercado Digital"
+              className="h-10 md:h-12 w-auto mb-4 drop-shadow-md object-contain"
+            />
+            <h1 className="text-3xl md:text-[2.2rem] font-black leading-[1.1] tracking-tight drop-shadow-sm">
+              Bienvenido de nuevo
+            </h1>
+            <p className="text-white/85 text-sm mt-3 font-medium leading-relaxed max-w-[90%]">
               Ingresa a tu cuenta para comprar, seguir pedidos o entrar al panel administrativo.
             </p>
           </div>
 
-          <div className="hidden md:flex mt-8 justify-center">
-            <div className="relative w-full max-w-[500px] min-h-[260px] sm:min-h-[320px] md:min-h-[360px] overflow-hidden rounded-[2rem] border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.18)] bg-[#172116]">
+          <div className="hidden md:flex mt-6 justify-center">
+            <div className="relative w-full max-w-[500px] min-h-[220px] sm:min-h-[260px] md:min-h-[290px] overflow-hidden rounded-[2rem] border border-white/10 shadow-2xl bg-[#172116]">
               <img
-                src="/loginmen.png"
+                src="/login/loginmen.png"
                 alt="Ilustración de acceso"
                 className="w-full h-full object-cover object-center"
               />
-              <div className="absolute bottom-5 left-5 bg-white/90 backdrop-blur-md rounded-2xl px-4 py-3 shadow-xl">
-                <p className="text-xs text-slate-500">Mercado Digital</p>
-                <p className="font-bold text-slate-800">Compra fácil y rápido</p>
+              <div className="absolute bottom-6 left-6 bg-white/95 backdrop-blur-xl rounded-2xl px-5 py-3.5 shadow-2xl border border-white/40">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-0.5" style={{ color: "#64748b" }}>Mercado Digital</p>
+                <p className="font-black text-base" style={{ color: "#0f172a" }}>Compra fácil y rápido</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="p-7 md:p-10 lg:p-12 flex flex-col justify-center">
-          {error && (
-            <div className="px-4 py-3 rounded-2xl mb-6 text-sm border border-rose-200 bg-rose-50 text-rose-700">
-              {error}
-            </div>
-          )}
+        <div className="p-7 md:p-10 lg:px-10 lg:py-8 flex flex-col justify-center relative" style={{ backgroundColor: esOscuro ? "#142018" : "#ffffff" }}>
+          <div className="absolute top-6 left-0 right-0 px-7 md:px-10">
+            {error && (
+              <div className="px-4 py-3 rounded-2xl text-sm border border-rose-200 bg-rose-50 text-rose-700 w-full animate-fade-in shadow-sm">
+                {bloqueadoHasta ? (
+                  <div className="flex items-center gap-3">
+                    <Clock3 className="w-5 h-5 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold">Cuenta bloqueada.</p>
+                      <p>
+                        Intenta en{" "}
+                        <span className="font-bold tabular-nums">{formatoMMSS(segundosRestantes)}</span>.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  error
+                )}
+              </div>
+            )}
 
-          {reason === "session" && (
-            <div className="px-4 py-3 rounded-2xl mb-6 text-sm border border-amber-200 bg-amber-50 text-amber-800">
-              Tu sesión fue cerrada porque iniciaste en otro dispositivo o el token expiró. Inicia sesión nuevamente.
-            </div>
-          )}
+            {reason === "session" && (
+              <div className="px-4 py-3 rounded-2xl text-sm border border-amber-200 bg-amber-50 text-amber-800 w-full animate-fade-in shadow-sm">
+                Tu sesión expiró. Inicia sesión nuevamente.
+              </div>
+            )}
+          </div>
 
-          {!mostrarReset && (
+          <div className="w-full mt-4">
+            {!mostrarReset && (
             <div className="max-w-xl mx-auto w-full">
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="text-center mb-6">
-                  <h2 className="text-2xl font-black text-slate-800">Iniciar sesión</h2>
-                  <p className="text-sm text-slate-500 mt-2">Accede con tu correo y contraseña.</p>
+                  <h2 className="text-2xl font-black" style={{ color: esOscuro ? "#f8fafc" : "#1e293b" }}>Iniciar sesión</h2>
+                  <p className="text-sm mt-2" style={{ color: esOscuro ? "#94a3b8" : "#64748b" }}>Accede con tu correo y contraseña.</p>
                 </div>
 
                 <div className="relative">
                   <Mail
                     size={18}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                    className="absolute left-4 top-1/2 -translate-y-1/2"
+                    style={{ color: esOscuro ? "#8aab7e" : "#94a3b8" }}
                   />
 
                   <input
@@ -193,13 +257,14 @@ export default function Login() {
                     value={form.correo}
                     onChange={handleChange}
                     required
+                    disabled={!!bloqueadoHasta}
                     placeholder="tucorreo@ejemplo.com"
-                    className="md-input pl-12"
+                    className="md-input pl-12 disabled:opacity-60"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Contraseña</label>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: esOscuro ? "#cbd5e1" : "#334155" }}>Contraseña</label>
                   <div className="relative">
                     <input
                       type={verContrasena ? "text" : "password"}
@@ -207,13 +272,15 @@ export default function Login() {
                       value={form.contrasena}
                       onChange={handleChange}
                       required
+                      disabled={!!bloqueadoHasta}
                       placeholder="********"
-                      className="md-input pr-12"
+                      className="md-input pr-12 disabled:opacity-60"
                     />
                     <button
                       type="button"
                       onClick={() => setVerContrasena((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition p-1"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 transition p-1"
+                      style={{ color: esOscuro ? "#8aab7e" : "#94a3b8" }}
                       tabIndex={-1}
                       aria-label={verContrasena ? "Ocultar contraseña" : "Ver contraseña"}
                     >
@@ -224,19 +291,23 @@ export default function Login() {
 
                 <button
                   type="submit"
-                  disabled={cargando}
+                  disabled={cargando || !!bloqueadoHasta}
                   className="w-full text-white font-semibold py-3 rounded-xl text-sm transition disabled:opacity-60"
                   style={{ background: "#6B8E4E" }}
                 >
-                  {cargando ? "Ingresando..." : "Ingresar"}
+                  {bloqueadoHasta
+                    ? `Bloqueado (${formatoMMSS(segundosRestantes)})`
+                    : cargando
+                    ? "Ingresando..."
+                    : "Ingresar"}
                 </button>
               </form>
 
-              <div className="mt-6 pt-6 border-t border-[var(--md-border)] text-center">
+              <div className="mt-5 text-center">
                 <button
                   type="button"
                   onClick={abrirReset}
-                  className="text-sm font-semibold md-accent-text hover:opacity-80 transition"
+                  className="text-sm font-semibold md-accent-text hover:underline transition"
                 >
                   Olvidé mi contraseña
                 </button>
@@ -247,15 +318,18 @@ export default function Login() {
           {mostrarReset && (
             <div className="max-w-[420px] mx-auto w-full">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-black text-slate-800">Restablecer contraseña</h2>
-                <p className="text-sm text-slate-500 mt-2">
+                <h2 className="text-2xl font-black" style={{ color: esOscuro ? "#f8fafc" : "#1e293b" }}>Restablecer contraseña</h2>
+                <p className="text-sm mt-2" style={{ color: esOscuro ? "#94a3b8" : "#64748b" }}>
                   {pasoReset === 1
                     ? "Te enviaremos un código a tu correo para continuar."
                     : "Ingresa el código recibido y define tu nueva contraseña."}
                 </p>
               </div>
 
-              <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-5">
+              <div className="rounded-[1.5rem] border p-5" style={{
+                borderColor: esOscuro ? "rgba(79,106,75,0.18)" : "#e2e8f0",
+                backgroundColor: esOscuro ? "rgba(10,26,18,0.5)" : "rgba(248,250,252,0.7)",
+              }}>
                 {errorReset && (
                   <div className="px-4 py-3 rounded-2xl mb-4 text-sm border border-rose-200 bg-rose-50 text-rose-700">
                     {errorReset}
@@ -271,7 +345,7 @@ export default function Login() {
                 {pasoReset === 1 ? (
                   <form onSubmit={handleResetRequest} className="space-y-4">
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">Correo electronico</label>
+                      <label className="block text-sm font-semibold mb-2" style={{ color: esOscuro ? "#cbd5e1" : "#334155" }}>Correo electronico</label>
                       <input
                         type="email"
                         name="correo"
@@ -295,7 +369,7 @@ export default function Login() {
                 ) : (
                   <form onSubmit={handleResetConfirm} className="space-y-4">
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">Código o token</label>
+                      <label className="block text-sm font-semibold mb-2" style={{ color: esOscuro ? "#cbd5e1" : "#334155" }}>Código o token</label>
                       <input
                         type="text"
                         name="token"
@@ -322,7 +396,8 @@ export default function Login() {
                         <button
                           type="button"
                           onClick={() => setVerNueva((v) => !v)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition p-1"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 transition p-1"
+                          style={{ color: esOscuro ? "#8aab7e" : "#94a3b8" }}
                           tabIndex={-1}
                           aria-label={verNueva ? "Ocultar contraseña" : "Ver contraseña"}
                         >
@@ -344,7 +419,8 @@ export default function Login() {
                         <button
                           type="button"
                           onClick={() => setVerConfirmar((v) => !v)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition p-1"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 transition p-1"
+                          style={{ color: esOscuro ? "#8aab7e" : "#94a3b8" }}
                           tabIndex={-1}
                           aria-label={verConfirmar ? "Ocultar contraseña" : "Ver contraseña"}
                         >
@@ -369,7 +445,8 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={pasoReset === 2 && !tokenFromUrl ? () => setPasoReset(1) : cerrarReset}
-                  className="text-sm font-semibold text-slate-600 hover:underline"
+                  className="text-sm font-semibold hover:underline"
+                  style={{ color: esOscuro ? "#b7d8a3" : "#475569" }}
                 >
                   {pasoReset === 2 && !tokenFromUrl ? "Volver al correo" : "Volver al inicio de sesión"}
                 </button>
@@ -387,13 +464,23 @@ export default function Login() {
             </Link>
             <Link
               to="/"
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
-              style={{ borderColor: "var(--md-border)" }}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border text-sm font-semibold transition"
+              style={{
+                borderColor: esOscuro ? "rgba(79,106,75,0.18)" : "#e5e7eb",
+                color: esOscuro ? "#b7d8a3" : "#475569",
+              }}
             >
               Volver al inicio
             </Link>
           </div>
         </div>
+        </div>
+      </div>
+
+      <div className="absolute bottom-4 left-0 right-0 text-center" style={{ color: esOscuro ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)" }}>
+        <p className="text-[8px] uppercase tracking-wider font-semibold">
+          &copy; {new Date().getFullYear()} Mercado Digital S.A.S. Todos los derechos reservados.
+        </p>
       </div>
     </div>
   );

@@ -3,26 +3,58 @@ import { useLocation } from "react-router-dom";
 
 const APP_NAME = "Mercado Digital";
 
+const TITULOS = {
+  // Públicas
+  "/":                        "Inicio",
+  "/login":                   "Iniciar sesión",
+  "/registro":                "Registro",
+
+  // Cliente
+  "/tienda":                  "Tienda",
+  "/carrito":                 "Carrito de compras",
+  "/mis-pedidos":             "Mis pedidos",
+  "/perfil":                  "Mi perfil",
+
+  // Pago
+  "/pago/simulado":           "Pasarela de pago",
+  "/pago/qr":                 "Pago con MercadoPago",
+  "/pago/resultado":          "Resultado del pago",
+
+  // Domicilio
+  "/domicilio/crear":         "Registrar domicilio",
+  "/domicilio/historial":     "Historial de domicilios",
+  "/domicilio/seguimiento":   "Seguimiento de entrega",
+
+  // Admin
+  "/admin/dashboard":         "Admin · Dashboard",
+  "/admin/productos":         "Admin · Productos",
+  "/admin/ofertas":           "Admin · Ofertas",
+  "/admin/pedidos":           "Admin · Pedidos",
+  "/admin/ventas":            "Admin · Ventas",
+  "/admin/inventario":        "Admin · Inventario",
+  "/admin/domicilios":        "Admin · Domicilios",
+  "/admin/reportes":          "Admin · Reportes",
+  "/admin/pagos":             "Admin · Pagos",
+  "/admin/usuarios":          "Admin · Usuarios",
+  "/admin/categorias":        "Admin · Categorías",
+  "/admin/proveedores":       "Admin · Proveedores",
+
+  // Empleado
+  "/empleado/dashboard":      "Panel del empleado",
+  "/empleado/productos":      "Empleado · Productos",
+  "/empleado/pedidos":        "Empleado · Pedidos",
+  "/empleado/ventas":         "Empleado · Ventas",
+  "/empleado/inventario":     "Empleado · Inventario",
+  "/empleado/domicilios":     "Empleado · Domicilios",
+  "/empleado/reportes":       "Empleado · Reportes",
+};
+
 function tituloPorRuta(pathname) {
-  if (pathname === "/") return "Inicio";
-  if (pathname === "/login") return "Iniciar sesión";
-  if (pathname === "/registro") return "Registro";
-
-  if (pathname === "/tienda") return "Tienda";
-  if (pathname === "/carrito") return "Carrito";
-  if (pathname === "/mis-pedidos") return "Mis pedidos";
-  if (pathname === "/perfil") return "Mi perfil";
-
-  if (pathname === "/admin/dashboard") return "Admin · Dashboard";
-  if (pathname === "/admin/productos") return "Admin · Productos";
-  if (pathname === "/admin/ofertas") return "Admin · Ofertas";
-  if (pathname === "/admin/pedidos") return "Admin · Pedidos";
-  if (pathname === "/admin/inventario") return "Admin · Inventario";
-  if (pathname === "/admin/reportes") return "Admin · Reportes";
-  if (pathname === "/admin/usuarios") return "Admin · Usuarios";
-
-  if (pathname.startsWith("/admin/")) return "Admin";
-
+  if (TITULOS[pathname]) return TITULOS[pathname];
+  if (pathname.startsWith("/admin/"))    return "Admin";
+  if (pathname.startsWith("/empleado/")) return "Empleado";
+  if (pathname.startsWith("/pago/"))     return "Pago";
+  if (pathname.startsWith("/domicilio/")) return "Domicilio";
   return "";
 }
 
@@ -32,7 +64,7 @@ export default function RouteTitle() {
   useEffect(() => {
     const page = tituloPorRuta(pathname);
     // Muestra solo la sección actual en la pestaña para evitar un título repetitivo.
-    document.title = page || APP_NAME;
+    document.title = page ? `${page} — ${APP_NAME}` : APP_NAME;
   }, [pathname]);
 
   return null;

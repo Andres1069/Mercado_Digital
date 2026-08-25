@@ -9,8 +9,8 @@ $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $originPermitido = false;
 if ($origin) {
     $originPermitido = (bool)preg_match(
-        // Acepta localhost/127 y rangos privados (para probar desde celular) en cualquier puerto típico de dev.
-        '/^https?:\/\/(localhost|127\.0\.0\.1|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})(:\d{2,5})?$/',
+        // Acepta localhost, IPs locales y dominios de Vercel
+        '/^https?:\/\/(localhost|127\.0\.0\.1|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}|.*\.vercel\.app)(:\d{2,5})?$/',
         $origin
     );
 }
@@ -22,12 +22,42 @@ header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
+// Cache-Control según visibilidad de la ruta
+$_rutaCache = ltrim(parse_url($_GET['ruta'] ?? '', PHP_URL_PATH) ?? '', '/');
+$_moduloCache = strtok($_rutaCache, '/');
+if (in_array($_moduloCache, ['productos', 'categorias', 'ofertas'], true) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    header('Cache-Control: public, max-age=60');
+} else {
+    header('Cache-Control: no-store');
+}
+unset($_rutaCache, $_moduloCache);
+
+require_once __DIR__ . '/../app/Helpers/AuditLog.php';
+require_once __DIR__ . '/../app/Helpers/Logger.php';
+require_once __DIR__ . '/../app/Exceptions/ApiException.php';
+
+// Handler global: ninguna excepción no controlada debe llegar al cliente con su
+// mensaje crudo (puede filtrar rutas, queries SQL o credenciales). Las ApiException
+// (lanzadas a propósito, p.ej. DatabaseConnectionException) sí traen un mensaje
+// público seguro y un código estable para que el frontend elija la pantalla de error
+// correcta; cualquier otra excepción se trata como 500 genérico. El detalle real
+// siempre se registra en backend/storage/logs, nunca en la respuesta HTTP.
 set_exception_handler(function (Throwable $e): void {
-    http_response_code(500);
+    $esApiException = $e instanceof ApiException;
+    $status  = $esApiException ? $e->getStatusCode() : 500;
+    $code    = $esApiException ? $e->getErrorCode()  : 'SERVER_ERROR';
+    $mensaje = $esApiException ? $e->getMessage()     : 'Error interno del servidor.';
+
+    Logger::error($e->getMessage(), [
+        'excepcion' => get_class($e),
+        'archivo'   => $e->getFile() . ':' . $e->getLine(),
+    ]);
+
+    http_response_code($status);
     echo json_encode([
         'success' => false,
-        'message' => 'Error interno del servidor.',
-        'detail'  => $e->getMessage()
+        'message' => $mensaje,
+        'code'    => $code,
     ]);
     exit;
 });
@@ -61,6 +91,7 @@ require_once __DIR__ . '/../app/Controllers/MetodoPagoConfigController.php';
 require_once __DIR__ . '/../app/Models/ProveedorModel.php';
 require_once __DIR__ . '/../app/Controllers/ProveedorController.php';
 require_once __DIR__ . '/../app/Controllers/ContactoController.php';
+require_once __DIR__ . '/../app/Controllers/ChatbotController.php';
 
 $ruta   = $_GET['ruta'] ?? '';
 $metodo = $_SERVER['REQUEST_METHOD'];
@@ -79,17 +110,26 @@ switch ($modulo) {
 
         break;
 
+    case 'chatbot':
+        $ctrl = new ChatbotController();
+        match(true) {
+            $metodo === 'POST' && $accion === 'consultar-pedido' => $ctrl->consultarPedido(),
+            $metodo === 'GET' && $accion === 'ofertas' => $ctrl->ofertas(),
+            default => ruta404()
+        };
+        break;
+
     case 'auth':
         $ctrl = new AuthController();
         match(true) {
-            $metodo === 'POST' && $accion === 'login'    => $ctrl->login(),
-            $metodo === 'POST' && $accion === 'registro' => $ctrl->registro(),
+            $metodo === 'POST' && $accion === 'login'            => $ctrl->login(),
+            $metodo === 'POST' && $accion === 'registro'         => $ctrl->registro(),
             $metodo === 'POST' && $accion === 'cambiar-password' => $ctrl->cambiarPassword(),
-            $metodo === 'POST' && $accion === 'reset-request' => $ctrl->resetRequest(),
-            $metodo === 'POST' && $accion === 'reset-confirm' => $ctrl->resetConfirm(),
-            $metodo === 'POST' && $accion === 'logout'   => $ctrl->logout(),
-            $metodo === 'GET'  && $accion === 'me'       => $ctrl->me(),
-            $metodo === 'PUT'  && $accion === 'perfil'   => $ctrl->actualizarPerfil(),
+            $metodo === 'POST' && $accion === 'reset-request'    => $ctrl->resetRequest(),
+            $metodo === 'POST' && $accion === 'reset-confirm'    => $ctrl->resetConfirm(),
+            $metodo === 'POST' && $accion === 'logout'           => $ctrl->logout(),
+            $metodo === 'GET'  && $accion === 'me'               => $ctrl->me(),
+            $metodo === 'PUT'  && $accion === 'perfil'           => $ctrl->actualizarPerfil(),
             default => ruta404()
         };
         break;
@@ -267,7 +307,7 @@ switch ($modulo) {
 
 function ruta404(): never {
     http_response_code(404);
-    echo json_encode(['success' => false, 'message' => 'Ruta no encontrada.']);
+    echo json_encode(['success' => false, 'message' => 'Ruta no encontrada.', 'code' => 'NOT_FOUND']);
     exit;
 }
 

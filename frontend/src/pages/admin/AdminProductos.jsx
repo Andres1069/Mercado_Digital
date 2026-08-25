@@ -153,8 +153,8 @@ export default function AdminProductos() {
           </div>
         )}
 
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="flex items-center justify-between mb-6">
+        <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div>
               <h1 className="text-2xl font-extrabold" style={{ color: "#1B2727" }}>Gestión de Productos</h1>
               <p className="text-sm mt-1" style={{ color: "#3C5148" }}>{productos.length} productos en total</p>
@@ -183,7 +183,7 @@ export default function AdminProductos() {
           </div>
 
           <div className="rounded-2xl overflow-x-auto" style={CARD}>
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[760px] text-sm">
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
                   {["#", "Producto", "Categoria", "Proveedor", "Precio", "Cantidad", "Acciones"].map((h, i) => (
@@ -297,7 +297,7 @@ export default function AdminProductos() {
                     className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none resize-none" style={INPUT_STYLE} />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold mb-1" style={LABEL}>Precio *</label>
                     <input type="number" name="precio" value={form.precio} onChange={handleChange} required min="0"
@@ -312,7 +312,7 @@ export default function AdminProductos() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold mb-1" style={LABEL}>Fecha vencimiento</label>
                     <input type="date" name="fecha_vencimiento" value={form.fecha_vencimiento} onChange={handleChange}

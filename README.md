@@ -1,6 +1,6 @@
 # Mercado Digital
 
-**Plataforma de e-commerce integral con autenticación JWT, procesamiento de pagos con Mercado Pago y sistema de gestión de pedidos y domicilios.**
+**Plataforma de e-commerce integral con autenticación JWT, procesamiento de pagos locales (Nequi/Daviplata) y sistema de gestión de pedidos y domicilios.**
 
 ---
 
@@ -23,13 +23,15 @@
 ### Funcionalidades Principales
 
 - **🔐 Autenticación Segura**: JWT con validación de sesión única por dispositivo
-- **💳 Pasarela de Pagos**: Integración completa con Mercado Pago
+- **💳 Pagos Locales**: Integración de pagos mediante transferencias y códigos QR (Nequi y Daviplata) con validación administrativa.
 - **🛍️ Catálogo de Productos**: Gestión de productos, categorías y promociones
 - **📦 Sistema de Pedidos**: Creación, seguimiento y gestión de pedidos
-- **🚚 Módulo de Domicilios**: Gestión de entregas y seguimiento de envíos
+- **🚚 Módulo de Domicilios Avanzado**: Gestión de entregas, seguimiento de envíos y subida de evidencias fotográficas
 - **👥 Gestión de Usuarios**: Roles diferenciados (Cliente, Empleado, Proveedor, Administrador)
-- **📊 Reportes y Análitica**: Dashboard con estadísticas de ventas e inventario
-- **🎨 Interfaz Responsiva**: Frontend moderno con Tailwind CSS y React
+- **📊 Reportes y Analítica**: Dashboard mejorado con estadísticas de ventas e inventario
+- **💬 Soporte y Asistencia**: Integración de Chatbot interactivo
+- **📧 Notificaciones**: Alertas y confirmaciones de pedidos por correo electrónico
+- **🎨 Interfaz Responsiva**: Frontend moderno y optimizado con Tailwind CSS y React, incluyendo mejoras en Login y navegación
 
 ---
 
@@ -46,7 +48,7 @@
 - **npm** o **pnpm**
 
 ### Servicios Externos
-- Cuenta en **Mercado Pago** (sandbox y producción)
+- Cuentas de **Nequi** y/o **Daviplata** para recepción de pagos
 - Servidor SMTP configurado (para recuperación de contraseña)
 
 ---
@@ -60,46 +62,44 @@ git clone <repository-url>
 cd mercado_digital
 ```
 
-### 2. Configurar Backend
+### 2. Configuración del Backend
 
-```bash
-# Copiar archivo de configuración
-cp backend/config/Database.php.example backend/config/Database.php
+El backend está diseñado para conectarse a una base de datos MySQL (local o en la nube como Aiven) mediante variables de entorno.
 
-# Editar credenciales de base de datos
-nano backend/config/Database.php
-```
+**Variables de entorno requeridas en tu servidor (ej: Render):**
+- `DB_HOST`
+- `DB_PORT`
+- `DB_NAME`
+- `DB_USER`
+- `DB_PASS`
+
+*(Si trabajas en local con XAMPP, puedes hardcodearlas temporalmente en `backend/config/Database.php` o usar apache `SetEnv`).*
 
 **Importar esquema de base de datos:**
-
 ```bash
 mysql -u usuario -p nombre_bd < backend/config/mercado_digital.sql
 ```
 
-### 3. Configurar Frontend
+### 3. Configuración del Frontend
 
 ```bash
 cd frontend
 npm install
-
-# Crear archivo .env (opcional)
-cp .env.example .env
 ```
 
-**Variables de entorno (opcional):**
+**Conexión con el Backend:**
+- **Local:** `frontend/.env.development`
+- **Producción (Vercel):** `frontend/.env.production`
+
+Asegúrate de definir la URL correcta de tu API en esos archivos:
 ```env
-VITE_API_BASE_URL=http://localhost/mercado_digital/backend/public
+VITE_API_BASE_URL=https://tu-backend-en-render.onrender.com
 ```
 
-### 4. Iniciar Desarrollo
+### 4. Despliegue en la Nube (Recomendado)
 
-```bash
-# Terminal 1: Frontend (Vite dev server)
-cd frontend
-npm run dev
-
-# Terminal 2: Backend (requiere XAMPP o servidor PHP)
-# Acceder a: http://localhost/mercado_digital
+- **Frontend (Vercel):** Conecta tu repositorio de GitHub, selecciona el Root Directory como `frontend` y Vercel se encarga del resto.
+- **Backend (Render):** Crea un Web Service usando `Docker`, conéctalo al repositorio y configura las Variables de Entorno de tu base de datos.
 ```
 
 ---
@@ -117,7 +117,6 @@ mercado_digital/
 │   │   ├── Database.php        # Configuración de BD
 │   │   ├── JWT.php             # Configuración JWT
 │   │   ├── Mailer.php          # SMTP
-│   │   └── mercadopago.php     # Credenciales de Mercado Pago
 │   ├── public/
 │   │   ├── index.php           # Punto de entrada (router)
 │   │   └── uploads/            # Archivos subidos
@@ -142,30 +141,25 @@ mercado_digital/
 
 ## ⚙️ Configuración
 
-### Variables de Entorno (Backend)
+### Configuración del Backend (Archivos nativos)
 
-Crear archivo `backend/config/.env` con:
+El backend no utiliza un archivo `.env` por defecto, por lo que las configuraciones se hacen directamente en los archivos de la carpeta `backend/config/`:
 
-```php
-// Database
-DB_HOST=localhost
-DB_USER=root
-DB_PASS=
-DB_NAME=mercado_digital
+- **Base de Datos:** En local puedes editar los valores por defecto en `Database.php`; en producción (Render) se configuran vía variables de entorno `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`.
+- **JWT:** Modifica la variable estática `$secretKey` en `JWT.php`.
+- **Pagos Locales (Nequi/Daviplata):** Se configuran directamente en la Base de Datos o desde el Panel de Administración.
 
-// JWT
-JWT_SECRET=tu_clave_secreta_muy_segura_aqui
+### Correos (recuperación de contraseña)
 
-// Mercado Pago
-MP_ACCESS_TOKEN=tu_token_aqui
-MP_WEBHOOK_URL=https://tudominio.com/mercado_digital/backend/public/pago/webhook
+`backend/config/Mailer.php` soporta dos modos, controlados desde `MailConfig.php` / variables de entorno:
 
-// SMTP (recuperación de contraseña)
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USER=tu_email@gmail.com
-MAIL_PASS=tu_contraseña_app
-```
+1. **SMTP directo** (`MAIL_HOST`, `MAIL_PORT`, `MAIL_USER`, `MAIL_PASS`): funciona en local (XAMPP), pero **Render bloquea los puertos SMTP salientes** — en producción falla con el error "No fue posible enviar el código...".
+2. **API HTTP** (`MAIL_API_KEY`, `MAIL_PROVIDER=brevo|resend`): evita el bloqueo de puertos porque envía por HTTPS. **Es el modo que debe usarse en Render.**
+
+Nunca pongas credenciales reales como valor por defecto en `MailConfig.php` — ese archivo se sube al repositorio. Defínelas siempre como variables de entorno:
+
+- Local (XAMPP): variables de entorno del sistema, o edita `MailConfig.php` solo en tu copia local sin commitear el cambio.
+- Render: pestaña **Environment** del servicio → agrega `MAIL_API_KEY` y `MAIL_PROVIDER` (y opcionalmente `MAIL_FROM`, `MAIL_FROM_NAME`).
 
 ---
 
@@ -236,8 +230,8 @@ PUT    /pedidos/{id}/estado     - Cambiar estado
 #### Pagos
 ```
 GET    /pago/{pedido}           - Obtener pago
-POST   /pago/{pedido}/preferencia - Crear preferencia Mercado Pago
-GET    /pago/{pedido}/verificar-mp - Verificar pago
+POST   /pago/registrar          - Registrar comprobante de pago (Nequi/Daviplata)
+POST   /pago/verificar          - Verificar pago (Admin)
 ```
 
 **Documentación completa de endpoints disponible en `backend/docs/API.md`** (próximamente)
@@ -313,8 +307,9 @@ Este proyecto está bajo licencia privada. Todos los derechos reservados.
 
 Para reportar bugs o sugerencias, contactar al equipo de desarrollo.
 
-**Email:** desarrollo@mercadodigital.com
+**Email:** mercado.digital.bog@gmail.com
+**Telefono** +57 3244314271
 
 ---
 
-**Última actualización:** Mayo 2026
+**Última actualización:** Julio 2026

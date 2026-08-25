@@ -39,7 +39,8 @@ export default function PagoResultado() {
     if (!pedidoId) { setError("Pedido inválido."); setCargando(false); return; }
 
     // Primera verificación: consulta a MP con el payment_id de la URL
-    pagoService.verificarMP(pedidoId, paymentId || null)
+    // silent: hay un fallback inline (estado tomado de la URL) si MP no responde.
+    pagoService.verificarMP(pedidoId, paymentId || null, { silent: true })
       .then((res) => aplicarPago(res.pago))
       .catch(() => {
         // Fallback: usar el status que MP puso en la URL
@@ -56,7 +57,7 @@ export default function PagoResultado() {
       if (intentos.current >= POLL_MAX) { detenerPolling(); return; }
 
       try {
-        const res = await pagoService.verificarMP(pedidoId, paymentId || null);
+        const res = await pagoService.verificarMP(pedidoId, paymentId || null, { silent: true });
         aplicarPago(res.pago);
       } catch { /* silencioso */ }
     }, POLL_INTERVAL);
@@ -81,8 +82,8 @@ export default function PagoResultado() {
   }
 
   const estado     = pago?.Estado_Pago || "Pendiente";
-  const tipoEntrega = pago?.Tipo_Entrega || "Domicilio";
-  const recogeEnTienda = tipoEntrega === "Recoger_Tienda";
+  const tipoEntrega = String(pago?.Tipo_Entrega || "Domicilio").toLowerCase();
+  const recogeEnTienda = tipoEntrega === "recoger_tienda";
   const aprobado   = estado === "Completado";
   const rechazado  = estado === "Fallido";
   const pendiente  = !aprobado && !rechazado;
@@ -207,7 +208,7 @@ export default function PagoResultado() {
               <button
                 onClick={() => navigate("/mis-pedidos")}
                 className="w-full py-3 rounded-2xl text-sm font-bold border transition"
-                style={{ borderColor: "#fcd34d", color: "#92400e" }}
+                style={{ borderColor: "#509c3d", color: "#1f8027" }}
               >
                 Ver mis pedidos
               </button>

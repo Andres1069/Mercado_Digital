@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { pagoService, pedidoService } from "../services/api";
+import { pagoService, pedidoService, domicilioService } from "../services/api";
 import { useCart } from "../context/CartContext";
+import AddressConfirmationModal from "../components/AddressConfirmationModal";
 
 const METODOS = [
   { id: "Tarjeta",   label: "Tarjeta",   icon: "💳" },
@@ -36,6 +37,25 @@ function formatPhoneDisplay(v) {
   return v.replace(/(\d{3})(\d{3})(\d{0,4})/, "$1 $2 $3").trim();
 }
 
+function isCardExpired(expiracion) {
+  const match = String(expiracion || "").match(/^(\d{2})\/(\d{2})$/);
+  if (!match) return false;
+  
+  const expiryMonth = Number(match[1]);
+  const expiryYear = 2000 + Number(match[2]);
+  
+  if (expiryMonth < 1 || expiryMonth > 12) return true;
+
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+
+  if (expiryYear < currentYear) return true;
+  if (expiryYear === currentYear && expiryMonth < currentMonth) return true;
+
+  return false;
+}
+
 const APP_INFO = {
   Nequi: {
     nombre: "Nequi",
@@ -64,7 +84,7 @@ export default function PagoSimulado() {
   const { clearCart } = useCart();
 
   const pedidoId = Number(params.get("pedido"));
-  const entrega  = params.get("entrega") || "domicilio";
+  const entrega  = String(params.get("entrega") || "Domicilio").toLowerCase();
 
   const [metodo, setMetodo] = useState("Tarjeta");
   const [form, setForm] = useState({
@@ -74,6 +94,8 @@ export default function PagoSimulado() {
     nombre_tarjeta: "",
     celular:        "",
     clave_dinamica: "",
+    barrio:         "Bosa Brasil",
+    direccion:      "",
   });
   const [procesando, setProcesando] = useState(false);
   const [pasoProceso, setPasoProceso] = useState(0);
@@ -82,6 +104,13 @@ export default function PagoSimulado() {
   const [error,      setError]      = useState("");
   const [contador,   setContador]   = useState(null);
   const [total,      setTotal]      = useState(null);
+  const [direccionConfirmada, setDireccionConfirmada] = useState(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem("md_checkout_delivery_address") || "null");
+    } catch {
+      return null;
+    }
+  });
   const enviandoRef = useRef(false);
   const timerRef    = useRef(null);
   const otpRefs     = useRef([]);
@@ -89,8 +118,9 @@ export default function PagoSimulado() {
   // Carga el total del pedido para mostrarlo durante el pago
   useEffect(() => {
     if (!pedidoId) return;
+    // silent: si falla, simplemente no se muestra el total estimado (no es crítico).
     pedidoService
-      .obtener(pedidoId)
+      .obtener(pedidoId, { silent: true })
       .then((res) => {
         const monto = res.pedido?.Total_Carrito ?? res.pedido?.Monto_Pago;
         if (monto != null) setTotal(Number(monto));
@@ -98,22 +128,22 @@ export default function PagoSimulado() {
       .catch(() => {});
   }, [pedidoId]);
 
-  // Auto-redirección con cuenta regresiva al aprobar pago + domicilio
+  // Auto-redirección con cuenta regresiva al aprobar pago
   useEffect(() => {
-    if (resultado?.aprobado && entrega === "domicilio") {
+    if (resultado?.aprobado) {
       setContador(4);
     }
-  }, [resultado, entrega]);
+  }, [resultado]);
 
   useEffect(() => {
     if (contador === null) return;
     if (contador === 0) {
-      navigate(`/domicilio/crear?pedido=${pedidoId}`);
+      navigate("/mis-pedidos");
       return;
     }
     timerRef.current = setTimeout(() => setContador((c) => c - 1), 1000);
     return () => clearTimeout(timerRef.current);
-  }, [contador, navigate, pedidoId]);
+  }, [contador, navigate]);
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -158,6 +188,8 @@ export default function PagoSimulado() {
         return "El número de tarjeta debe tener 16 dígitos.";
       if (!/^\d{2}\/\d{2}$/.test(form.expiracion))
         return "La fecha de expiración debe tener el formato MM/AA.";
+      if (isCardExpired(form.expiracion))
+        return "La tarjeta está caducada.";
       if (form.cvv.length < 3)
         return "El CVV debe tener al menos 3 dígitos.";
       if (!form.nombre_tarjeta.trim())
@@ -171,9 +203,26 @@ export default function PagoSimulado() {
     return "";
   }
 
+  const tarjetaValida =
+    form.numero_tarjeta.replace(/\s/g, "").length === 16 &&
+    /^\d{2}\/\d{2}$/.test(form.expiracion) &&
+    !isCardExpired(form.expiracion) &&
+    form.cvv.length >= 3 &&
+    form.nombre_tarjeta.trim().length > 0;
+  const transferenciaValida =
+    form.celular.length === 10 &&
+    form.clave_dinamica.replace(/\D/g, "").length === 4;
+  const puedePagar =
+    (entrega !== "domicilio" || !!direccionConfirmada) &&
+    (metodo === "Tarjeta" ? tarjetaValida : transferenciaValida);
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (enviandoRef.current) return;
+
+    if (entrega === "domicilio" && !direccionConfirmada) {
+      return;
+    }
 
     const errMsg = validar();
     if (errMsg) { setError(errMsg); return; }
@@ -204,7 +253,26 @@ export default function PagoSimulado() {
             };
 
       const res = await pagoService.simular(pedidoId, metodo, datos);
-      if (res.resultado?.aprobado) clearCart();
+      if (res.resultado?.aprobado) {
+        clearCart();
+        // Crear registro de envío de forma silenciosa
+        if (entrega === "domicilio" && direccionConfirmada) {
+          try {
+            const shippingQuote = JSON.parse(sessionStorage.getItem("md_checkout_shipping_quote") || "null");
+            await domicilioService.crear({
+              pedido: parseInt(pedidoId, 10),
+              direccion: direccionConfirmada.direccion,
+              telefono: direccionConfirmada.telefono || null,
+              notas: null,
+              costo_envio: shippingQuote ? Number(shippingQuote.costoEnvio) : 0,
+            });
+            sessionStorage.removeItem("md_checkout_delivery_address");
+            sessionStorage.removeItem("md_checkout_shipping_quote");
+          } catch (err) {
+            console.error("No se pudo registrar el envío al instante.", err);
+          }
+        }
+      }
       setResultado(res.resultado);
       setReferencia(`MD-${pedidoId}-${Date.now().toString().slice(-6)}`);
     } catch (e) {
@@ -227,6 +295,8 @@ export default function PagoSimulado() {
       </div>
     );
   }
+
+  const pasoActual = (entrega === "domicilio" && !direccionConfirmada) ? 1 : 2;
 
   return (
     <div className="min-h-screen md-app-bg">
@@ -313,24 +383,14 @@ export default function PagoSimulado() {
             )}
 
             {resultado.aprobado ? (
-              entrega === "domicilio" ? (
-                <div>
-                  <p className="text-xs text-slate-500 mb-3">
-                    Redirigiendo al módulo de domicilio en{" "}
-                    <span className="font-bold" style={{ color: "#6B8E4E" }}>
-                      {contador}s
-                    </span>
-                    …
-                  </p>
-                  <button
-                    onClick={() => navigate(`/domicilio/crear?pedido=${pedidoId}`)}
-                    className="w-full py-3.5 rounded-2xl text-white font-bold text-base hover:opacity-90 transition"
-                    style={{ background: "linear-gradient(135deg,#6B8E4E,#3C5148)" }}
-                  >
-                    Registrar dirección de envío →
-                  </button>
-                </div>
-              ) : (
+              <div>
+                <p className="text-xs text-slate-500 mb-3">
+                  Redirigiendo a tus pedidos en{" "}
+                  <span className="font-bold" style={{ color: "#6B8E4E" }}>
+                    {contador}s
+                  </span>
+                  …
+                </p>
                 <button
                   onClick={() => navigate("/mis-pedidos")}
                   className="w-full py-3.5 rounded-2xl text-white font-bold text-base hover:opacity-90 transition"
@@ -338,7 +398,7 @@ export default function PagoSimulado() {
                 >
                   Ver mis pedidos →
                 </button>
-              )
+              </div>
             ) : (
               <div className="flex flex-col gap-3">
                 <button
@@ -359,18 +419,62 @@ export default function PagoSimulado() {
             )}
           </div>
         ) : (
-          /* ── Formulario de pago ── */
-          <form
-            onSubmit={handleSubmit}
-            className="rounded-[1.8rem] border p-5"
-            style={{ borderColor: "var(--md-border)", backgroundColor: "var(--md-surface)" }}
-          >
-            <h2 className="font-extrabold text-slate-800 text-base mb-4">
-              Selecciona tu método de pago
-            </h2>
+          <>
+            {/* Indicador de pasos */}
+            {entrega === "domicilio" && (
+              <div className="flex gap-3 mb-6 animate-fade-in">
+                <div className={`flex-1 py-2.5 text-center rounded-xl text-sm transition ${
+                  pasoActual === 1 ? "bg-[#3C5148] text-white font-extrabold shadow-md" : "bg-[#3C5148]/10 text-[#3C5148] font-bold"
+                }`}>
+                  1. Dirección
+                </div>
+                <div className={`flex-1 py-2.5 text-center rounded-xl text-sm transition ${
+                  pasoActual === 2 ? "bg-[#3C5148] text-white font-extrabold shadow-md" : "bg-slate-100 text-slate-400 font-bold"
+                }`}>
+                  2. Pago
+                </div>
+              </div>
+            )}
 
-            {/* Selector de método */}
-            <div className="flex gap-2 mb-5">
+            {pasoActual === 1 ? (
+              <div className="animate-fade-in mb-8">
+                <AddressConfirmationModal
+                  inline={true}
+                  open={true}
+                  onClose={() => navigate(-1)}
+                  onConfirm={(payload) => setDireccionConfirmada(payload)}
+                />
+              </div>
+            ) : (
+              /* ── Formulario de pago ── */
+              <form
+                onSubmit={handleSubmit}
+                className="rounded-[1.8rem] border p-5 animate-fade-in"
+                style={{ borderColor: "var(--md-border)", backgroundColor: "var(--md-surface)" }}
+              >
+                <h2 className="font-extrabold text-slate-800 text-base mb-4">
+                  Selecciona tu método de pago
+                </h2>
+                
+                {/* Resumen de dirección seleccionada (paso 2) */}
+                {entrega === "domicilio" && direccionConfirmada && (
+                  <div className="flex justify-between items-center bg-[#f0f9f0] text-[#1f4a1f] text-sm p-3.5 rounded-xl mb-5 border border-[#B2C5B2]">
+                    <span className="flex-1 truncate">
+                      <span className="font-bold mr-1">Envío a:</span> 
+                      {direccionConfirmada.direccion}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setDireccionConfirmada(null)}
+                      className="font-bold ml-3 hover:underline text-[#3C5148]"
+                    >
+                      Editar
+                    </button>
+                  </div>
+                )}
+
+                {/* Selector de método */}
+                <div className="flex gap-2 mb-5">
               {METODOS.map((m) => (
                 <button
                   key={m.id}
@@ -395,6 +499,8 @@ export default function PagoSimulado() {
                 </button>
               ))}
             </div>
+
+
 
             {/* ── Campos Tarjeta ── */}
             {metodo === "Tarjeta" && (
@@ -441,18 +547,27 @@ export default function PagoSimulado() {
                   <div className="flex-1">
                     <label className="text-xs font-semibold text-slate-600 block mb-1 flex items-center">
                       Expiración
-                      <Check ok={/^\d{2}\/\d{2}$/.test(form.expiracion)} />
+                      <Check ok={/^\d{2}\/\d{2}$/.test(form.expiracion) && !isCardExpired(form.expiracion)} />
                     </label>
                     <input
                       name="expiracion"
                       value={form.expiracion}
                       onChange={handleChange}
                       placeholder="MM/AA"
-                      className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-200"
+                      className={`w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-200 ${
+                        form.expiracion.length === 5 && isCardExpired(form.expiracion) 
+                          ? "border-red-400 bg-red-50 text-red-900" 
+                          : "border-gray-200"
+                      }`}
                       inputMode="numeric"
                       autoComplete="cc-exp"
                       disabled={procesando}
                     />
+                    {form.expiracion.length === 5 && isCardExpired(form.expiracion) && (
+                      <span className="text-[10px] text-red-500 font-bold block mt-1">
+                        La tarjeta está vencida
+                      </span>
+                    )}
                   </div>
                   <div className="w-28">
                     <label className="text-xs font-semibold text-slate-600 block mb-1 flex items-center">
@@ -585,7 +700,7 @@ export default function PagoSimulado() {
 
             <button
               type="submit"
-              disabled={procesando}
+              disabled={procesando || !puedePagar}
               className="w-full mt-5 py-3.5 rounded-2xl text-white font-extrabold text-base disabled:opacity-50 hover:opacity-90 active:scale-[0.98] transition"
               style={{ background: "linear-gradient(135deg,#3C5148,#6B8E4E)" }}
             >
@@ -595,8 +710,10 @@ export default function PagoSimulado() {
             <p className="text-center text-[11px] text-slate-400 mt-4 flex items-center justify-center gap-1.5">
               🔒 Pago simulado — entorno de pruebas de Mercado Digital
             </p>
-          </form>
-        )}
+            </form>
+          )}
+        </>
+      )}
       </div>
     </div>
   );

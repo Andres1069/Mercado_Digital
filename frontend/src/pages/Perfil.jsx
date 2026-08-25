@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
+import Footer from "../components/Footer";
 import { useAuth } from "../context/AuthContext";
 import { authService } from "../services/api";
 
@@ -226,9 +227,12 @@ export default function Perfil() {
   }
 
   return (
-    <div className="min-h-screen md-app-bg">
+    <div className="min-h-screen flex flex-col md-app-bg">
       <Navbar />
-      {contenido}
+      <div className="flex-1">
+        {contenido}
+      </div>
+      <Footer compact={true} />
     </div>
   );
 }

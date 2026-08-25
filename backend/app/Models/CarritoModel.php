@@ -12,7 +12,7 @@ class CarritoModel {
 
     /**
      * Obtiene el carrito activo del usuario con sus items.
-     * Si no existe, lo crea vacío.
+     * Si no existe, lo crea vacÃ­o.
      */
     public function obtener(int $numDocumento): array {
         $stmt = $this->db->prepare("SELECT Cod_Carrito, Cantidad_articulos, Total FROM carrito WHERE Num_Documento = :doc LIMIT 1");
@@ -75,14 +75,14 @@ class CarritoModel {
             $this->db->prepare(
                 "INSERT INTO carrito_item (Cantidad, Precio, Cod_producto, Cod_carrito) VALUES (:qty, :precio, :prod, :carrito)"
             )->execute([':qty' => $cantidad, ':precio' => $precio * $cantidad, ':prod' => $codProducto, ':carrito' => $codCarrito]);
-            // El trigger tr_actualizar_carrito recalcula automáticamente
+            // El trigger tr_actualizar_carrito recalcula automÃ¡ticamente
         }
 
         return $this->obtener($numDocumento);
     }
 
     /**
-     * Quita un item del carrito por su ID de ítem.
+     * Quita un item del carrito por su ID de Ã­tem.
      */
     public function quitarItem(int $numDocumento, int $codCarritoItem): bool {
         $carrito = $this->obtener($numDocumento);
@@ -99,7 +99,7 @@ class CarritoModel {
     }
 
     /**
-     * Vacía el carrito del usuario.
+     * VacÃ­a el carrito del usuario.
      */
     public function vaciar(int $numDocumento): void {
         $stmt = $this->db->prepare("SELECT Cod_Carrito FROM carrito WHERE Num_Documento = :doc LIMIT 1");

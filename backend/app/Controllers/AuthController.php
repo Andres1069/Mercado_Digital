@@ -5,6 +5,7 @@ require_once __DIR__ . '/../Models/UsuarioModel.php';
 require_once __DIR__ . '/../../config/JWT.php';
 require_once __DIR__ . '/../Middleware/AuthMiddleware.php';
 require_once __DIR__ . '/../../config/Mailer.php';
+require_once __DIR__ . '/../Helpers/AuditLog.php';
 
 class AuthController {
     private UsuarioModel $model;
@@ -18,23 +19,26 @@ class AuthController {
 
     // POST /auth/login
     public function login(): void {
-        $body = $this->body();
+        $this->checkRateLimit();
+        $body   = $this->body();
+        $correo = trim((string)($body['correo'] ?? ''));
 
-        if (empty($body['correo']) || empty($body['contrasena'])) {
+        if ($correo === '' || empty($body['contrasena'])) {
             $this->error('Correo y contrasena son requeridos.', 400);
         }
 
-        $usuario = $this->model->findByCorreo($body['correo']);
+        // Verifica bloqueo por intentos fallidos ANTES de consultar la BD (LR7)
+        $this->checkAccountLockout($correo);
+
+        $usuario = $this->model->findByCorreo($correo);
 
         if ($usuario && !empty($usuario['estado']) && $usuario['estado'] !== 'Activo') {
             $this->error('Tu cuenta esta inactiva. Contacta a un administrador.', 403);
         }
 
-        if (!$usuario) {
-            $this->error('Correo o contrasena incorrectos.', 401);
-        }
-
-        if (!password_verify($body['contrasena'], $usuario['ContrasenaHash'])) {
+        // Registra intento fallido si el correo no existe o la contraseña es incorrecta
+        if (!$usuario || !password_verify((string)$body['contrasena'], $usuario['ContrasenaHash'])) {
+            $this->recordFailedAttempt($correo);
             $this->error('Correo o contrasena incorrectos.', 401);
         }
 
@@ -52,6 +56,9 @@ class AuthController {
             'sid'           => $sid,
         ]);
 
+        // Login exitoso: limpiar contadores de bloqueo e IP
+        $this->clearAccountLockout($correo);
+        $this->resetRateLimit();
         $this->ok(['token' => $token, 'usuario' => $usuario], 'Login exitoso.');
     }
 
@@ -246,7 +253,7 @@ class AuthController {
         $origin  = $_SERVER['HTTP_ORIGIN'] ?? '';
         $enviado = $this->enviarCorreoReset($usuario['Correo'], $codigo, $origin);
         if (!$enviado) {
-            $this->error('No fue posible enviar el codigo al correo configurado. Verifica SMTP e intenta de nuevo.', 500);
+            $this->error('No fue posible enviar el código. Es posible que el servidor de alojamiento (Render) esté bloqueando los puertos SMTP. Verifica tu configuración.', 400);
         }
 
         $this->limpiarResetStore($store);
@@ -377,6 +384,105 @@ class AuthController {
 
     // ── Métodos privados ──────────────────────────────────────────────────
 
+    private function checkRateLimit(): void {
+        $ip  = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $key = substr(hash('sha256', $ip), 0, 16);
+        $dir = __DIR__ . '/../../storage';
+        if (!is_dir($dir)) @mkdir($dir, 0775, true);
+        $file = $dir . '/rl_' . $key . '.json';
+
+        $data = @json_decode(@file_get_contents($file), true);
+        $now  = time();
+
+        if (!$data || ($now - (int)($data['t'] ?? 0)) >= 60) {
+            $data = ['t' => $now, 'n' => 1];
+        } else {
+            $data['n']++;
+            if ($data['n'] > 5) {
+                @file_put_contents($file, json_encode($data), LOCK_EX);
+                $this->error('Demasiados intentos de inicio de sesion. Espera 1 minuto e intenta de nuevo.', 429);
+            }
+        }
+
+        @file_put_contents($file, json_encode($data), LOCK_EX);
+    }
+
+    private function resetRateLimit(): void {
+        $ip  = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $key = substr(hash('sha256', $ip), 0, 16);
+        $file = __DIR__ . '/../../storage/rl_' . $key . '.json';
+        @unlink($file);
+    }
+
+    // ── Bloqueo por cuenta (LR7) ──────────────────────────────────────────
+
+    private const LOCKOUT_MAX_ATTEMPTS = 4;
+    private const LOCKOUT_SECONDS      = 180; // 3 minutos
+
+    private function lockoutFile(string $correo): string {
+        $key = substr(hash('sha256', strtolower($correo)), 0, 16);
+        $dir = __DIR__ . '/../../storage';
+        if (!is_dir($dir)) @mkdir($dir, 0775, true);
+        return $dir . '/lockout_' . $key . '.json';
+    }
+
+    private function checkAccountLockout(string $correo): void {
+        if ($correo === '') return;
+        $data  = @json_decode(@file_get_contents($this->lockoutFile($correo)), true);
+        $until = (int)($data['locked_until'] ?? 0);
+        if ($until > time()) {
+            $restante = $until - time();
+            $this->error(
+                "Cuenta bloqueada por demasiados intentos fallidos. Vuelve a intentarlo en " . $this->formatoMinutos($restante) . ".",
+                429,
+                ['code' => 'ACCOUNT_LOCKED', 'retry_after' => $restante, 'locked_until' => $until]
+            );
+        }
+    }
+
+    private function recordFailedAttempt(string $correo): void {
+        if ($correo === '') return;
+        $file = $this->lockoutFile($correo);
+        $data = @json_decode(@file_get_contents($file), true);
+        $now  = time();
+
+        // Resetear si el bloqueo anterior ya expiró
+        if (!$data || ((int)($data['locked_until'] ?? 0) > 0 && (int)($data['locked_until'] ?? 0) <= $now)) {
+            $data = ['attempts' => 0, 'locked_until' => 0];
+        }
+
+        $data['attempts'] = (int)($data['attempts'] ?? 0) + 1;
+
+        if ($data['attempts'] >= self::LOCKOUT_MAX_ATTEMPTS) {
+            $data['locked_until'] = $now + self::LOCKOUT_SECONDS;
+            @file_put_contents($file, json_encode($data), LOCK_EX);
+            AuditLog::registrar(
+                'account_locked',
+                'usuario',
+                null,
+                null,
+                'correo_hash=' . substr(hash('sha256', strtolower($correo)), 0, 8) . ' ip=' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown')
+            );
+            $this->error(
+                'Tu cuenta ha sido bloqueada por ' . $this->formatoMinutos(self::LOCKOUT_SECONDS) . ' debido a demasiados intentos fallidos.',
+                429,
+                ['code' => 'ACCOUNT_LOCKED', 'retry_after' => self::LOCKOUT_SECONDS, 'locked_until' => $data['locked_until']]
+            );
+        }
+
+        @file_put_contents($file, json_encode($data), LOCK_EX);
+    }
+
+    private function formatoMinutos(int $segundos): string {
+        $minutos = (int)ceil($segundos / 60);
+        return $minutos . ' minuto' . ($minutos === 1 ? '' : 's');
+    }
+
+    private function clearAccountLockout(string $correo): void {
+        if ($correo === '') return;
+        @unlink($this->lockoutFile($correo));
+    }
+
     private function body(): array {
         return json_decode(file_get_contents('php://input'), true) ?? [];
     }
@@ -415,15 +521,18 @@ class AuthController {
 
     private function enviarCorreoReset(string $correo, string $codigo, string $origin): bool {
         $subject = 'Codigo para restablecer tu contrasena - Mercado Digital';
-        $link    = $origin ? rtrim($origin, '/') . '/login?token=' . urlencode($codigo) : '';
+        // El token NO se incluye en la URL para evitar exponerlo en logs de servidor y
+        // en el historial del navegador. El usuario ingresa el código manualmente. (LR5)
+        $loginUrl = $origin ? rtrim($origin, '/') . '/login' : '';
 
         $body  = "Hola,\n\n";
         $body .= "Recibimos una solicitud para restablecer la contrasena de tu cuenta en Mercado Digital.\n\n";
         $body .= "Tu codigo de verificacion es:\n\n";
         $body .= $codigo . "\n\n";
         $body .= "Este codigo es valido por 15 minutos.\n\n";
-        if ($link !== '') {
-            $body .= "Tambien puedes abrir este enlace directamente:\n$link\n\n";
+        $body .= "Ingresa este codigo en la pantalla de inicio de sesion > 'Olvide mi contrasena'.\n\n";
+        if ($loginUrl !== '') {
+            $body .= "Ir a inicio de sesion:\n$loginUrl\n\n";
         }
         $body .= "Si no solicitaste este cambio, ignora este correo. Tu contrasena no sera modificada.\n\n";
         $body .= "- Equipo Mercado Digital\n";
@@ -432,8 +541,8 @@ class AuthController {
         $codigoHtml          = htmlspecialchars($codigo, ENT_QUOTES, 'UTF-8');
         $contactoMail        = 'mercado.digital.bog@gmail.com';
         $contactoMailHref    = 'mailto:' . $contactoMail;
-        $contactoTelefono    = '+57 300 000 0000';
-        $contactoTelefonoHref = 'tel:+573000000000';
+        $contactoTelefono    = '+57 324 4314271';
+        $contactoTelefonoHref = 'tel:+573244314271';
         $socialHref          = htmlspecialchars($origin !== '' ? rtrim($origin, '/') : '#', ENT_QUOTES, 'UTF-8');
 
         $bodyHtml = <<<HTML
@@ -556,7 +665,7 @@ HTML;
         if (!is_dir($dir)) {
             @mkdir($dir, 0775, true);
         }
-        $line = date('c') . " RESET_CODE correo=$correo codigo=$codigo" . ($link !== '' ? " link=$link" : '') . PHP_EOL;
+        $line = date('c') . " RESET_CODE correo=$correo codigo=$codigo" . ($loginUrl !== '' ? " login_url=$loginUrl" : '') . PHP_EOL;
         @file_put_contents($dir . '/reset_tokens.log', $line, FILE_APPEND);
 
         $enviado = Mailer::send($correo, $subject, $body, $bodyHtml);
@@ -618,9 +727,9 @@ HTML;
         exit;
     }
 
-    private function error(string $msg, int $code = 400): never {
+    private function error(string $msg, int $code = 400, array $extra = []): never {
         http_response_code($code);
-        echo json_encode(['success' => false, 'message' => $msg]);
+        echo json_encode(array_replace(['success' => false, 'message' => $msg], $extra));
         exit;
     }
 }
