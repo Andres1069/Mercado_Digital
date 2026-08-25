@@ -1,7 +1,7 @@
 // frontend/src/services/api.js
 // Permite usar la API desde otros dispositivos (ej: celular) sin quedar amarrado a "localhost".
 // Puedes sobrescribirlo con VITE_API_BASE_URL en `.env` si lo necesitas.
-const BASE_URL =
+export const BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
   `${window.location.protocol}//${window.location.hostname}/mercado_digital/backend/public`;
 

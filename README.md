@@ -179,10 +179,21 @@ mercado_digital/
 
 El backend no utiliza un archivo `.env` por defecto, por lo que las configuraciones se hacen directamente en los archivos de la carpeta `backend/config/`:
 
-- **Base de Datos:** Edita las propiedades `$host`, `$db_name`, `$username` y `$password` en el archivo `Database.php`.
+- **Base de Datos:** En local puedes editar los valores por defecto en `Database.php`; en producción (Render) se configuran vía variables de entorno `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`.
 - **JWT:** Modifica la variable estática `$secretKey` en `JWT.php`.
-- **Servidor SMTP (Correos):** Configura las credenciales por defecto (`MAIL_USER`, `MAIL_PASS`) en `MailConfig.php`.
 - **Pagos Locales (Nequi/Daviplata):** Se configuran directamente en la Base de Datos o desde el Panel de Administración.
+
+### Correos (recuperación de contraseña)
+
+`backend/config/Mailer.php` soporta dos modos, controlados desde `MailConfig.php` / variables de entorno:
+
+1. **SMTP directo** (`MAIL_HOST`, `MAIL_PORT`, `MAIL_USER`, `MAIL_PASS`): funciona en local (XAMPP), pero **Render bloquea los puertos SMTP salientes** — en producción falla con el error "No fue posible enviar el código...".
+2. **API HTTP** (`MAIL_API_KEY`, `MAIL_PROVIDER=brevo|resend`): evita el bloqueo de puertos porque envía por HTTPS. **Es el modo que debe usarse en Render.**
+
+Nunca pongas credenciales reales como valor por defecto en `MailConfig.php` — ese archivo se sube al repositorio. Defínelas siempre como variables de entorno:
+
+- Local (XAMPP): variables de entorno del sistema, o edita `MailConfig.php` solo en tu copia local sin commitear el cambio.
+- Render: pestaña **Environment** del servicio → agrega `MAIL_API_KEY` y `MAIL_PROVIDER` (y opcionalmente `MAIL_FROM`, `MAIL_FROM_NAME`).
 
 ---
 

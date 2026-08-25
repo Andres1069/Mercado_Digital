@@ -181,9 +181,13 @@ export default function AdminPedidos() {
         style={{ borderTop: "1px solid rgba(107,142,78,0.08)" }}
         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(107,142,78,0.06)"}
         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ""}>
-        <td className="px-4 py-3">
+        <td className="px-2 sm:px-4 py-3">
           <p className="font-semibold" style={{ color: "#1B2727" }}>#{p.Cod_Pedido}</p>
           <p className="text-xs" style={{ color: "#6B8E4E" }}>{p.Cantidad_articulos} art. - {p.Canal_Venta || "Online"}</p>
+          <span className="sm:hidden inline-flex mt-1.5 px-2 py-0.5 rounded-full text-xs font-bold"
+            style={{ backgroundColor: cBadge.bg, color: cBadge.text }}>
+            {p.Estado_Pedido}
+          </span>
         </td>
         <td className="px-4 py-3 hidden md:table-cell">
           <p className="font-medium" style={{ color: "#3C5148" }}>{p.Nombre} {p.Apellido}</p>
@@ -192,15 +196,15 @@ export default function AdminPedidos() {
         <td className="px-4 py-3 hidden lg:table-cell text-xs" style={{ color: "#6B8E4E" }}>
           {formatFecha(p.Fecha_Pedido)}
         </td>
-        <td className="px-4 py-3 text-center font-bold" style={{ color: "#6B8E4E" }}>
+        <td className="px-1.5 sm:px-4 py-3 text-center font-bold" style={{ color: "#6B8E4E" }}>
           ${Number(p.Monto_Pago || p.Total_Carrito || 0).toLocaleString("es-CO")}
         </td>
         <td className="px-4 py-3 hidden md:table-cell text-center">
           <p className="text-xs" style={{ color: "#3C5148" }}>{p.Metodo_Pago || "-"}</p>
           <p className="text-xs" style={{ color: "#6B8E4E" }}>{p.Estado_Pago || "-"}</p>
         </td>
-        <td className="px-4 py-3 text-center">
-          <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-bold"
+        <td className="px-1.5 sm:px-4 py-3 text-center">
+          <span className="inline-flex max-w-[104px] px-2.5 py-1 rounded-full text-xs font-bold text-center"
             style={{
               backgroundColor: domicilioOk ? "rgba(107,142,78,0.18)" : "rgba(245,158,11,0.15)",
               color: domicilioOk ? "#3C5148" : "#92400e"
@@ -208,20 +212,20 @@ export default function AdminPedidos() {
             {p.Tipo_Entrega === "Recoger_Tienda" ? "Recoge en tienda" : domicilioOk ? "Completo" : `Falta ${faltantes.join(", ")}`}
           </span>
           {!domicilioOk && p.Correo && (
-            <p className="mt-1 text-[11px]" style={{ color: "#6B8E4E" }}>{p.Correo}</p>
+            <p className="mt-1 text-[11px] max-w-[90px] truncate mx-auto" style={{ color: "#6B8E4E" }}>{p.Correo}</p>
           )}
         </td>
-        <td className="px-4 py-3 text-center">
+        <td className="px-4 py-3 hidden sm:table-cell text-center">
           <span className="px-2.5 py-1 rounded-full text-xs font-bold"
             style={{ backgroundColor: cBadge.bg, color: cBadge.text }}>
             {p.Estado_Pedido}
           </span>
         </td>
-        <td className="px-4 py-3 text-center">
+        <td className="px-1.5 sm:px-4 py-3 text-center">
           <div className="flex flex-col items-center gap-2">
             <select value={p.Estado_Pedido} disabled={cambiando === p.Cod_Pedido}
               onChange={(e) => handleCambiarEstado(p.Cod_Pedido, e.target.value)}
-              className="text-xs px-2 py-1 rounded-lg focus:outline-none disabled:opacity-50"
+              className="w-24 text-xs px-2 py-1 rounded-lg focus:outline-none disabled:opacity-50"
               style={{ backgroundColor: "#F8FAF9", border: "1px solid #B2C5B2", color: "#1B2727" }}>
               {ESTADOS.map((e) => <option key={e} value={e}>{e}</option>)}
             </select>
@@ -312,7 +316,7 @@ export default function AdminPedidos() {
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
                   {["Pedido", "Cliente", "Fecha", "Total", "Pago", "Domicilio", "Estado", "Acciones"].map((h, i) => (
-                    <th key={h} className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${i === 1 ? "hidden md:table-cell" : ""} ${i === 2 ? "hidden lg:table-cell" : ""} ${i === 4 ? "hidden md:table-cell" : ""} ${i === 3 || i >= 5 ? "text-center" : ""}`}
+                    <th key={h} className={`px-2 sm:px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${i === 1 ? "hidden md:table-cell" : ""} ${i === 2 ? "hidden lg:table-cell" : ""} ${i === 4 ? "hidden md:table-cell" : ""} ${i === 6 ? "hidden sm:table-cell" : ""} ${i === 3 || i >= 5 ? "text-center" : ""}`}
                       style={{ color: "#6B8E4E" }}>
                       {h}
                     </th>

@@ -129,7 +129,7 @@ export default function AdminInventario() {
                 <tr style={{ borderBottom: "1px solid rgba(107,142,78,0.12)" }}>
                   {["Producto","Categoria","Precio","Stock","Nivel","Accion"].map((h, i) => (
                     <th key={h}
-                      className={`px-4 py-3 text-xs font-bold uppercase tracking-wider ${i === 1 ? "hidden md:table-cell" : ""} ${i === 2 ? "hidden lg:table-cell text-right" : ""} ${i === 3 || i === 4 || i === 5 ? "text-center" : ""}`}
+                      className={`px-4 py-3 text-xs font-bold uppercase tracking-wider ${i === 1 ? "hidden lg:table-cell" : ""} ${i === 2 ? "hidden xl:table-cell text-right" : ""} ${i === 4 ? "hidden sm:table-cell text-center" : ""} ${i === 3 || i === 5 ? "text-center" : ""}`}
                       style={{ color: "#6B8E4E" }}>
                       {h}
                     </th>
@@ -173,11 +173,15 @@ export default function AdminInventario() {
                             <div>
                               <p className="font-semibold" style={{ color: "#1B2727" }}>{item.Producto}</p>
                               <p className="text-xs" style={{ color: "#6B8E4E" }}>ID: {item.Cod_Producto}</p>
+                              <span className="sm:hidden inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-bold"
+                                style={{ backgroundColor: nivel.bg, color: nivel.text }}>
+                                {nivel.label}
+                              </span>
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 hidden md:table-cell text-sm" style={{ color: "#3C5148" }}>{item.Categoria || "-"}</td>
-                        <td className="px-4 py-3 hidden lg:table-cell text-right font-medium" style={{ color: "#6B8E4E" }}>
+                        <td className="px-4 py-3 hidden lg:table-cell text-sm" style={{ color: "#3C5148" }}>{item.Categoria || "-"}</td>
+                        <td className="px-4 py-3 hidden xl:table-cell text-right font-medium" style={{ color: "#6B8E4E" }}>
                           ${Number(item.Precio || 0).toLocaleString("es-CO")}
                         </td>
                         <td className="px-4 py-3 text-center">
@@ -190,7 +194,7 @@ export default function AdminInventario() {
                             <span className="font-bold" style={{ color: "#1B2727" }}>{item.Stock}</span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-center">
+                        <td className="px-4 py-3 hidden sm:table-cell text-center">
                           <span className="px-2.5 py-1 rounded-full text-xs font-bold"
                             style={{ backgroundColor: nivel.bg, color: nivel.text }}>
                             {nivel.label}
@@ -198,21 +202,21 @@ export default function AdminInventario() {
                         </td>
                         <td className="px-4 py-3 text-center">
                           {esEditando ? (
-                            <div className="flex items-center justify-center gap-2">
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-1.5 sm:gap-2">
                               <button onClick={() => guardarStock(item)} disabled={guardando}
-                                className="px-3 py-1 rounded-lg text-xs font-semibold text-white disabled:opacity-50 transition"
+                                className="px-3 py-1 rounded-lg text-xs font-semibold text-white disabled:opacity-50 transition whitespace-nowrap"
                                 style={{ backgroundColor: "#6B8E4E" }}>
                                 Guardar
                               </button>
                               <button onClick={cancelarEdicion}
-                                className="px-3 py-1 rounded-lg text-xs font-semibold transition"
+                                className="px-3 py-1 rounded-lg text-xs font-semibold transition whitespace-nowrap"
                                 style={{ border: "1px solid rgba(107,142,78,0.18)", color: "#3C5148" }}>
                                 Cancelar
                               </button>
                             </div>
                           ) : (
                             <button onClick={() => iniciarEdicion(item)}
-                              className="px-3 py-1 rounded-lg text-xs font-semibold transition"
+                              className="px-3 py-1 rounded-lg text-xs font-semibold transition whitespace-nowrap"
                               style={{ border: "1px solid rgba(107,142,78,0.4)", color: "#3C5148" }}>
                               Editar stock
                             </button>
